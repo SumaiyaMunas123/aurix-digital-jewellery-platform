@@ -1,6 +1,7 @@
 {
   "name": "aurix-digital-jewellery-platform",
   "version": "1.0.0",
+  "type":"module",
   "description": "Aurix is a mobile-first digital jewellery marketplace designed to connect customers with verified jewellers through a secure and modern platform.  \r This project focuses on improving trust, accessibility, and efficiency in the jewellery industry using digital technology.",
   "main": "index.js",
   "scripts": {
@@ -13,7 +14,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/SumaiyaMunas/aurix-digital-jewellery-platform/issues"
   },
