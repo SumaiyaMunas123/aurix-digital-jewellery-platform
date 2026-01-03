@@ -7,6 +7,9 @@ import cors from 'cors';
 // Import dotenv to load environment variables from .env file
 import dotenv from 'dotenv';
 
+// supabase 
+import { supabase } from './config/supabase.js';
+
 // Load environment variables into process.env
 dotenv.config();
 
@@ -22,9 +25,22 @@ app.use(cors());
 app.use(express.json());
 
 // Basic test route to check if backend is running
+app.get('/test-db', async (req, res) => {
+    console.log("Test DB route hit");
+  const { data, error } = await supabase
+    .from('users')
+    .select('*');
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json({ message: 'DB connected', data });
+});
+
 // Access: http://localhost:5000/
 app.get('/', (req, res) => {
-  res.send('Aurix Backend is running 🚀');
+  res.send('Aurix Backend is running');
 });
 
 // Set server port from environment variable or default to 5000
