@@ -4,7 +4,7 @@ import { supabase } from '../config/supabase.js';
 // ==================== SIGNUP ====================
 export const signup = async (req, res) => {
   try {
-    console.log('📝 Signup request received');
+    console.log('📝 Signup request received')
     
     // Get data from request body
     const { email, password, name, role } = req.body;
