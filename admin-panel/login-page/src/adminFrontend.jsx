@@ -3,7 +3,7 @@ import "./index.css";
 import "./AdminLogin.css";
 import logoImg from "./assets/logo.jpg";
 
-const AdminLogin = () => {
+const AdminLogin = ({ onLogin }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -11,6 +11,10 @@ const AdminLogin = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Login:", { email, password });
+        // Call the onLogin callback to switch to dashboard
+        if (onLogin) {
+            onLogin();
+        }
     };
 
     const handleSocialLogin = (provider) => {

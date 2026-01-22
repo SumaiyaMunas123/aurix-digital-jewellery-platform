@@ -199,6 +199,18 @@
     padding: 0;
 }
 
+.social-btn.google {
+    color: #4285F4;
+}
+
+.social-btn.facebook {
+    color: #1877F2;
+}
+
+.social-btn.github {
+    color: #333;
+}
+
 .social-btn:hover {
     border-color: #D4AF37;
     background: #fafafa;
