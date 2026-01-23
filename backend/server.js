@@ -7,6 +7,9 @@ import { supabase } from './src/config/supabase.js';
 // Import auth routes
 import authRoutes from './src/routes/auth.js';
 
+// Import product routes
+import productRoutes from './src/routes/products.js';  
+
 // Load environment variables
 dotenv.config();
 
@@ -35,6 +38,9 @@ app.get('/', (req, res) => {
 
 // Auth routes - connects /api/auth to authRoutes
 app.use('/api/auth', authRoutes);
+
+// Product routes - connects /api/products to productRoutes
+app.use('/api/products', productRoutes);
 
 // Test database connection
 app.get('/test-db', async (req, res) => {
@@ -86,5 +92,10 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   GET  /test-db             - Test database`);
   console.log(`   POST /api/auth/signup     - Register new user`);
   console.log(`   POST /api/auth/login      - Login user`);
+  console.log(`   POST /api/products          - Add product`);          
+  console.log(`   GET  /api/products          - Get all products`);      
+  console.log(`   GET  /api/products/:id      - Get single product`);    
+  console.log(`   PUT  /api/products/:id      - Update product`);       
+  console.log(`   DELETE /api/products/:id    - Delete product`); 
   console.log('='.repeat(60));
 });
