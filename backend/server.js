@@ -21,7 +21,7 @@ app.use(express.json());
 
 // Root route
 app.get('/', (req, res) => {
-  console.log('✅ Root route accessed');
+  console.log(' Root route accessed');
   res.json({ 
     message: 'Aurix Backend is running',
     timestamp: new Date().toISOString(),
@@ -38,7 +38,7 @@ app.use('/api/auth', authRoutes);
 
 // Test database connection
 app.get('/test-db', async (req, res) => {
-  console.log('🔍 Testing database connection...');
+  console.log(' Testing database connection...');
   
   try {
     const { data, error, count } = await supabase
@@ -46,14 +46,14 @@ app.get('/test-db', async (req, res) => {
       .select('*', { count: 'exact' });
 
     if (error) {
-      console.error('❌ Database error:', error);
+      console.error(' Database error:', error);
       return res.status(500).json({ 
         success: false,
         error: error.message 
       });
     }
 
-    console.log('✅ Database connected! Users count:', count);
+    console.log(' Database connected! Users count:', count);
     
     res.json({ 
       success: true,
@@ -63,7 +63,7 @@ app.get('/test-db', async (req, res) => {
     });
     
   } catch (err) {
-    console.error('❌ Server error:', err);
+    console.error(' Server error:', err);
     res.status(500).json({ 
       success: false,
       error: 'Server error: ' + err.message 
@@ -77,11 +77,11 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log('='.repeat(60));
-  console.log('🚀 AURIX BACKEND STARTED');
+  console.log(' AURIX BACKEND STARTED');
   console.log('='.repeat(60));
-  console.log(`📍 Server: http://localhost:${PORT}`);
+  console.log(` Server: http://localhost:${PORT}`);
   console.log('');
-  console.log('📋 Available Endpoints:');
+  console.log(' Available Endpoints:');
   console.log(`   GET  /                    - Server info`);
   console.log(`   GET  /test-db             - Test database`);
   console.log(`   POST /api/auth/signup     - Register new user`);
