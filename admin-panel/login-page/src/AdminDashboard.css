@@ -23,7 +23,6 @@
 .sidebar-header {
     padding: 20px;
     border-bottom: 1px solid #f0f0f0;
-    /* display: flex; */
     align-items: center;
     justify-content: space-between;
 }
@@ -81,7 +80,6 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    transition: all 0.3s ease;
     text-align: left;
 }
 
@@ -369,7 +367,7 @@
 .stat-card:hover .stat-icon {
     background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%);
     color: white;
-    transform: scale(1.1) rotate(-5deg);
+    transform: scale(1.1);
 }
 
 .stat-card:hover .stat-icon svg {
@@ -444,6 +442,7 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     border: 1px solid #f0f0f0;
     flex-shrink: 0;
+    
 }
 
 .quick-actions-section h2 {
@@ -455,8 +454,10 @@
 
 .quick-actions {
     display: flex;
-    gap: 14px;
+    gap: 21px;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
 
 .action-btn {
@@ -475,6 +476,7 @@
     min-height: 50px;
     position: relative;
     overflow: hidden;
+     width: 480px;
 }
 
 .action-btn svg {
@@ -512,6 +514,7 @@
 
 .action-btn.primary {
     background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%);
+    width: 480px;
     color: white;
     border-color: transparent;
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
@@ -528,6 +531,7 @@
     border: 2px solid #D4AF37;
     color: #D4AF37;
     background: #fff9f0;
+     width: 480px;
 }
 
 .action-btn.secondary:hover {
