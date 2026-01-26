@@ -1,29 +1,30 @@
-/* Footer */
-.dashboard-footer {
-    background: white;
-    border-top: 2px solid #f0f0f0;
-    padding: 16px 30px;
-    flex-shrink: 0;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+
+ .dashboard-footer {
+    padding: 18px 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-radius: 10px;
+    margin-top: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .footer-content {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
 }
 
 .footer-brand {
-    margin: 0 0 6px 0;
-    font-size: 14px;
-    font-weight: 700;
-    color: #D4AF37;
+  font-weight: 600;
+  color: #D4AF37;
+  margin: 0;
 }
 
 .footer-copyright {
-    margin: 0;
-    font-size: 12px;
-    color: #999;
+  color: #000000;
+  margin: 0;
+  font-size: 12px;
 }

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import AdminLogin from './AdminLogin'
 import AdminDashboard from './AdminDashboard'
-import Footer from './Footer'
+// import Footer from './Footer'
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -25,7 +25,7 @@ function App() {
           <AdminLogin onLogin={handleLogin} />
         )}
 
-        <Footer />
+        {/* <Footer /> */}
       </>
     </StrictMode>
   )

@@ -21,11 +21,10 @@
 }
 
 .sidebar-header {
-    padding: 20px;
+    padding: 20px 20px 10.5px 20px;
     border-bottom: 1px solid #f0f0f0;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 11px;
 }
 
 .logo-section {
@@ -71,7 +70,7 @@
 
 .nav-item {
     width: 100%;
-    padding: 18px 22px;
+    padding: 18px 24px;
     border: none;
     background: none;
     cursor: pointer;
@@ -258,32 +257,38 @@
     padding: 0 12px;
 }
 
+.user-info {
+    cursor: pointer; 
+}
+
+.user-info:hover .user-name {
+    color: #D4AF37; 
+    transition: color 0.3s ease; 
+}
+
+.user-role {
+    color: #6b7280; 
+}
+
 .avatar {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: #D4AF37;
+    background-color: #D4AF37;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
+    font-weight: bold;
+    font-size: 16px;
+    pointer-events: none; 
 }
 
 .user-name {
     font-size: 13px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: rgb(0, 0, 0);
     margin: 0;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.user-name-link:hover {
-    color: #D4AF37;
-    text-decoration: underline;
 }
 
 .user-role {
@@ -463,7 +468,7 @@
 
 .quick-actions {
     display: flex;
-    gap: 12px;
+    gap: 21px;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
@@ -812,5 +817,3 @@
         font-size: 20px;
     }
 }
-
-

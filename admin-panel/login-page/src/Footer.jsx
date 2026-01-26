@@ -1,8 +1,7 @@
-// Footer
 import React from "react";
-import "./Footer.css"; 
+import "./Footer.css";
 
-const Footer = () => {
+const DashboardFooter = () => {
   return (
     <footer className="dashboard-footer">
       <div className="footer-content">
@@ -15,4 +14,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default DashboardFooter;
