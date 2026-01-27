@@ -233,6 +233,11 @@
     color: #333;
 }
 
+/* View all button */
+.view-all:hover {
+  border-color: #000;
+}
+
 /* Sign Up Link */
 .signup-link {
     text-align: center;
