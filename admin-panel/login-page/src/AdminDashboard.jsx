@@ -3,6 +3,7 @@ import "./AdminDashboard.css";
 import Footer from "./Footer";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
+import JewelerVerification from "./JewelerVerification";
 
 const AdminDashboard = ({ onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -161,6 +162,97 @@ const AdminDashboard = ({ onLogout }) => {
     },
   ];
 
+  const renderDashboardOverview = () => (
+    <>
+      <div className="page-header">
+        <h1>Dashboard Overview</h1>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        {stats.map((stat, index) => {
+          const StatIcon = Icons[stat.icon];
+          const isPositive = !stat.change.startsWith("-");
+          const ArrowIcon = isPositive ? Icons.ArrowUp : Icons.ArrowDown;
+          return (
+            <div key={index} className="stat-card">
+              <div className="stat-icon">
+                <StatIcon />
+              </div>
+              <div className="stat-info">
+                <p className="stat-label">{stat.label}</p>
+                <p className="stat-value">{stat.value}</p>
+                <p
+                  className={`stat-change ${isPositive ? "positive" : "negative"}`}
+                >
+                  <ArrowIcon />
+                  <span>{stat.change}</span>
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="quick-actions-section">
+        <h2>Quick Actions</h2>
+        <div className="quick-actions">
+          <button className="action-btn primary">
+            <Icons.Verify />
+            <span>Verify Jeweler</span>
+          </button>
+          <button className="action-btn secondary">
+            <Icons.Moderate />
+            <span>Moderate Products</span>
+          </button>
+          <button className="action-btn">
+            <Icons.Report />
+            <span>Generate Report</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Charts and Activity */}
+      <div className="content-grid">
+        <div className="chart-section">
+          <div className="section-header">
+            <h2>Sales Overview</h2>
+            <div className="time-filter">
+              <button>Week</button>
+              <button className="active">Month</button>
+            </div>
+          </div>
+          <div className="chart-placeholder">
+            <span>📊</span>
+            <p>Sales Chart Visualization</p>
+          </div>
+        </div>
+
+        <div className="activity-section">
+          <h2>Recent Activity</h2>
+          <div className="activity-list">
+            {recentActivity.map((activity, index) => {
+              const ActivityIcon = Icons[activity.icon];
+              return (
+                <div key={index} className="activity-item">
+                  <div className="activity-icon">
+                    <ActivityIcon />
+                  </div>
+                  <div className="activity-info">
+                    <p className="activity-title">{activity.title}</p>
+                    <p className="activity-subtitle">{activity.subtitle}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <button className="view-all">View All Activity</button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="dashboard-wrapper">
       {/* Sidebar */}
@@ -182,94 +274,13 @@ const AdminDashboard = ({ onLogout }) => {
           onLogout={onLogout}
         />
 
-        {/* Dashboard Content */}
+        {/* Dashboard Content (switch by menu) */}
         <div className="dashboard-content">
-          <div className="page-header">
-            <h1>Dashboard Overview</h1>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="stats-grid">
-            {stats.map((stat, index) => {
-              const StatIcon = Icons[stat.icon];
-              const isPositive = !stat.change.startsWith("-");
-              const ArrowIcon = isPositive ? Icons.ArrowUp : Icons.ArrowDown;
-              return (
-                <div key={index} className="stat-card">
-                  <div className="stat-icon">
-                    <StatIcon />
-                  </div>
-                  <div className="stat-info">
-                    <p className="stat-label">{stat.label}</p>
-                    <p className="stat-value">{stat.value}</p>
-                    <p
-                      className={`stat-change ${isPositive ? "positive" : "negative"}`}
-                    >
-                      <ArrowIcon />
-                      <span>{stat.change}</span>
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Quick Actions */}
-          <div className="quick-actions-section">
-            <h2>Quick Actions</h2>
-            <div className="quick-actions">
-              <button className="action-btn primary">
-                <Icons.Verify />
-                <span>Verify Jeweler</span>
-              </button>
-              <button className="action-btn secondary">
-                <Icons.Moderate />
-                <span>Moderate Products</span>
-              </button>
-              <button className="action-btn">
-                <Icons.Report />
-                <span>Generate Report</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Charts and Activity */}
-          <div className="content-grid">
-            <div className="chart-section">
-              <div className="section-header">
-                <h2>Sales Overview</h2>
-                <div className="time-filter">
-                  <button>Week</button>
-                  <button className="active">Month</button>
-                </div>
-              </div>
-              <div className="chart-placeholder">
-                <span>📊</span>
-                <p>Sales Chart Visualization</p>
-              </div>
-            </div>
-
-            <div className="activity-section">
-              <h2>Recent Activity</h2>
-              <div className="activity-list">
-                {recentActivity.map((activity, index) => {
-                  const ActivityIcon = Icons[activity.icon];
-                  return (
-                    <div key={index} className="activity-item">
-                      <div className="activity-icon">
-                        <ActivityIcon />
-                      </div>
-                      <div className="activity-info">
-                        <p className="activity-title">{activity.title}</p>
-                        <p className="activity-subtitle">{activity.subtitle}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <button className="view-all">View All Activity</button>
-            </div>
-          </div>
+          {activeMenu === "jewelers" ? (
+            <JewelerVerification />
+          ) : (
+            renderDashboardOverview()
+          )}
 
           {/* Footer */}
           <Footer />
