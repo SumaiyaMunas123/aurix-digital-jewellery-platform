@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "./AdminDashboard.css";
 import Footer from "./Footer";
+import Sidebar from "./Sidebar";
+import TopBar from "./TopBar";
 
 const AdminDashboard = ({ onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -162,75 +164,23 @@ const AdminDashboard = ({ onLogout }) => {
   return (
     <div className="dashboard-wrapper">
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
-        <div className="sidebar-header">
-          <div className="logo-section">
-            <span className="logo-text">Welcome, </span>
-          </div>
-          <div>
-            <span className="logo-text-name">Sanuthmi Jayalath</span>
-          </div>
-          <button
-            className="sidebar-toggle"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <Icons.Close /> : <Icons.Menu />}
-          </button>
-        </div>
-
-        <nav className="sidebar-nav">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                className={`nav-item ${activeMenu === item.id ? "active" : ""}`}
-                onClick={() => setActiveMenu(item.id)}
-              >
-                <Icon />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="sidebar-footer">
-          <button className="support-btn" title="Support">
-            <Icons.Support />
-          </button>
-        </div>
-      </aside>
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        activeMenu={activeMenu}
+        setActiveMenu={setActiveMenu}
+        menuItems={menuItems}
+        Icons={Icons}
+      />
 
       {/* Main Content */}
       <main className="main-content">
         {/* Top Bar */}
-        <div className="top-bar">
-          <div className="search-bar">
-            <input type="text" placeholder="Search orders, jewelers..." />
-            <span className="search-icon">
-              <Icons.Search />
-            </span>
-          </div>
-          <div className="top-actions">
-            <button className="icon-btn" title="Notifications">
-              <Icons.Bell />
-            </button>
-            <button className="icon-btn" title="Settings">
-              <Icons.Settings />
-            </button>
-            <div className="user-profile">
-              <span className="avatar">SJ</span>
-              <div className="user-info" onClick={handleProfileClick}>
-                <p className="user-name">Sanuthmi Jayalath</p>
-                <p className="user-role">Senior Admin</p>
-              </div>
-            </div>
-
-            <button className="logout-btn" onClick={onLogout} title="Logout">
-              <Icons.Logout />
-            </button>
-          </div>
-        </div>
+        <TopBar
+          Icons={Icons}
+          handleProfileClick={handleProfileClick}
+          onLogout={onLogout}
+        />
 
         {/* Dashboard Content */}
         <div className="dashboard-content">
