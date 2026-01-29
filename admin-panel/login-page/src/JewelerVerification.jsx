@@ -123,8 +123,9 @@ const JewelerVerification = () => {
       <div className="verification-header">
         
         <h1>Jeweler Verification</h1>
+            <button className="btn-register">Register Jeweler </button>
       </div>
-
+   
       <div className="verification-toolbar">
         <div className="verification-tabs">
           {tabs.map((tab) => (
