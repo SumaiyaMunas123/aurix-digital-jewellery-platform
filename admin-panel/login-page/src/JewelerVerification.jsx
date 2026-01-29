@@ -40,6 +40,42 @@ const initialRequests = [
     submittedAt: "Oct 09, 2023",
     status: "Pending",
   },
+  {
+    id: 5,
+    initials: "OG",
+    name: "Orchid Gem House",
+    email: "info@orchidgems.biz",
+    brn: "45621-P",
+    submittedAt: "Oct 09, 2023",
+    status: "Pending",
+  },
+  {
+    id: 6,
+    initials: "DD",
+    name: "Diamond District Co.",
+    email: "admin@dd.lk",
+    brn: "88432-Z",
+    submittedAt: "Oct 11, 2023",
+    status: "Approved",
+  },
+  {
+    id: 7,
+    initials: "DD",
+    name: "Diamond District Co.",
+    email: "admin@dd.lk",
+    brn: "88432-Z",
+    submittedAt: "Oct 11, 2023",
+    status: "Approved",
+  },
+  {
+    id: 8,
+    initials: "DD",
+    name: "Diamond District Co.",
+    email: "admin@dd.lk",
+    brn: "88432-Z",
+    submittedAt: "Oct 11, 2023",
+    status: "Approved",
+  },
 ];
 
 const statusClassMap = {
