@@ -89,6 +89,11 @@
 /* .icon-btn:hover svg {
     transform: scale(1.2);
 } */
+.icon-btn:focus,
+.icon-btn:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
 
 .user-profile {
     display: flex;
@@ -150,6 +155,13 @@
 .logout-btn:hover {
     color: #e74c3c;
 }
+
+.logout-btn:focus,
+.logout-btn:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
 
 @media (max-width: 768px) {
     .top-bar {

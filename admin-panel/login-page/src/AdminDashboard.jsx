@@ -172,8 +172,6 @@ const AdminDashboard = ({ onLogout }) => {
       <div className="stats-grid">
         {stats.map((stat, index) => {
           const StatIcon = Icons[stat.icon];
-          const isPositive = !stat.change.startsWith("-");
-          const ArrowIcon = isPositive ? Icons.ArrowUp : Icons.ArrowDown;
           return (
             <div key={index} className="stat-card">
               <div className="stat-icon">
@@ -182,12 +180,6 @@ const AdminDashboard = ({ onLogout }) => {
               <div className="stat-info">
                 <p className="stat-label">{stat.label}</p>
                 <p className="stat-value">{stat.value}</p>
-                <p
-                  className={`stat-change ${isPositive ? "positive" : "negative"}`}
-                >
-                  <ArrowIcon />
-                  <span>{stat.change}</span>
-                </p>
               </div>
             </div>
           );

@@ -120,30 +120,8 @@
     font-weight: 700;
 }
 
-.stat-change svg {
-    width: 16px;
-    height: 16px;
-    transition: all 0.3s ease;
-}
-
 .stat-change span {
     transition: all 0.3s ease;
-}
-
-.stat-change.positive {
-    color: #27ae60;
-}
-
-.stat-change.positive svg {
-    color: #27ae60;
-}
-
-.stat-change.negative {
-    color: #e74c3c;
-}
-
-.stat-change.negative svg {
-    color: #e74c3c;
 }
 
 .stat-card:hover .stat-change svg {
