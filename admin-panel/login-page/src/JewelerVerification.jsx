@@ -76,6 +76,24 @@ const initialRequests = [
     submittedAt: "Oct 11, 2023",
     status: "Approved",
   },
+  {
+    id: 9,
+    initials: "SJ",
+    name: "Sunrise Jewels",
+    email: "hello@sunrisejewels.com",
+    brn: "67219-Q",
+    submittedAt: "Oct 08, 2023",
+    status: "Pending",
+  },
+  {
+    id: 10,
+    initials: "CR",
+    name: "Crystal Ridge",
+    email: "support@crystalridge.com",
+    brn: "99821-M",
+    submittedAt: "Oct 07, 2023",
+    status: "Approved",
+  },
 ];
 
 const statusClassMap = {
@@ -103,14 +121,8 @@ const JewelerVerification = () => {
   return (
     <div className="verification-page">
       <div className="verification-header">
-        <p className="verification-breadcrumb">
-          Dashboard <span>/</span> Jeweler Verification
-        </p>
+        
         <h1>Jeweler Verification</h1>
-        <p className="verification-subtitle">
-          Review and approve business registration for upcoming jewelry
-          partners.
-        </p>
       </div>
 
       <div className="verification-toolbar">
@@ -127,10 +139,6 @@ const JewelerVerification = () => {
             </button>
           ))}
         </div>
-        <div className="verification-actions-right">
-          <button className="btn-outline">Export CSV</button>
-          <button className="btn-primary">Refresh Table</button>
-        </div>
       </div>
 
       <div className="verification-filters-row">
@@ -142,7 +150,8 @@ const JewelerVerification = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <button className="btn-filters">Filters</button>
+        <button className="btn-filters">Filter</button>
+        <button className="btn-primary">Refresh Table</button>
       </div>
 
       <div className="verification-card">
@@ -195,18 +204,8 @@ const JewelerVerification = () => {
 
         <div className="verification-footer-row">
           <p className="results-text">
-            Showing 1 to {filteredRequests.length} of {initialRequests.length}{" "}
-            results
+            Showing {filteredRequests.length} of {initialRequests.length} results
           </p>
-          <div className="pagination">
-            <button className="page-btn">&lt;</button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
-            <button className="page-btn">3</button>
-            <span className="page-ellipsis">...</span>
-            <button className="page-btn">6</button>
-            <button className="page-btn">&gt;</button>
-          </div>
         </div>
       </div>
     </div>
