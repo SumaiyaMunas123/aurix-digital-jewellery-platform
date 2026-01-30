@@ -38,6 +38,7 @@ class ChatThreadScreen extends StatelessWidget {
         title: const Text(
           "LUXE Jewellers",
           style: TextStyle(
+            fontSize: 20,
             color: Colors.black,
             fontWeight: FontWeight.w600,
           ),
