@@ -1,8 +1,9 @@
 import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import AdminLogin from './adminFrontend'
+import AdminLogin from './AdminLogin'
 import AdminDashboard from './AdminDashboard'
+// import Footer from './Footer'
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -17,11 +18,15 @@ function App() {
 
   return (
     <StrictMode>
-      {isLoggedIn ? (
-        <AdminDashboard onLogout={handleLogout} />
-      ) : (
-        <AdminLogin onLogin={handleLogin} />
-      )}
+      <>
+        {isLoggedIn ? (
+          <AdminDashboard onLogout={handleLogout} />
+        ) : (
+          <AdminLogin onLogin={handleLogin} />
+        )}
+
+        {/* <Footer /> */}
+      </>
     </StrictMode>
   )
 }
