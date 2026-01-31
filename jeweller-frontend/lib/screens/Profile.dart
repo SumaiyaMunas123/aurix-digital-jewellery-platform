@@ -1,83 +1,71 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const AurixProfileApp());
+  runApp(const AurixApp());
 }
 
-class AurixProfileApp extends StatelessWidget {
-  const AurixProfileApp({super.key});
+class AurixApp extends StatelessWidget {
+  const AurixApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Aurix App',
+      title: 'Aurix',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
-        fontFamily: 'Roboto',
+        brightness: Brightness.light,
+        primaryColor: const Color(0xFFD4AF35),
+        scaffoldBackgroundColor: const Color(0xFFF8F7F6),
+        fontFamily: 'Manrope',
       ),
-      home: const MainScreen(),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFFD4AF35),
+        scaffoldBackgroundColor: const Color(0xFF201D12),
+        fontFamily: 'Manrope',
+      ),
+      home: const MainNavigation(),
     );
   }
 }
 
-/* ========================
-   MAIN SCREEN WITH BOTTOM NAV
-   ======================== */
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 4; // Default: Account tab
+class _MainNavigationState extends State<MainNavigation> {
+  int _currentIndex = 4; // Default to Account
 
   final List<Widget> _screens = const [
-    Center(child: Text("Home Screen", style: TextStyle(fontSize: 20))),
-    Center(child: Text("Search Screen", style: TextStyle(fontSize: 20))),
-    Center(child: Text("Gold Rate Screen", style: TextStyle(fontSize: 20))),
-    Center(child: Text("AI Design Screen", style: TextStyle(fontSize: 20))),
+    Center(child: Text("Home Screen", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
+    Center(child: Text("Search Screen", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
+    Center(child: Text("Gold Rate Screen", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
+    Center(child: Text("AI Design Screen", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
     ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        selectedItemColor: const Color(0xFFD4AF37),
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: isDark ? const Color(0xFF2A271A) : Colors.white,
+        selectedItemColor: const Color(0xFFD4AF35),
+        unselectedItemColor: isDark ? Colors.grey[400] : Colors.grey,
+        onTap: (index) => setState(() => _currentIndex = index),
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.monetization_on),
-            label: 'Gold Rate',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.design_services),
-            label: 'AI Design',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Account',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
+          BottomNavigationBarItem(icon: Icon(Icons.trending_up), label: 'Gold Rate'),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'AI Design'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
         ],
       ),
     );
@@ -95,6 +83,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -104,7 +94,7 @@ class ProfileScreen extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF201D12) : Colors.white,
         elevation: 1,
         centerTitle: true,
       ),
@@ -116,7 +106,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 40,
-                backgroundColor: const Color(0xFFD4AF37),
+                backgroundColor: const Color(0xFFD4AF35),
                 child: Text(
                   userName[0],
                   style: const TextStyle(fontSize: 28, color: Colors.white),
@@ -138,7 +128,7 @@ class ProfileScreen extends StatelessWidget {
                     userStatus,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey.shade600,
+                      color: isDark ? Colors.grey[400] : Colors.grey[700],
                     ),
                   ),
                 ],
@@ -235,21 +225,23 @@ class ProfileOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2A271A) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFD4AF37), width: 0.8),
+        border: Border.all(color: const Color(0xFFD4AF35), width: 0.8),
       ),
       child: ListTile(
-        leading: Icon(icon, color: iconColor ?? const Color(0xFFD4AF37)),
+        leading: Icon(icon, color: iconColor ?? const Color(0xFFD4AF35)),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: titleColor ?? Colors.black,
+            color: titleColor ?? (isDark ? Colors.white : Colors.black),
           ),
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
