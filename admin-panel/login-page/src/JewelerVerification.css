@@ -8,15 +8,12 @@
     padding-bottom: 8px;
 }
 
-
-
 .verification-header h1 {
     margin: 0 0 4px 0;
     font-size: 26px;
     font-weight: 700;
     color: #111827;
 }
-
 
 .verification-toolbar {
     display: flex;
@@ -86,7 +83,7 @@
     margin-left: auto;
     position: absolute;
     top: 118px;
-    right: 30px;
+    right: 38px;
 }
 
 .btn-register:hover {
