@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -12,6 +13,9 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _agreeToTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  final ApiService _apiService = ApiService();
+  bool _isLoading = false;
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -52,7 +56,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return hasHadBirthdayThisYear ? age >= 18 : age - 1 >= 18;
   }
 
-  void _handleSignup() {
+  void _handleSignup() async {  // ← Add 'async' here
     // Validate first name
     if (_firstNameController.text.trim().isEmpty) {
       _showError('Please enter your first name');
@@ -138,18 +142,54 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // If all validations pass, show success and navigate to login
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Account created successfully! Please login.'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    // ========== NEW: CALL BACKEND API ==========
+    
+    setState(() => _isLoading = true);
 
-    // Navigate to login screen after signup
-    Future.delayed(const Duration(seconds: 1), () {
-      Navigator.pushReplacementNamed(context, '/login');
-    });
+    try {
+      // Format date as YYYY-MM-DD
+      final formattedDate = '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
+      
+      print('🚀 Calling API...');
+      
+      final result = await _apiService.signup(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        dateOfBirth: formattedDate,
+        gender: _selectedGender!,
+        relationshipStatus: _selectedRelationshipStatus!,
+      );
+
+      setState(() => _isLoading = false);
+
+      print('📥 API Result: $result');
+
+      if (result['success'] == true) {
+        // Success!
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please login.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to login screen after signup
+        Future.delayed(const Duration(seconds: 1), () {
+          Navigator.pushReplacementNamed(context, '/login');
+        });
+      } else {
+        // Failed
+        _showError(result['message'] ?? 'Signup failed. Please try again.');
+      }
+      
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print('❌ Exception: $e');
+      _showError('Error: $e');
+    }
   }
 
   void _showError(String message) {
@@ -271,30 +311,39 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 30),
               
               // Signup Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _handleSignup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100),
+              // Signup Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _handleSignup, // ← Changed
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        disabledBackgroundColor: primaryColor.withOpacity(0.5), // ← Add this
+                      ),
+                      child: _isLoading // ← Changed
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'SIGNUP',
+                              style: TextStyle(
+                                color: Color(0xFFF5F5F5),
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                     ),
                   ),
-                  child: const Text(
-                    'SIGNUP',
-                    style: TextStyle(
-                      color: Color(0xFFF5F5F5),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 30),
-              
+                                
               // Or register with
               Text(
                 'Or register with',
