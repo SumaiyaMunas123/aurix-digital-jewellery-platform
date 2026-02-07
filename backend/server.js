@@ -9,6 +9,7 @@ import authRoutes from './src/routes/auth.js';
 
 // Import product routes
 import productRoutes from './src/routes/products.js';  
+import adminRoutes from './src/routes/admin.js';
 
 // Load environment variables
 dotenv.config();
@@ -31,6 +32,16 @@ app.get('/', (req, res) => {
     available_endpoints: [
       'POST /api/auth/signup',
       'POST /api/auth/login',
+      'POST /api/products',
+      'GET /api/products',
+      'GET /api/products/:id',
+      'PUT /api/products/:id',
+      'DELETE /api/products/:id',
+      'GET /api/admin/jewellers/pending',      // NEW
+      'GET /api/admin/jewellers',              // NEW
+      'POST /api/admin/jewellers/:id/approve', // NEW
+      'POST /api/admin/jewellers/:id/reject',  // NEW
+      'GET /api/admin/jewellers/:id/status',   // NEW
       'GET /test-db'
     ]
   });
@@ -41,6 +52,9 @@ app.use('/api/auth', authRoutes);
 
 // Product routes - connects /api/products to productRoutes
 app.use('/api/products', productRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 // Test database connection
 app.get('/test-db', async (req, res) => {
@@ -82,20 +96,35 @@ app.get('/test-db', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('='.repeat(60));
-  console.log(' AURIX BACKEND STARTED');
-  console.log('='.repeat(60));
-  console.log(` Server: http://localhost:${PORT}`);
+  console.log('='.repeat(70));
+  console.log('AURIX BACKEND STARTED');
+  console.log('='.repeat(70));
+  console.log(`Server: http://localhost:${PORT}`);
+  console.log(`Network: http://0.0.0.0:${PORT}`);
   console.log('');
-  console.log(' Available Endpoints:');
-  console.log(`   GET  /                    - Server info`);
-  console.log(`   GET  /test-db             - Test database`);
-  console.log(`   POST /api/auth/signup     - Register new user`);
-  console.log(`   POST /api/auth/login      - Login user`);
-  console.log(`   POST /api/products          - Add product`);          
-  console.log(`   GET  /api/products          - Get all products`);      
-  console.log(`   GET  /api/products/:id      - Get single product`);    
-  console.log(`   PUT  /api/products/:id      - Update product`);       
-  console.log(`   DELETE /api/products/:id    - Delete product`); 
-  console.log('='.repeat(60));
+  console.log('Available Endpoints:');
+  console.log('');
+  console.log('   AUTH:');
+  console.log(`   POST /api/auth/signup           - Register (customer/jeweller)`);
+  console.log(`   POST /api/auth/login            - Login`);
+  console.log('');
+  console.log('   PRODUCTS:');
+  console.log(`   POST /api/products              - Add product`);
+  console.log(`   GET  /api/products              - Get all products`);
+  console.log(`   GET  /api/products/:id          - Get single product`);
+  console.log(`   PUT  /api/products/:id          - Update product`);
+  console.log(`   DELETE /api/products/:id        - Delete product`);
+  console.log('');
+  console.log('   ADMIN (NEW!):');
+  console.log(`   GET  /api/admin/jewellers/pending       - Get pending jewellers`);
+  console.log(`   GET  /api/admin/jewellers               - Get all jewellers`);
+  console.log(`   GET  /api/admin/jewellers/:id           - Get jeweller details`);
+  console.log(`   POST /api/admin/jewellers/:id/approve   - Approve jeweller`);
+  console.log(`   POST /api/admin/jewellers/:id/reject    - Reject jeweller`);
+  console.log(`   GET  /api/admin/jewellers/:id/status    - Check status`);
+  console.log('');
+  console.log('   TESTING:');
+  console.log(`   GET  /                          - Server info`);
+  console.log(`   GET  /test-db                   - Test database`);
+  console.log('='.repeat(70));
 });
