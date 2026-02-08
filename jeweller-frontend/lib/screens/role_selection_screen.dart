@@ -67,13 +67,13 @@ class RoleSelectionScreen extends StatelessWidget {
                   title: 'I\'m a Customer',
                   subtitle: 'Browse and buy jewellery',
                   onTap: () {
-                    Navigator.pushNamed(context, '/login');
+                    Navigator.pushNamed(context, '/signup'); // ← Customer signup
                   },
-                  isDark: isDark,
+                  isDark: false, // ← Changed to light theme
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Jeweller Card
                 _buildRoleCard(
                   context,
@@ -81,9 +81,9 @@ class RoleSelectionScreen extends StatelessWidget {
                   title: 'I\'m a Jeweller',
                   subtitle: 'Sell your jewellery products',
                   onTap: () {
-                    Navigator.pushNamed(context, '/login');
+                    Navigator.pushNamed(context, '/jeweller-registration'); // ← Jeweller registration
                   },
-                  isDark: isDark,
+                  isDark: false, // ← Changed to light theme
                 ),
                 
                 const SizedBox(height: 60),
