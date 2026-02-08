@@ -1,18 +1,19 @@
 import 'package:dio/dio.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.8.154:5000/api'; // Change this!
+  // IMPORTANT: Change to your IP address
+  static const String baseUrl = 'http://127.0.0.1:5000'; // ← YOUR IP HERE
   
   final Dio _dio = Dio(BaseOptions(
     baseUrl: baseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
     headers: {
       'Content-Type': 'application/json',
     },
   ));
 
-  // Signup (Customer)
+  // ==================== CUSTOMER SIGNUP ====================
   Future<Map<String, dynamic>> signup({
     required String email,
     required String password,
@@ -24,71 +25,97 @@ class ApiService {
     required String relationshipStatus,
   }) async {
     try {
-      print('📤 Sending signup request to: $baseUrl/auth/signup');
+      print('📤 Customer Signup Request');
       
       final data = {
         'email': email,
         'password': password,
         'name': '$firstName $lastName',
-        'role': 'customer', // ← CUSTOMER SPECIFIC
+        'role': 'customer',
         'phone': phone,
         'date_of_birth': dateOfBirth,
         'gender': gender,
         'relationship_status': relationshipStatus,
       };
 
-      print('📦 Request data: $data');
-
-      final response = await _dio.post('/auth/signup', data: data);
-      
-      print('Response: ${response.data}');
+      final response = await _dio.post('/api/auth/signup', data: data);
+      print('✅ Signup Response: ${response.data}');
       return response.data;
       
     } on DioException catch (e) {
-      print('DioException: ${e.type}');
-      print('Error message: ${e.message}');
-      
+      print('❌ Signup Error: ${e.message}');
       if (e.response != null) {
-        print('Response data: ${e.response!.data}');
         return e.response!.data;
       }
-      
       return {
         'success': false,
         'message': 'Network error: ${e.message}'
       };
-    } catch (e) {
-      print('Unknown error: $e');
+    }
+  }
+
+  // ==================== JEWELLER REGISTRATION ====================
+  Future<Map<String, dynamic>> registerJeweller({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String businessName,
+    required String registrationNumber,
+    required String certificationUrl,
+  }) async {
+    try {
+      print('📤 Jeweller Registration Request');
+      
+      final data = {
+        'email': email,
+        'password': password,
+        'name': '$firstName $lastName',
+        'role': 'jeweller',
+        'phone': phone,
+        'business_name': businessName,
+        'business_registration_number': registrationNumber,
+        'certification_document_url': certificationUrl,
+      };
+
+      final response = await _dio.post('/api/auth/signup', data: data);
+      print('✅ Registration Response: ${response.data}');
+      return response.data;
+      
+    } on DioException catch (e) {
+      print('❌ Registration Error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
       return {
         'success': false,
-        'message': 'Unknown error: $e'
+        'message': 'Network error: ${e.message}'
       };
     }
   }
 
-  // Login
+  // ==================== LOGIN (Both Customer & Jeweller) ====================
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
   }) async {
     try {
-      print('Sending login request to: $baseUrl/auth/login');
+      print('📤 Login Request for: $email');
       
-      final response = await _dio.post('/auth/login', data: {
+      final response = await _dio.post('/api/auth/login', data: {
         'email': email,
         'password': password,
       });
       
-      print('Login response: ${response.data}');
+      print('✅ Login Response: ${response.data}');
       return response.data;
       
     } on DioException catch (e) {
-      print('Login error: ${e.message}');
-      
+      print('❌ Login Error: ${e.message}');
       if (e.response != null) {
         return e.response!.data;
       }
-      
       return {
         'success': false,
         'message': 'Network error: ${e.message}'
@@ -96,10 +123,32 @@ class ApiService {
     }
   }
 
-  // Get all products
+  // ==================== CHECK VERIFICATION STATUS ====================
+  Future<Map<String, dynamic>> getVerificationStatus(String jewellerId) async {
+    try {
+      print('📤 Checking verification status for: $jewellerId');
+      
+      final response = await _dio.get('/api/admin/jewellers/$jewellerId/status');
+      
+      print('✅ Status Response: ${response.data}');
+      return response.data;
+      
+    } on DioException catch (e) {
+      print('❌ Status Check Error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {
+        'success': false,
+        'message': 'Network error: ${e.message}'
+      };
+    }
+  }
+
+  // ==================== GET ALL PRODUCTS ====================
   Future<Map<String, dynamic>> getAllProducts() async {
     try {
-      final response = await _dio.get('/products');
+      final response = await _dio.get('/api/products');
       return response.data;
     } on DioException catch (e) {
       if (e.response != null) {

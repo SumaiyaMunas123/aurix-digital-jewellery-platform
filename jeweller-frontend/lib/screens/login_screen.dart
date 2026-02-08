@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,15 +11,15 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   static const Color primaryColor = Color(0xFFD4AF35);
   bool _obscurePassword = true;
+  bool _isLoading = false;
   
+  final ApiService _apiService = ApiService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Error messages
   String? _emailError;
   String? _passwordError;
 
-  // Email validation regex
   final RegExp emailRegex = RegExp(
     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
   );
@@ -38,7 +39,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _clearErrors();
     bool isValid = true;
 
-    // Validate email
     if (_emailController.text.trim().isEmpty) {
       setState(() => _emailError = 'Please enter your email address');
       isValid = false;
@@ -47,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
       isValid = false;
     }
 
-    // Validate password
     if (_passwordController.text.isEmpty) {
       setState(() => _passwordError = 'Please enter your password');
       isValid = false;
@@ -56,13 +55,87 @@ class _LoginScreenState extends State<LoginScreen> {
     return isValid;
   }
 
-  void _handleLogin() {
+  void _handleLogin() async {
     if (!_validateFields()) {
       return;
     }
 
-    // If validation passes, navigate to main app
-    Navigator.pushReplacementNamed(context, '/main');
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await _apiService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        final user = result['user'];
+        final role = user['role'];
+        
+        print('✅ Login successful! Role: $role');
+        
+        // Check if jeweller needs verification
+        if (role == 'jeweller' && user['verified'] == false) {
+          print('⚠️ Jeweller pending verification');
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Your account is pending admin approval'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          
+          // Navigate to pending verification screen
+          Navigator.pushReplacementNamed(
+            context,
+            '/pending-verification',
+            arguments: user['id'],
+          );
+          return;
+        }
+        
+        // Login successful
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Welcome back, ${user['name']}!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        
+        // Navigate based on role
+        if (role == 'customer') {
+          // TODO: Navigate to customer home
+          Navigator.pushReplacementNamed(context, '/customer-home');
+        } else if (role == 'jeweller') {
+          // TODO: Navigate to jeweller dashboard
+          Navigator.pushReplacementNamed(context, '/jeweller-dashboard');
+        }
+      } else {
+        // Login failed
+        setState(() {
+          _emailError = result['message'] ?? 'Invalid email or password';
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Login failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print('❌ Exception: $e');
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -74,10 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF201D12) : const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -86,20 +157,18 @@ class _LoginScreenState extends State<LoginScreen> {
               constraints: const BoxConstraints(maxWidth: 500),
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF2A271A) : Colors.white,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
                     color: primaryColor.withOpacity(0.2),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
-                    spreadRadius: 0,
                   ),
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
-                    spreadRadius: 0,
                   ),
                 ],
               ),
@@ -107,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo Placeholder
+                  // Logo
                   Container(
                     width: 100,
                     height: 100,
@@ -126,11 +195,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   
                   const SizedBox(height: 24),
                   
-                  // Welcome Text
-                  Text(
+                  const Text(
                     'Welcome to',
                     style: TextStyle(
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      color: Colors.grey,
                       fontSize: 16,
                       fontWeight: FontWeight.w400,
                     ),
@@ -138,11 +206,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   
                   const SizedBox(height: 8),
                   
-                  // App Name
-                  Text(
+                  const Text(
                     'AURIX',
                     style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
+                      color: Colors.black,
                       fontSize: 36,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1,
@@ -154,7 +221,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Email Field
                   _buildTextField(
                     'Email Address', 
-                    isDark, 
                     TextInputType.emailAddress, 
                     _emailController,
                     errorText: _emailError,
@@ -163,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   
                   // Password Field
-                  _buildPasswordField(isDark),
+                  _buildPasswordField(),
                   
                   const SizedBox(height: 8),
                   
@@ -173,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextButton(
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Opening forgot password...')),
+                          const SnackBar(content: Text('Forgot password feature coming soon')),
                         );
                       },
                       child: const Text(
@@ -194,43 +260,53 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton(
-                      onPressed: _handleLogin,
+                      onPressed: _isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
+                        disabledBackgroundColor: primaryColor.withOpacity(0.5),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'LOGIN',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'LOGIN',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1,
+                              ),
+                            ),
                     ),
                   ),
                   
                   const SizedBox(height: 32),
                   
-                  // Divider with "or"
+                  // Divider
                   Row(
                     children: [
                       Expanded(
                         child: Divider(
-                          color: isDark ? Colors.grey[700] : Colors.grey[300],
+                          color: Colors.grey[300],
                           thickness: 1,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'or',
                           style: TextStyle(
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            color: Colors.grey,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -238,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       Expanded(
                         child: Divider(
-                          color: isDark ? Colors.grey[700] : Colors.grey[300],
+                          color: Colors.grey[300],
                           thickness: 1,
                         ),
                       ),
@@ -251,11 +327,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _buildSocialButton('Google', isDark),
+                        child: _buildSocialButton('Google'),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: _buildSocialButton('Apple', isDark),
+                        child: _buildSocialButton('Apple'),
                       ),
                     ],
                   ),
@@ -265,20 +341,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Sign up link
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, '/signup');
+                      Navigator.pushNamed(context, '/role-selection');
                     },
                     child: RichText(
-                      text: TextSpan(
+                      text: const TextSpan(
                         children: [
                           TextSpan(
                             text: "Don't have an account? ",
                             style: TextStyle(
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              color: Colors.grey,
                               fontSize: 14,
                               fontWeight: FontWeight.w400,
                             ),
                           ),
-                          const TextSpan(
+                          TextSpan(
                             text: 'Sign up here',
                             style: TextStyle(
                               color: primaryColor,
@@ -301,7 +377,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildTextField(
     String label, 
-    bool isDark, 
     TextInputType keyboardType, 
     TextEditingController controller,
     {String? errorText}
@@ -311,8 +386,8 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: isDark ? Colors.grey[400] : Colors.grey[700],
+          style: const TextStyle(
+            color: Colors.grey,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -320,12 +395,10 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1F1D14) : const Color(0xFFF8F7F6),
+            color: const Color(0xFFF8F7F6),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: errorText != null 
-                  ? Colors.red 
-                  : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+              color: errorText != null ? Colors.red : Colors.grey[300]!,
               width: errorText != null ? 1.5 : 1,
             ),
           ),
@@ -336,12 +409,11 @@ class _LoginScreenState extends State<LoginScreen> {
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+            style: const TextStyle(
+              color: Colors.black,
               fontSize: 15,
             ),
             onChanged: (value) {
-              // Clear error when user starts typing
               if (errorText != null) {
                 setState(() {
                   _emailError = null;
@@ -373,14 +445,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPasswordField(bool isDark) {
+  Widget _buildPasswordField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Password',
           style: TextStyle(
-            color: isDark ? Colors.grey[400] : Colors.grey[700],
+            color: Colors.grey,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -388,12 +460,10 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1F1D14) : const Color(0xFFF8F7F6),
+            color: const Color(0xFFF8F7F6),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _passwordError != null 
-                  ? Colors.red 
-                  : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+              color: _passwordError != null ? Colors.red : Colors.grey[300]!,
               width: _passwordError != null ? 1.5 : 1,
             ),
           ),
@@ -406,7 +476,7 @@ class _LoginScreenState extends State<LoginScreen> {
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  color: Colors.grey[600],
                   size: 20,
                 ),
                 onPressed: () {
@@ -414,12 +484,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
             ),
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+            style: const TextStyle(
+              color: Colors.black,
               fontSize: 15,
             ),
             onChanged: (value) {
-              // Clear error when user starts typing
               if (_passwordError != null) {
                 setState(() {
                   _passwordError = null;
@@ -451,43 +520,51 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSocialButton(String label, bool isDark) {
+  Widget _buildSocialButton(String label) {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1F1D14) : const Color(0xFFF8F7F6),
+        color: const Color(0xFFF8F7F6),
         border: Border.all(
-          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+          color: Colors.grey[300]!,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(4),
+      child: InkWell(
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$label sign-in coming soon')),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Icon(
+                label == 'Google' ? Icons.g_mobiledata : Icons.apple,
+                size: 18,
+                color: Colors.grey[700],
+              ),
             ),
-            child: Icon(
-              label == 'Google' ? Icons.g_mobiledata : Icons.apple,
-              size: 18,
-              color: Colors.grey[700],
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: TextStyle(
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

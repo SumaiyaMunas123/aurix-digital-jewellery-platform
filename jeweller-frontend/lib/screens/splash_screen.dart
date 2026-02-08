@@ -31,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Navigate to role selection screen after 3 seconds
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/role-selection');  
+        Navigator.pushReplacementNamed(context, '/role-selection');
       }
     });
   }
@@ -44,10 +44,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF201D12) : const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF5F5F5), // ← Light theme background
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Center(
@@ -61,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD4AF35),
+                  color: const Color(0xFFD4AF35), // Gold circle
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -71,11 +69,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                   ],
                 ),
-                child: Center(
+                child: const Center(
                   child: Text(
                     'A',
                     style: TextStyle(
-                      color: isDark ? const Color(0xFF201D12) : const Color(0xFFF5F5F5),
+                      color: Colors.white, // White letter on gold
                       fontSize: 64,
                       fontWeight: FontWeight.w800,
                     ),
@@ -86,10 +84,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               const SizedBox(height: 30),
               
               // App Name
-              Text(
+              const Text(
                 'AURIX',
                 style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
+                  color: Colors.black, // ← Black text for light theme
                   fontSize: 48,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 4,
@@ -99,10 +97,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               const SizedBox(height: 8),
               
               // Tagline
-              Text(
+              const Text(
                 'Your Jewellery Marketplace',
                 style: TextStyle(
-                  color: isDark ? Colors.grey[400] : const Color(0xFF303030),
+                  color: Color(0xFF303030), // ← Dark grey for light theme
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
@@ -119,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     Text(
                       'Version 1.0.0',
                       style: TextStyle(
-                        color: isDark ? Colors.grey[600] : Colors.grey[500],
+                        color: Colors.grey[500], // ← Light grey for version
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                       ),
@@ -128,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     Text(
                       'Crafted with precision',
                       style: TextStyle(
-                        color: isDark ? Colors.grey[700] : Colors.grey[400],
+                        color: Colors.grey[400], // ← Very light grey
                         fontSize: 10,
                         fontWeight: FontWeight.w300,
                       ),

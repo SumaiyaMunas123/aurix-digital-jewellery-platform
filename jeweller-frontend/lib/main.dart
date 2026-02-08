@@ -3,6 +3,8 @@ import 'screens/splash_screen.dart';
 import 'screens/role_selection_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
+import 'screens/jeweller_registration_screen.dart';
+import 'screens/pending_verification_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/gold_rate_screen.dart';
@@ -43,6 +45,9 @@ class AurixApp extends StatelessWidget {
         '/role-selection': (context) => const RoleSelectionScreen(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
+        '/customer-home': (context) => const HomeScreen(),
+        '/jeweller-registration': (context) => const JewellerRegistrationScreen(),
+        '/pending-verification': (context) => const PendingVerificationScreen(),
         '/main': (context) => const MainNavigation(),
         '/chat-overview': (context) => const ChatOverviewScreen(),
         '/chat-thread': (context) => const ChatThreadScreen(),
