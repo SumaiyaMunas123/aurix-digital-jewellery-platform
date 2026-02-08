@@ -28,6 +28,18 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _selectedGender;
   String? _selectedRelationshipStatus;
 
+  // Error messages for each field
+  String? _firstNameError;
+  String? _lastNameError;
+  String? _emailError;
+  String? _phoneError;
+  String? _dateError;
+  String? _genderError;
+  String? _relationshipError;
+  String? _passwordError;
+  String? _confirmPasswordError;
+  String? _termsError;
+
   // Email validation regex
   final RegExp emailRegex = RegExp(
     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
@@ -56,94 +68,108 @@ class _SignupScreenState extends State<SignupScreen> {
     return hasHadBirthdayThisYear ? age >= 18 : age - 1 >= 18;
   }
 
-  void _handleSignup() async {  // ← Add 'async' here
+  void _clearErrors() {
+    setState(() {
+      _firstNameError = null;
+      _lastNameError = null;
+      _emailError = null;
+      _phoneError = null;
+      _dateError = null;
+      _genderError = null;
+      _relationshipError = null;
+      _passwordError = null;
+      _confirmPasswordError = null;
+      _termsError = null;
+    });
+  }
+
+  bool _validateAllFields() {
+    _clearErrors();
+    bool isValid = true;
+
     // Validate first name
     if (_firstNameController.text.trim().isEmpty) {
-      _showError('Please enter your first name');
-      return;
+      setState(() => _firstNameError = 'Please enter your first name');
+      isValid = false;
     }
 
     // Validate last name
     if (_lastNameController.text.trim().isEmpty) {
-      _showError('Please enter your last name');
-      return;
+      setState(() => _lastNameError = 'Please enter your last name');
+      isValid = false;
     }
 
     // Validate email
     if (_emailController.text.trim().isEmpty) {
-      _showError('Please enter your email address');
-      return;
-    }
-
-    if (!isValidEmail(_emailController.text.trim())) {
-      _showError('Please enter a valid email address');
-      return;
+      setState(() => _emailError = 'Please enter your email address');
+      isValid = false;
+    } else if (!isValidEmail(_emailController.text.trim())) {
+      setState(() => _emailError = 'Please enter a valid email address');
+      isValid = false;
     }
 
     // Validate phone
     if (_phoneController.text.trim().isEmpty) {
-      _showError('Please enter your mobile number');
-      return;
-    }
-
-    if (!isValidPhone(_phoneController.text.trim())) {
-      _showError('Please enter a valid 10-digit mobile number');
-      return;
+      setState(() => _phoneError = 'Please enter your mobile number');
+      isValid = false;
+    } else if (!isValidPhone(_phoneController.text.trim())) {
+      setState(() => _phoneError = 'Please enter a valid 10-digit mobile number');
+      isValid = false;
     }
 
     // Validate date of birth
     if (_selectedDate == null) {
-      _showError('Please select your date of birth');
-      return;
-    }
-
-    if (!isAdult(_selectedDate)) {
-      _showError('You must be at least 18 years old to register');
-      return;
+      setState(() => _dateError = 'Please select your date of birth');
+      isValid = false;
+    } else if (!isAdult(_selectedDate)) {
+      setState(() => _dateError = 'You must be at least 18 years old to register');
+      isValid = false;
     }
 
     // Validate gender
     if (_selectedGender == null) {
-      _showError('Please select your gender');
-      return;
+      setState(() => _genderError = 'Please select your gender');
+      isValid = false;
     }
 
     // Validate relationship status
     if (_selectedRelationshipStatus == null) {
-      _showError('Please select your relationship status');
-      return;
+      setState(() => _relationshipError = 'Please select your relationship status');
+      isValid = false;
     }
 
     // Validate password
     if (_passwordController.text.isEmpty) {
-      _showError('Please enter a password');
-      return;
-    }
-
-    if (!isValidPassword(_passwordController.text)) {
-      _showError('Password must be at least 8 characters long');
-      return;
+      setState(() => _passwordError = 'Please enter a password');
+      isValid = false;
+    } else if (!isValidPassword(_passwordController.text)) {
+      setState(() => _passwordError = 'Password must be at least 8 characters long');
+      isValid = false;
     }
 
     // Validate confirm password
     if (_confirmPasswordController.text.isEmpty) {
-      _showError('Please confirm your password');
-      return;
-    }
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      _showError('Passwords do not match');
-      return;
+      setState(() => _confirmPasswordError = 'Please confirm your password');
+      isValid = false;
+    } else if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _confirmPasswordError = 'Passwords do not match');
+      isValid = false;
     }
 
     // Validate terms agreement
     if (!_agreeToTerms) {
-      _showError('Please agree to the Terms & Conditions');
+      setState(() => _termsError = 'Please agree to the Terms & Conditions');
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  void _handleSignup() async {
+    if (!_validateAllFields()) {
       return;
     }
 
-    // ========== NEW: CALL BACKEND API ==========
-    
     setState(() => _isLoading = true);
 
     try {
@@ -168,7 +194,6 @@ class _SignupScreenState extends State<SignupScreen> {
       print('📥 API Result: $result');
 
       if (result['success'] == true) {
-        // Success!
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Account created successfully! Please login.'),
@@ -176,29 +201,28 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         );
 
-        // Navigate to login screen after signup
         Future.delayed(const Duration(seconds: 1), () {
           Navigator.pushReplacementNamed(context, '/login');
         });
       } else {
-        // Failed
-        _showError(result['message'] ?? 'Signup failed. Please try again.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Signup failed. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
       
     } catch (e) {
       setState(() => _isLoading = false);
       print('❌ Exception: $e');
-      _showError('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
 
   @override
@@ -225,6 +249,7 @@ class _SignupScreenState extends State<SignupScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
+              
               // Title
               Text(
                 'SIGNUP',
@@ -234,116 +259,182 @@ class _SignupScreenState extends State<SignupScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              
               const SizedBox(height: 30),
               
-              // Input Fields
-              _buildTextField('First Name', isDark, controller: _firstNameController),
+              // Personal Information Card
+              _buildCard(
+                isDark: isDark,
+                title: 'Personal Information',
+                children: [
+                  _buildTextField('First Name', isDark, controller: _firstNameController, errorText: _firstNameError),
+                  const SizedBox(height: 20),
+                  _buildTextField('Last Name', isDark, controller: _lastNameController, errorText: _lastNameError),
+                ],
+              ),
+              
               const SizedBox(height: 20),
-              _buildTextField('Last Name', isDark, controller: _lastNameController),
+              
+              // Contact Information Card
+              _buildCard(
+                isDark: isDark,
+                title: 'Contact Information',
+                children: [
+                  _buildTextField('Email Address', isDark, controller: _emailController, keyboardType: TextInputType.emailAddress, errorText: _emailError),
+                  const SizedBox(height: 20),
+                  _buildTextField('Mobile Number', isDark, controller: _phoneController, keyboardType: TextInputType.phone, errorText: _phoneError),
+                ],
+              ),
+              
               const SizedBox(height: 20),
-              _buildTextField('Email Address', isDark, controller: _emailController, keyboardType: TextInputType.emailAddress),
+              
+              // Additional Details Card
+              _buildCard(
+                isDark: isDark,
+                title: 'Additional Details',
+                children: [
+                  _buildDateField('Date of Birth', isDark, errorText: _dateError),
+                  const SizedBox(height: 20),
+                  _buildDropdownField('Gender', ['Male', 'Female', 'Other'], isDark, (value) {
+                    setState(() {
+                      _selectedGender = value;
+                      _genderError = null;
+                    });
+                  }, errorText: _genderError),
+                  const SizedBox(height: 20),
+                  _buildDropdownField('Relationship Status', ['Single', 'Married', 'Divorced', 'Widowed'], isDark, (value) {
+                    setState(() {
+                      _selectedRelationshipStatus = value;
+                      _relationshipError = null;
+                    });
+                  }, errorText: _relationshipError),
+                ],
+              ),
+              
               const SizedBox(height: 20),
-              _buildTextField('Mobile Number', isDark, controller: _phoneController, keyboardType: TextInputType.phone),
-              const SizedBox(height: 20),
-              _buildDateField('Date of Birth', isDark),
-              const SizedBox(height: 20),
-              _buildDropdownField('Gender', ['Male', 'Female', 'Other'], isDark, (value) {
-                setState(() => _selectedGender = value);
-              }),
-              const SizedBox(height: 20),
-              _buildDropdownField('Relationship Status', ['Single', 'Married', 'Divorced', 'Widowed'], isDark, (value) {
-                setState(() => _selectedRelationshipStatus = value);
-              }),
-              const SizedBox(height: 20),
-              _buildPasswordField('Password', _obscurePassword, () {
-                setState(() => _obscurePassword = !_obscurePassword);
-              }, isDark, _passwordController),
-              const SizedBox(height: 20),
-              _buildPasswordField('Confirm Password', _obscureConfirmPassword, () {
-                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
-              }, isDark, _confirmPasswordController),
+              
+              // Security Card
+              _buildCard(
+                isDark: isDark,
+                title: 'Security',
+                children: [
+                  _buildPasswordField('Password', _obscurePassword, () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  }, isDark, _passwordController, errorText: _passwordError),
+                  const SizedBox(height: 20),
+                  _buildPasswordField('Confirm Password', _obscureConfirmPassword, () {
+                    setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                  }, isDark, _confirmPasswordController, errorText: _confirmPasswordError),
+                ],
+              ),
               
               const SizedBox(height: 20),
               
               // Terms & Conditions Checkbox
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Checkbox(
-                    value: _agreeToTerms,
-                    onChanged: (value) {
-                      setState(() => _agreeToTerms = value ?? false);
-                    },
-                    activeColor: primaryColor,
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/terms');
-                      },
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'I agree to the ',
-                              style: TextStyle(
-                                color: isDark ? Colors.grey[400] : const Color(0xFF303030),
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _agreeToTerms,
+                        onChanged: (value) {
+                          setState(() {
+                            _agreeToTerms = value ?? false;
+                            _termsError = null;
+                          });
+                        },
+                        activeColor: primaryColor,
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/terms');
+                          },
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'I agree to the ',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.grey[400] : const Color(0xFF303030),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const TextSpan(
+                                  text: 'Terms & Conditions',
+                                  style: TextStyle(
+                                    color: primaryColor,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const TextSpan(
-                              text: 'Terms & Conditions',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
+                  if (_termsError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 4),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            _termsError!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
               
               const SizedBox(height: 30),
               
               // Signup Button
-              // Signup Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleSignup, // ← Changed
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        disabledBackgroundColor: primaryColor.withOpacity(0.5), // ← Add this
-                      ),
-                      child: _isLoading // ← Changed
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'SIGNUP',
-                              style: TextStyle(
-                                color: Color(0xFFF5F5F5),
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleSignup,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100),
                     ),
+                    disabledBackgroundColor: primaryColor.withOpacity(0.5),
                   ),
-                                
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'SIGNUP',
+                          style: TextStyle(
+                            color: Color(0xFFF5F5F5),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                ),
+              ),
+              
+              const SizedBox(height: 30),
+              
               // Or register with
               Text(
                 'Or register with',
@@ -378,11 +469,57 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  // Card Widget
+  Widget _buildCard({
+    required bool isDark,
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A271A) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: primaryColor.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card Title
+          Text(
+            title,
+            style: TextStyle(
+              color: isDark ? primaryColor : primaryColor,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 20),
+          
+          // Card Content
+          ...children,
+        ],
+      ),
+    );
+  }
+
   Widget _buildTextField(
     String label,
     bool isDark, {
     TextEditingController? controller,
     TextInputType? keyboardType,
+    String? errorText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,19 +527,21 @@ class _SignupScreenState extends State<SignupScreen> {
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.grey[400] : const Color(0xFF404040),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
+            color: isDark ? Colors.grey[400] : Colors.grey[700],
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? Colors.grey[600]! : const Color(0xFF404040),
-                width: 2,
-              ),
+            color: isDark ? const Color(0xFF1F1D14) : const Color(0xFFF8F7F6),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: errorText != null 
+                  ? Colors.red 
+                  : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+              width: errorText != null ? 1.5 : 1,
             ),
           ),
           child: TextField(
@@ -410,118 +549,174 @@ class _SignupScreenState extends State<SignupScreen> {
             keyboardType: keyboardType,
             decoration: const InputDecoration(
               border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black,
-              fontSize: 16,
+              fontSize: 15,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateField(String label, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isDark ? Colors.grey[400] : const Color(0xFF404040),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? Colors.grey[600]! : const Color(0xFF404040),
-                width: 2,
-              ),
-            ),
-          ),
-          child: InkWell(
-            onTap: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime(2000),
-                firstDate: DateTime(1900),
-                lastDate: DateTime.now(),
-              );
-              if (picked != null) {
-                setState(() => _selectedDate = picked);
+            onChanged: (value) {
+              if (errorText != null) {
+                setState(() {
+                  if (label == 'First Name') _firstNameError = null;
+                  if (label == 'Last Name') _lastNameError = null;
+                  if (label == 'Email Address') _emailError = null;
+                  if (label == 'Mobile Number') _phoneError = null;
+                });
               }
             },
-            child: InputDecorator(
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedDate == null
-                        ? ''
-                        : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: 16,
-                    ),
-                  ),
-                  Icon(
-                    Icons.calendar_today,
-                    color: isDark ? Colors.grey[400] : const Color(0xFF404040),
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    errorText,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildDropdownField(String label, List<String> options, bool isDark, Function(String?) onChanged) {
+  Widget _buildDateField(String label, bool isDark, {String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.grey[400] : const Color(0xFF404040),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
+            color: isDark ? Colors.grey[400] : Colors.grey[700],
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: DateTime(2000),
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
+            );
+            if (picked != null) {
+              setState(() {
+                _selectedDate = picked;
+                _dateError = null;
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1F1D14) : const Color(0xFFF8F7F6),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: errorText != null 
+                    ? Colors.red 
+                    : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+                width: errorText != null ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _selectedDate == null
+                      ? 'Select date'
+                      : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                  style: TextStyle(
+                    color: _selectedDate == null 
+                        ? (isDark ? Colors.grey[500] : Colors.grey[600])
+                        : (isDark ? Colors.white : Colors.black),
+                    fontSize: 15,
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    errorText,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField(String label, List<String> options, bool isDark, Function(String?) onChanged, {String? errorText}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.grey[400] : Colors.grey[700],
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
         Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? Colors.grey[600]! : const Color(0xFF404040),
-                width: 2,
-              ),
+            color: isDark ? const Color(0xFF1F1D14) : const Color(0xFFF8F7F6),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: errorText != null 
+                  ? Colors.red 
+                  : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+              width: errorText != null ? 1.5 : 1,
             ),
           ),
           child: DropdownButtonFormField<String>(
             decoration: const InputDecoration(
               border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 4),
             ),
             hint: Text(
               'Select $label',
               style: TextStyle(
                 color: isDark ? Colors.grey[500] : Colors.grey[600],
-                fontSize: 16,
+                fontSize: 15,
               ),
             ),
             dropdownColor: isDark ? const Color(0xFF2A271A) : Colors.white,
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black,
-              fontSize: 16,
+              fontSize: 15,
             ),
             items: options.map((String value) {
               return DropdownMenuItem<String>(
@@ -532,10 +727,29 @@ class _SignupScreenState extends State<SignupScreen> {
             onChanged: onChanged,
             icon: Icon(
               Icons.arrow_drop_down,
-              color: isDark ? Colors.grey[400] : const Color(0xFF404040),
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
           ),
         ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    errorText,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -546,6 +760,7 @@ class _SignupScreenState extends State<SignupScreen> {
     VoidCallback onToggle,
     bool isDark,
     TextEditingController controller,
+    {String? errorText}
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -553,19 +768,21 @@ class _SignupScreenState extends State<SignupScreen> {
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.grey[400] : const Color(0xFF404040),
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
+            color: isDark ? Colors.grey[400] : Colors.grey[700],
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? Colors.grey[600]! : const Color(0xFF404040),
-                width: 2,
-              ),
+            color: isDark ? const Color(0xFF1F1D14) : const Color(0xFFF8F7F6),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: errorText != null 
+                  ? Colors.red 
+                  : (isDark ? Colors.grey[800]! : Colors.grey[300]!),
+              width: errorText != null ? 1.5 : 1,
             ),
           ),
           child: TextField(
@@ -573,20 +790,49 @@ class _SignupScreenState extends State<SignupScreen> {
             obscureText: obscureText,
             decoration: InputDecoration(
               border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               suffixIcon: IconButton(
                 icon: Icon(
                   obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: isDark ? Colors.grey[400] : const Color(0xFF404040),
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  size: 20,
                 ),
                 onPressed: onToggle,
               ),
             ),
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black,
-              fontSize: 16,
+              fontSize: 15,
             ),
+            onChanged: (value) {
+              if (errorText != null) {
+                setState(() {
+                  if (label == 'Password') _passwordError = null;
+                  if (label == 'Confirm Password') _confirmPasswordError = null;
+                });
+              }
+            },
           ),
         ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    errorText,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
