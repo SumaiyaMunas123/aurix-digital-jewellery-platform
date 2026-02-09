@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'product_detail_screen.dart';
+import 'home_screen.dart';
+import 'gold_rate_screen.dart';
+import 'ai_design_studio_screen.dart';
+import 'profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -163,6 +167,125 @@ class _SearchScreenState extends State<SearchScreen> {
             // Products Grid
             Expanded(
               child: _buildProductsGrid(isDark),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(isDark),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(bool isDark) {
+    return Container(
+      height: 70,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A271A) : const Color(0xFFD4AF37),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 5,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildNavItem(
+            icon: Icons.home,
+            label: 'Home',
+            isActive: false,
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(),
+                ),
+              );
+            },
+            isDark: isDark,
+          ),
+          _buildNavItem(
+            icon: Icons.search,
+            label: 'Search',
+            isActive: true,
+            onTap: () {},
+            isDark: isDark,
+          ),
+          _buildNavItem(
+            icon: Icons.auto_awesome,
+            label: 'AI Design',
+            isActive: false,
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AIDesignStudioScreen(),
+                ),
+              );
+            },
+            isDark: isDark,
+          ),
+          _buildNavItem(
+            icon: Icons.trending_up,
+            label: 'Gold Rate',
+            isActive: false,
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GoldRateScreen(),
+                ),
+              );
+            },
+            isDark: isDark,
+          ),
+          _buildNavItem(
+            icon: Icons.person,
+            label: 'Profile',
+            isActive: false,
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
+                ),
+              );
+            },
+            isDark: isDark,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: isActive
+              ? (isDark ? const Color(0xFF201D12) : const Color(0xFF282828))
+              : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isActive
+                  ? primaryColor
+                  : (isDark ? Colors.white : const Color(0xFFF5F5F5)),
+              size: 24,
             ),
           ],
         ),
