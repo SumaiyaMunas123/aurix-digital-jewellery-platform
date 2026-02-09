@@ -192,8 +192,11 @@ packages:
       url: "https://pub.dev"
     source: hosted
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     version: "0.7.8"
 =======
+=======
+>>>>>>> Stashed changes
     version: "0.7.7"
   typed_data:
     dependency: transitive
