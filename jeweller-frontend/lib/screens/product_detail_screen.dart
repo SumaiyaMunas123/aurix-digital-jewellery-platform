@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'shop_detail_screen.dart';
+import 'cart_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -18,7 +19,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF201D12) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark
+          ? const Color(0xFF201D12)
+          : const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Column(
           children: [
@@ -75,21 +78,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               color: isDark ? Colors.white : Colors.black,
             ),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Share product')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Share product')));
             },
           ),
           IconButton(
             icon: Icon(
               _isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: _isFavorite ? Colors.red : (isDark ? Colors.white : Colors.black),
+              color: _isFavorite
+                  ? Colors.red
+                  : (isDark ? Colors.white : Colors.black),
             ),
             onPressed: () {
               setState(() => _isFavorite = !_isFavorite);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(_isFavorite ? 'Added to favorites' : 'Removed from favorites'),
+                  content: Text(
+                    _isFavorite
+                        ? 'Added to favorites'
+                        : 'Removed from favorites',
+                  ),
                 ),
               );
             },
@@ -107,9 +116,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A271A) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: primaryColor.withOpacity(0.3),
-        ),
+        border: Border.all(color: primaryColor.withOpacity(0.3)),
       ),
       child: Center(
         child: Icon(
@@ -152,7 +159,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: primaryColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -169,7 +179,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: primaryColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -244,7 +257,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(6),
@@ -271,12 +287,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: Row(
         children: [
           Expanded(
-            child: _buildSpecCard(
-              Icons.scale,
-              'Weight',
-              '15.4g',
-              isDark,
-            ),
+            child: _buildSpecCard(Icons.scale, 'Weight', '15.4g', isDark),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -289,27 +300,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _buildSpecCard(
-              Icons.diamond,
-              'Quality',
-              'VS1',
-              isDark,
-            ),
+            child: _buildSpecCard(Icons.diamond, 'Quality', 'VS1', isDark),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSpecCard(IconData icon, String label, String value, bool isDark) {
+  Widget _buildSpecCard(
+    IconData icon,
+    String label,
+    String value,
+    bool isDark,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A271A) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: primaryColor.withOpacity(0.3),
-        ),
+        border: Border.all(color: primaryColor.withOpacity(0.3)),
       ),
       child: Column(
         children: [
@@ -356,9 +365,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF2A271A) : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: primaryColor.withOpacity(0.3),
-              ),
+              border: Border.all(color: primaryColor.withOpacity(0.3)),
             ),
             child: Text(
               'Inspired by the cosmic ballet of the stars, this exquisite necklace features a brilliant-cut central diamond, orbited by a constellation of smaller gems, all set in radiant 22K gold. A perfect blend of celestial beauty and masterful craftsmanship.',
@@ -390,11 +397,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildFeatureItem(Icons.verified_outlined, 'BIS Hallmark Certified', isDark),
-          _buildFeatureItem(Icons.workspace_premium, 'Premium Quality Gemstones', isDark),
-          _buildFeatureItem(Icons.card_giftcard, 'Comes with Certificate of Authenticity', isDark),
-          _buildFeatureItem(Icons.autorenew, 'Lifetime Exchange Available', isDark),
-          _buildFeatureItem(Icons.local_shipping_outlined, 'Free Insured Shipping', isDark),
+          _buildFeatureItem(
+            Icons.verified_outlined,
+            'BIS Hallmark Certified',
+            isDark,
+          ),
+          _buildFeatureItem(
+            Icons.workspace_premium,
+            'Premium Quality Gemstones',
+            isDark,
+          ),
+          _buildFeatureItem(
+            Icons.card_giftcard,
+            'Comes with Certificate of Authenticity',
+            isDark,
+          ),
+          _buildFeatureItem(
+            Icons.autorenew,
+            'Lifetime Exchange Available',
+            isDark,
+          ),
+          _buildFeatureItem(
+            Icons.local_shipping_outlined,
+            'Free Insured Shipping',
+            isDark,
+          ),
         ],
       ),
     );
@@ -407,9 +434,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF2A271A) : Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: primaryColor.withOpacity(0.2),
-        ),
+        border: Border.all(color: primaryColor.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -419,11 +444,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               color: primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: primaryColor,
-              size: 20,
-            ),
+            child: Icon(icon, color: primaryColor, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -436,11 +457,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
           ),
-          Icon(
-            Icons.check_circle,
-            color: primaryColor,
-            size: 20,
-          ),
+          Icon(Icons.check_circle, color: primaryColor, size: 20),
         ],
       ),
     );
@@ -473,10 +490,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: primaryColor,
-              width: 2,
-            ),
+            border: Border.all(color: primaryColor, width: 2),
           ),
           child: Row(
             children: [
@@ -488,11 +502,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: primaryColor),
                 ),
-                child: Icon(
-                  Icons.store,
-                  size: 35,
-                  color: primaryColor,
-                ),
+                child: Icon(Icons.store, size: 35, color: primaryColor),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -552,11 +562,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 20,
-                color: primaryColor,
-              ),
+              Icon(Icons.arrow_forward_ios, size: 20, color: primaryColor),
             ],
           ),
         ),
@@ -572,11 +578,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Added to cart')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CartScreen()),
                 );
               },
-              icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+              icon: const Icon(
+                Icons.shopping_cart_outlined,
+                color: Colors.white,
+              ),
               label: const Text(
                 'Add to Cart',
                 style: TextStyle(
