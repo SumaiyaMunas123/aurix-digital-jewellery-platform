@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'jeweller/jeweller_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +14,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+
+  static const Color gold = Color(0xFFD4AF37);
+  static const Color card = Color(0xFF141414);
 
   @override
   void dispose() {
@@ -38,15 +42,14 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const SizedBox(height: 20),
 
-              // Title
               const Text(
                 'Login',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
               ),
 
               const SizedBox(height: 30),
@@ -122,29 +125,31 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text(
                           'Forgot password?',
                           style: TextStyle(
-                            color: Color(0xFFD4AF37),
+                            color: gold,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
 
                     SizedBox(
                       height: 52,
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Login pressed (UI only)'),
+                            // TEMPORARY DEMO NAVIGATION
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const JewellerDashboard(),
                               ),
                             );
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD4AF37),
+                          backgroundColor: gold,
                           foregroundColor: Colors.black,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -180,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: const Text(
                             'Register',
                             style: TextStyle(
-                              color: Color(0xFFD4AF37),
+                              color: gold,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -198,9 +203,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _label(String text) {
-    return const Text(
-      '',
-      style: TextStyle(color: Colors.white70),
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 
@@ -225,14 +234,14 @@ class _LoginScreenState extends State<LoginScreen> {
         prefixIcon: Icon(icon, color: Colors.white70),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: const Color(0xFF141414),
+        fillColor: card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFD4AF37)),
+          borderSide: const BorderSide(color: gold),
         ),
       ),
     );
