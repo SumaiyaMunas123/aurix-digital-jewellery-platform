@@ -7,26 +7,26 @@ const ProductDashboard = () => {
   const [viewMode, setViewMode] = useState('list');
 
   const stats = [
-    { label: 'TOTAL PRODUCTS', value: '1,284', change: '+24', trend: 'up' },
-    { label: 'PENDING REVIEW',  value: '42',    change: '+5',  trend: 'up' },
-    { label: 'APPROVED',        value: '1,150', change: '+18', trend: 'up' },
-    { label: 'REJECTED',        value: '12',    change: '-2',  trend: 'down' },
-    { label: 'FLAGGED',         value: '80',    change: '+3',  trend: 'up' },
+    { label: 'TOTAL PRODUCTS', value: '1,284' },
+    { label: 'PENDING REVIEW',  value: '42'  },
+    { label: 'APPROVED',        value: '1,150'},
+    { label: 'REJECTED',        value: '12'},
+    { label: 'FLAGGED',         value: '80'},
   ];
 
   const products = [
-    { id: 1, image: '💍', name: 'Diamond Solitaire Ring 1ct', description: '18k White Gold • Round Cut', sku: 'SKU-DR-001', category: 'RINGS', price: 2500.00, stock: 15, status: 'APPROVED' },
-    { id: 2, image: '📿', name: '18k Gold Cuban Link', description: '22-Inch • Solid Gold', sku: 'SKU-GC-042', category: 'NECKLACES', price: 1200.00, stock: 8, status: 'PENDING' },
-    { id: 3, image: '💎', name: 'South Sea Pearl Drop', description: 'Tahitian Grade AA • Pair', sku: 'SKU-PE-015', category: 'EARRINGS', price: 850.00, stock: 20, status: 'APPROVED' },
-    { id: 4, image: '💚', name: 'Square Cut Emerald Band', description: 'Natural Colombian • Platinum', sku: 'SKU-ES-822', category: 'RINGS', price: 1800.00, stock: 0, status: 'FLAGGED' },
-    { id: 5, image: '⌚', name: 'Rose Gold Bangle Set', description: '14k Rose Gold • Set of 3', sku: 'SKU-BG-103', category: 'BRACELETS', price: 620.00, stock: 5, status: 'PENDING' },
-    { id: 6, image: '🔷', name: 'Sapphire Tennis Bracelet', description: 'Natural Ceylon • Silver', sku: 'SKU-TB-211', category: 'BRACELETS', price: 3200.00, stock: 3, status: 'APPROVED' },
+    { id: 1, image: '', name: 'Diamond Solitaire Ring 1ct', description: '18k White Gold • Round Cut', sku: 'SKU-DR-001', category: 'RINGS', price: 2500.00, stock: 15, status: 'APPROVED' },
+    { id: 2, image: '', name: '18k Gold Cuban Link', description: '22-Inch • Solid Gold', sku: 'SKU-GC-042', category: 'NECKLACES', price: 1200.00, stock: 8, status: 'PENDING' },
+    { id: 3, image: '', name: 'South Sea Pearl Drop', description: 'Tahitian Grade AA • Pair', sku: 'SKU-PE-015', category: 'EARRINGS', price: 850.00, stock: 20, status: 'APPROVED' },
+    { id: 4, image: '', name: 'Square Cut Emerald Band', description: 'Natural Colombian • Platinum', sku: 'SKU-ES-822', category: 'RINGS', price: 1800.00, stock: 0, status: 'FLAGGED' },
+    { id: 5, image: '', name: 'Rose Gold Bangle Set', description: '14k Rose Gold • Set of 3', sku: 'SKU-BG-103', category: 'BRACELETS', price: 620.00, stock: 5, status: 'PENDING' },
+    { id: 6, image: '', name: 'Sapphire Tennis Bracelet', description: 'Natural Ceylon • Silver', sku: 'SKU-TB-211', category: 'BRACELETS', price: 3200.00, stock: 3, status: 'APPROVED' },
   ];
 
   const getTrendIcon = (trend) => {
-    if (trend === 'up') return '▲';
-    if (trend === 'down') return '▼';
-    return '—';
+    if (trend === 'up') return '';
+    if (trend === 'down') return '';
+    return '';
   };
 
   const getStatusColor = (status) => {
