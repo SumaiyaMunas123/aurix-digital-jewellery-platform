@@ -30,8 +30,8 @@ const SettingsPage = () => {
 
   const sections = [
     { id: "profile", label: "Profile Settings"},
-    { id: "platform", label: "Platform Settings"},
-    { id: "notifications", label: "Notifications"},
+    { id: "platform", label: "Platform Settings" },
+    { id: "notifications", label: "Notifications" },
     { id: "security", label: "Security"},
   ];
 
@@ -39,7 +39,7 @@ const SettingsPage = () => {
     <div className="sp-page">
       <div className="sp-page-header">
         <h1>Settings</h1>
-        {saved && <div className="sp-saved-toast">Changes saved successfully</div>}
+        {saved && <div className="sp-saved-toast"> Changes saved successfully</div>}
       </div>
 
       <div className="sp-layout">
@@ -187,7 +187,7 @@ const SettingsPage = () => {
                 </div>
               </div>
               <div className="sp-security-info">
-                <p>Two-Factor Authentication</p>
+                <p>🔐 Two-Factor Authentication</p>
                 <p className="sp-security-desc">Add an extra layer of security to your account by enabling 2FA.</p>
                 <button className="sp-enable-2fa-btn">Enable 2FA</button>
               </div>
