@@ -4,6 +4,7 @@ import Footer from "./Footer";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import JewelerVerification from "./JewelerVerification";
+import ProductDashboard from "./ProductDashboard";
 
 const AdminDashboard = ({ onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -258,6 +259,8 @@ const AdminDashboard = ({ onLogout }) => {
         <div className="dashboard-content">
           {activeMenu === "jewelers" ? (
             <JewelerVerification />
+          ) : activeMenu === "products" ? (
+            <ProductDashboard />
           ) : (
             renderDashboardOverview()
           )}
