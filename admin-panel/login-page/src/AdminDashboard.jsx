@@ -4,10 +4,16 @@ import Footer from "./Footer";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import JewelerVerification from "./JewelerVerification";
+import ProductDashboard from "./ProductDashboard";
+import OrdersDashboard from "./OrdersDashboard";
+// import EscrowFinance from "./EscrowFinance";
+// import DisputesPage from "./DisputesPage";
+import SettingsPage from "./SettingsPage";
 
 const AdminDashboard = ({ onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState("dashboard");
+
   const handleProfileClick = () => {
     alert("User profile clicked!");
   };
@@ -112,42 +118,18 @@ const AdminDashboard = ({ onLogout }) => {
   ];
 
   const stats = [
-    {
-      label: "Jeweler Verifications",
-      value: "12",
-      icon: "People",
-    },
-    {
-      label: "Product Approvals",
-      value: "90",
-      icon: "Products",
-    },
+    { label: "Jeweler Verifications", value: "12", icon: "People" },
+    { label: "Product Approvals", value: "90", icon: "Products" },
     { label: "Active Orders", value: "20", icon: "Orders" },
     { label: "Escrow Balance", value: "$1.1M", icon: "Finance" },
     { label: "Disputes", value: "3", icon: "Disputes" },
   ];
 
   const recentActivity = [
-    {
-      title: "New Jeweler Registered",
-      subtitle: "Golden Artisan Crafts • 2 mins ago",
-      icon: "People",
-    },
-    {
-      title: "Order #8492 Processed",
-      subtitle: "Diamond Ring 2ct • 15 mins ago",
-      icon: "Orders",
-    },
-    {
-      title: "Verification Approved",
-      subtitle: "Elegance Jewelers • 1hr ago",
-      icon: "Dashboard",
-    },
-    {
-      title: "Dispute Opened",
-      subtitle: "Order #8410 • 3 hrs ago",
-      icon: "Disputes",
-    },
+    { title: "New Jeweler Registered", subtitle: "Golden Artisan Crafts • 2 mins ago", icon: "People" },
+    { title: "Order #8492 Processed", subtitle: "Diamond Ring 2ct • 15 mins ago", icon: "Orders" },
+    { title: "Verification Approved", subtitle: "Elegance Jewelers • 1hr ago", icon: "Dashboard" },
+    { title: "Dispute Opened", subtitle: "Order #8410 • 3 hrs ago", icon: "Disputes" },
   ];
 
   const renderDashboardOverview = () => (
@@ -156,15 +138,12 @@ const AdminDashboard = ({ onLogout }) => {
         <h1>Dashboard Overview</h1>
       </div>
 
-      {/* Stats Grid */}
       <div className="stats-grid">
         {stats.map((stat, index) => {
           const StatIcon = Icons[stat.icon];
           return (
             <div key={index} className="stat-card">
-              <div className="stat-icon">
-                <StatIcon />
-              </div>
+              <div className="stat-icon"><StatIcon /></div>
               <div className="stat-info">
                 <p className="stat-label">{stat.label}</p>
                 <p className="stat-value">{stat.value}</p>
@@ -174,26 +153,24 @@ const AdminDashboard = ({ onLogout }) => {
         })}
       </div>
 
-      {/* Quick Actions */}
       <div className="quick-actions-section">
         <h2>Quick Actions</h2>
         <div className="quick-actions">
-          <button className="action-btn primary">
+          <button className="action-btn primary" onClick={() => setActiveMenu("jewelers")}>
             <Icons.Verify />
             <span>Verify Jeweler</span>
           </button>
-          <button className="action-btn secondary">
+          <button className="action-btn secondary" onClick={() => setActiveMenu("products")}>
             <Icons.Moderate />
             <span>Moderate Products</span>
           </button>
-          <button className="action-btn">
+          <button className="action-btn" onClick={() => setActiveMenu("escrow")}>
             <Icons.Report />
             <span>Generate Report</span>
           </button>
         </div>
       </div>
 
-      {/* Charts and Activity */}
       <div className="content-grid">
         <div className="chart-section">
           <div className="section-header">
@@ -216,9 +193,7 @@ const AdminDashboard = ({ onLogout }) => {
               const ActivityIcon = Icons[activity.icon];
               return (
                 <div key={index} className="activity-item">
-                  <div className="activity-icon">
-                    <ActivityIcon />
-                  </div>
+                  <div className="activity-icon"><ActivityIcon /></div>
                   <div className="activity-info">
                     <p className="activity-title">{activity.title}</p>
                     <p className="activity-subtitle">{activity.subtitle}</p>
@@ -233,9 +208,20 @@ const AdminDashboard = ({ onLogout }) => {
     </>
   );
 
+  const renderPage = () => {
+    switch (activeMenu) {
+      case "jewelers":  return <JewelerVerification />;
+      case "products":  return <ProductDashboard />;
+      case "orders":    return <OrdersDashboard />;
+      case "escrow":    return <EscrowFinance />;
+      case "disputes":  return <DisputesPage />;
+      case "settings":  return <SettingsPage />;
+      default:          return renderDashboardOverview();
+    }
+  };
+
   return (
     <div className="dashboard-wrapper">
-      {/* Sidebar */}
       <Sidebar
         sidebarOpen={sidebarOpen}
         toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
@@ -245,24 +231,10 @@ const AdminDashboard = ({ onLogout }) => {
         Icons={Icons}
       />
 
-      {/* Main Content */}
       <main className="main-content">
-        {/* Top Bar */}
-        <TopBar
-          Icons={Icons}
-          handleProfileClick={handleProfileClick}
-          onLogout={onLogout}
-        />
-
-        {/* Dashboard Content (switch by menu) */}
+        <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} />
         <div className="dashboard-content">
-          {activeMenu === "jewelers" ? (
-            <JewelerVerification />
-          ) : (
-            renderDashboardOverview()
-          )}
-
-          {/* Footer */}
+          {renderPage()}
           <Footer />
         </div>
       </main>
