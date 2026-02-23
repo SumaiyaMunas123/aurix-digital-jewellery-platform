@@ -180,8 +180,8 @@ class _SocialCircleButton extends StatelessWidget {
       onTap: onPressed,
       borderRadius: BorderRadius.circular(50),
       child: Container(
-        width: 55,
-        height: 55,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           color: const Color(0xFF141414),
           shape: BoxShape.circle,
