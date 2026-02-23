@@ -93,23 +93,66 @@ export const addProduct = async (req, res) => {
   }
 };
 
+
 // ==================== GET ALL PRODUCTS (READ) ====================
 export const getAllProducts = async (req, res) => {
   try {
     console.log('Get all products request');
 
-    // Get all products from database
-    const { data: products, error } = await supabase
+    // Get query parameters for filtering
+    const { category, jeweller_id, search, karat, min_price, max_price } = req.query;
+
+    // Start building query
+    let query = supabase
       .from('products')
       .select(`
         *,
         users:jeweller_id (
           id,
           name,
-          email
+          email,
+          business_name,
+          district,
+          province,
+          verified
         )
-      `)
-      .order('created_at', { ascending: false });
+      `);
+
+    // Apply filters if provided
+    if (category) {
+      query = query.eq('category', category);
+      console.log('Filtering by category:', category);
+    }
+
+    if (jeweller_id) {
+      query = query.eq('jeweller_id', jeweller_id);
+      console.log('Filtering by jeweller:', jeweller_id);
+    }
+
+    if (karat) {
+      query = query.eq('karat', karat);
+      console.log('Filtering by karat:', karat);
+    }
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      console.log('Searching for:', search);
+    }
+
+    if (min_price) {
+      query = query.gte('price', parseFloat(min_price));
+      console.log('Min price:', min_price);
+    }
+
+    if (max_price) {
+      query = query.lte('price', parseFloat(max_price));
+      console.log('Max price:', max_price);
+    }
+
+    // Order by newest first
+    query = query.order('created_at', { ascending: false });
+
+    const { data: products, error } = await query;
 
     if (error) {
       console.error('Database error:', error);
