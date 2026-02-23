@@ -186,7 +186,7 @@ class _SocialCircleButton extends StatelessWidget {
           color: const Color(0xFF141414),
           shape: BoxShape.circle,
           border: Border.all(
-            color: const Color(0xFFD4AF37), // Aurix gold
+            color: const Color(0xFFD4AF37), 
             width: 1.2,
           ),
         ),
