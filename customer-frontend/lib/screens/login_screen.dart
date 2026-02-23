@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'jeweller/jeweller_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
