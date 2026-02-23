@@ -61,21 +61,86 @@ const OrdersDashboard = () => {
         ))}
       </div>
 
-      <div >
-        <div>
+      <div className="od-controls-bar">
+        <div className="od-tabs">
+          {tabs.map((tab) => (
+            <button key={tab} className={`od-tab-btn ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>{tab}</button>
+          ))}
+        </div>
+
+      <div className="od-search-filter-bar">
+        <div className="od-search-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" placeholder="Search by order ID, customer or item..." value={search} onChange={(e) => setSearch(e.target.value)} className="os-search-input" />
         </div>
-        <button>
+
+        <button className="od-filter-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
           Filter
         </button>
-        <button>Refresh Table</button>
+        <button className="od-refresh-btn">Refresh Table</button>
       </div>
+
         <div>
           <p>Showing {filtered.length} of {orders.length} results</p>
         </div>
       </div>
+
+      <div className="od-card">
+        <div className="od-table-wrapper">
+          <table className="od-table">
+            <thead>
+              <tr>
+                <th>ORDER ID</th>
+                <th>CUSTOMER</th>
+                <th>JEWELER</th>  
+                <th>ITEM</th>
+                <th>AMOUNT</th>
+                <th>DATE</th>
+                <th>STATUS</th>
+              </tr>
+              </thead>
+              <tbody>
+                {filtered.map((o) => (
+                  <tr key={o.id}>
+                    <td>{o.id}</td>
+                    <td>
+                      <div className="od-customer">
+                      <div className="od-avatar">{o.initials}</div>
+                      <div className="od-customer-info">
+                        <p className="od-customer-name">{o.customer}</p>
+                        <p className="od-customer-email">{o.email}</p>
+                      </div>
+                      </div>
+                    </td>
+                    <td className="od-jeweler">{o.jeweler}</td>
+                    <td className="od-item">{o.item}</td>
+                    <td className="od-amount">LKR{o.amount.toLocaleString("en-LK",{maximumFractionDigits: 3})}</td>
+                    <td className="od-date">{o.date}</td>
+                    <td>
+                      <span className={statusClasses[o.status]}>
+                        <span className="od-dot"/>
+                        {o.status}
+                        </span>
+                    </td>
+                    <td>
+                      <button className="od-view-button">View</button> 
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+          </table>
+        </div>
+        <div className="od-footer-row">
+          <p className="od-results">Showing {filtered.length} of {orders.length} results</p>
+          <div className="od-pagination">
+            {["‹", "1", "2", "3", "›"].map((p, i) => (
+              <button key={i} className={`od-page-btn ${p === "1" ? "active" : ""}`}>{p}</button>
+            ))}          
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
