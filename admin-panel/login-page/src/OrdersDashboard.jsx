@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./OrdersDashboard.css";
+// import "./OrdersDashboard.css";
 
 const tabs = ["All Orders", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
@@ -15,15 +15,68 @@ const orders = [
 ];
 
 const statusClassMap = {
-  Pending:    "os-pill os-pending",
-  Processing: "os-pill os-processing",
-  Shipped:    "os-pill os-shipped",
-  Delivered:  "os-pill os-delivered",
-  Cancelled:  "os-pill os-cancelled",
+  Pending:    "",
+  Processing: "",
+  Shipped:    "",
+  Delivered:  "",
+  Cancelled:  "",
 };
 
-return ()=>{
+const OrdersDashboard = () => {
+  const [activeTab, setActiveTab] = useState("All Orders");
+  const [search, setSearch] = useState("");
 
+  const filtered = orders.filter((o) => {
+    const matchesTab = activeTab === "All Orders" ? true : o.status === activeTab;
+    const q = search.toLowerCase();
+    return matchesTab && (!q || o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q) || o.item.toLowerCase().includes(q));
+  });
+
+  const summary = [
+    { label: "Total Orders", value: "10" },
+    { label: "Pending", value: "20" },
+    { label: "Processing", value: "21" },
+    { label: "Delivered", value: "64" },
+    { label: "Cancelled", value: "41" },
+  ];
+
+  return (
+    <div >
+      <div >
+        <h1>Orders Management</h1>
+        <button >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export
+        </button>
+      </div>
+
+      <div >
+        {summary.map((s, i) => (
+          <div key={i} >
+            <p >{s.label}</p>
+            <p >{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div >
+        <div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search by order ID, customer or item..." value={search} onChange={(e) => setSearch(e.target.value)} className="os-search-input" />
+        </div>
+        <button>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Filter
+        </button>
+        <button>Refresh Table</button>
+      </div>
+        <div>
+          <p>Showing {filtered.length} of {orders.length} results</p>
+        </div>
+      </div>
+  );
 };
 
 export default OrdersDashboard;

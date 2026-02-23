@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import JewelerVerification from "./JewelerVerification";
 import ProductDashboard from "./ProductDashboard";
-// import OrdersDashboard from "./OrdersDashboard";
+import OrdersDashboard from "./OrdersDashboard";
 // import EscrowFinance from "./EscrowFinance";
 // import DisputesPage from "./DisputesPage";
 import SettingsPage from "./SettingsPage";
@@ -212,9 +212,9 @@ const AdminDashboard = ({ onLogout }) => {
     switch (activeMenu) {
       case "jewelers":  return <JewelerVerification />;
       case "products":  return <ProductDashboard />;
-      // case "orders":    return <OrdersDashboard />;
-      // case "escrow":    return <EscrowFinance />;
-      // case "disputes":  return <DisputesPage />;
+      case "orders":    return <OrdersDashboard />;
+      case "escrow":    return <EscrowFinance />;
+      case "disputes":  return <DisputesPage />;
       case "settings":  return <SettingsPage />;
       default:          return renderDashboardOverview();
     }
