@@ -1,36 +1,36 @@
-import { supabase } from '../config/supabaseClient.js';
+// import supabase  from '../config/supabaseClient.js';
 
-// ==================== GET ALL PENDING JEWELLERS ====================
-export const getPendingJewellers = async (req, res) => {
-  try {
-    console.log('📋 Fetching pending jewellers...');
+// // ==================== GET ALL PENDING JEWELLERS ====================
+// export const getPendingJewellers = async (req, res) => {
+//   try {
+//     console.log('📋 Fetching pending jewellers...');
     
-    const { data: jewellers, error } = await supabase
-      .from('users')
-      .select('id, email, name, phone, business_name, business_registration_number, certification_document_url, created_at')
-      .eq('role', 'jeweller')
-      .eq('verification_status', 'pending')
-      .order('created_at', { ascending: false });
+//     const { data: jewellers, error } = await supabase
+//       .from('users')
+//       .select('id, email, name, phone, business_name, business_registration_number, certification_document_url, created_at')
+//       .eq('role', 'jeweller')
+//       .eq('verification_status', 'pending')
+//       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+//     if (error) throw error;
 
-    console.log(`✅ Found ${jewellers.length} pending jewellers`);
+//     console.log(`✅ Found ${jewellers.length} pending jewellers`);
 
-    res.status(200).json({
-      success: true,
-      count: jewellers.length,
-      jewellers: jewellers
-    });
+//     res.status(200).json({
+//       success: true,
+//       count: jewellers.length,
+//       jewellers: jewellers
+//     });
 
-  } catch (error) {
-    console.error('❌ Error fetching pending jewellers:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching pending jewellers',
-      error: error.message
-    });
-  }
-};
+//   } catch (error) {
+//     console.error('❌ Error fetching pending jewellers:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Server error while fetching pending jewellers',
+//       error: error.message
+//     });
+//   }
+// };
 
 // ==================== GET ALL JEWELLERS (ALL STATUSES) ====================
 export const getAllJewellers = async (req, res) => {

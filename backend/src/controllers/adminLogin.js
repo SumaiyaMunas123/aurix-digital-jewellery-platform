@@ -1,8 +1,8 @@
-import supabase from "../config/supabaseClient"; 
+import supabase from "../config/supabaseClient.js"; 
 
 export const adminLogin = async (req, res) => {
   try {
-    console.log(' Admin login request received');
+    console.log('Admin login request received');
     const { email, password } = req.body;   
 
     if (!email || !password) {
@@ -13,6 +13,23 @@ export const adminLogin = async (req, res) => {
       });
     }
 
+    //  DUMMY ADMIN 
+    if (email === "admin@test.com" && password === "123456") {
+      console.log("Dummy admin login successful");
+
+      return res.status(200).json({
+        success: true,
+        message: "Admin login successful (Dummy)",
+        user: {
+          id: "dummy-id-001",
+          email: "admin@test.com",
+          name: "Test Admin",
+          role: "admin"
+        }
+      });
+    }
+
+    //Database check
     const { data: admin, error } = await supabase
       .from('users')
       .select('id, email, name, role')
@@ -38,14 +55,15 @@ export const adminLogin = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Admin login successful',
-        user: {
+      user: {
         id: admin.id,
         email: admin.email,
         name: admin.name,
         role: admin.role
       }
     });
-    } catch (error) {
+
+  } catch (error) {
     console.error('Error during admin login:', error);
     res.status(500).json({
       success: false,
@@ -54,4 +72,3 @@ export const adminLogin = async (req, res) => {
     });
   }
 };
-
