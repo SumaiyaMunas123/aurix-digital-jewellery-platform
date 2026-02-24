@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { supabase } from '../config/supabase.js';
+import { supabase } from '../config/supabaseClient.js';
 
 // ==================== SIGNUP ====================
 export const signup = async (req, res) => {

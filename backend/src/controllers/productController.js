@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase } from '../config/supabaseClient.js';
 
 // ==================== ADD PRODUCT (CREATE) ====================
 export const addProduct = async (req, res) => {

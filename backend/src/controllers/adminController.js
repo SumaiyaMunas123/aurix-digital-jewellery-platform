@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { supabase } from '../config/supabaseClient.js';
 
 // ==================== GET ALL PENDING JEWELLERS ====================
 export const getPendingJewellers = async (req, res) => {
