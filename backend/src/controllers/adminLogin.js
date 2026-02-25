@@ -1,74 +1,82 @@
-import supabase from "../config/supabaseClient.js"; 
+import supabase from "../config/supabaseClient.js";
 
 export const adminLogin = async (req, res) => {
   try {
+    console.log('---------------------------------------');
     console.log('Admin login request received');
-    const { email, password } = req.body;   
+    console.log('Request Body:', req.body);
+
+    const { email, password } = req.body;
 
     if (!email || !password) {
       console.log('Missing email or password');
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password'
+        message: 'Please provide email and password',
       });
     }
 
-    //  DUMMY ADMIN 
-    if (email === "admin@test.com" && password === "123456") {
-      console.log("Dummy admin login successful");
-
-      return res.status(200).json({
-        success: true,
-        message: "Admin login successful (Dummy)",
-        user: {
-          id: "dummy-id-001",
-          email: "admin@test.com",
-          name: "Test Admin",
-          role: "admin"
-        }
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    }
 
-    //Database check
-    const { data: admin, error } = await supabase
-      .from('users')
-      .select('id, email, name, role')
-      .eq('email', email)
-      .single();    
+    console.log('Auth Data:', authData);
+    console.log('Auth Error:', authError);
 
-    if (error || !admin) {
-      console.log('Admin not found:', email);
+    if (authError || !authData?.user) {
+      console.log('Authentication failed');
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
 
-    if (admin.role !== 'admin') {
-      console.log('User is not an admin:', email);
+    console.log('Authentication successful');
+    console.log('User ID:', authData.user.id);
+
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, email, role, name')
+      .eq('id', authData.user.id)
+      .single();
+
+    console.log('Profile Data:', profile);
+    console.log('Profile Error:', profileError);
+
+    if (profileError || !profile) {
+      console.log('Profile not found in profiles table');
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found',
+      });
+    }
+
+    if (profile.role !== 'admin') {
+      console.log('User is not admin. Role:', profile.role);
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: 'Access denied. Not an admin.',
       });
-    }  
+    }
+
+    console.log('Admin login successful');
+    console.log('---------------------------------------');
 
     return res.status(200).json({
       success: true,
       message: 'Admin login successful',
-      user: {
-        id: admin.id,
-        email: admin.email,
-        name: admin.name,
-        role: admin.role
-      }
+      user: profile,
     });
 
   } catch (error) {
-    console.error('Error during admin login:', error);
-    res.status(500).json({
+    console.error('Server error during admin login:', error);
+    return res.status(500).json({
       success: false,
       message: 'Server error during admin login',
-      error: error.message
+      error: error.message,
     });
   }
 };
