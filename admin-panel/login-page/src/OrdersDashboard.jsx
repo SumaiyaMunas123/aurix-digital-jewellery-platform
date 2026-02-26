@@ -102,7 +102,7 @@ const OrdersDashboard = () => {
                   <td className="od-order-id">{o.id}</td>
                   <td>
                     <div className="od-customer-cell">
-                      <div className="od-avatar">{o.initials}</div>
+                      {/* <div className="od-avatar">{o.initials}</div> */}
                       <div className="od-customer-info">
                         <p className="od-customer-name">{o.customer}</p>
                         <p className="od-customer-email">{o.email}</p>
