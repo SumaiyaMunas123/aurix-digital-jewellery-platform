@@ -152,7 +152,7 @@ const JewelerVerification = () => {
           />
         </div>
         <button className="btn-filters">Filter</button>
-        <button className="btn-primary">Refresh Table</button>
+        {/* <button className="btn-primary">Refresh Table</button> */}
       </div>
 
       <div className="verification-card">
@@ -172,7 +172,7 @@ const JewelerVerification = () => {
                 <tr key={req.id}>
                   <td>
                     <div className="jeweler-cell">
-                      <div className="avatar-circle">{req.initials}</div>
+                      {/* <div className="avatar-circle">{req.initials}</div> */}
                       <div className="jeweler-text">
                         <p className="jeweler-name">{req.name}</p>
                         <p className="jeweler-email">{req.email}</p>
@@ -186,7 +186,7 @@ const JewelerVerification = () => {
                   <td>{req.submittedAt}</td>
                   <td>
                     <span className={statusClassMap[req.status]}>
-                      <span className="status-dot" />
+                      <span />
                       {req.status}
                     </span>
                   </td>
