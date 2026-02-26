@@ -1,0 +1,166 @@
+.od-page{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.od-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.od-page-header h1{
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.od-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+.od-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.od-stat-card:hover {
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.15);
+    border-color: #d4af37;
+    transform: translateY(-3px);
+}
+
+.od-stat-label{
+    margin: 0 0 8px ;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    text-transform: uppercase;
+
+}
+
+.od-stat-value {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.od-controls-bar {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.od-tabs{
+    display: flex;
+    gap: 20px;
+}
+
+.od-tab {
+    position: relative;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    transition: color 0.2s;
+}
+
+.od-tab:focus, .od-tab:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.od-tab.active {
+    color: #111827;
+}
+
+.od-tab.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 3px;
+    background-color: #d4af37;
+    border-radius: 999px;
+}
+
+.od-search-filter-bar{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.od-search-wrap{
+    flex:1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background:#f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 9px 16px;
+    color: #9ca3af;
+}
+
+.od-search-input{
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: #111827;
+    outline: none;
+    flex: 1;
+}
+
+.od-search-input::placeholder {
+    color: #9ca3af;
+}
+
+.od-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374157;
+    cursor: pointer;
+}
+
+.od-filter-btn:hover {
+    border-color: #111827;
+}
+
+.od-refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374157;
+    cursor: pointer;
+}
+
+.od-refresh-btn:hover {
+    background-color: #c9a227;
+}
+
+

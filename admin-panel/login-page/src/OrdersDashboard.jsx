@@ -72,7 +72,7 @@ const OrdersDashboard = () => {
       <div className="od-search-filter-bar">
         <div className="od-search-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search by order ID, customer or item..." value={search} onChange={(e) => setSearch(e.target.value)} className="os-search-input" />
+          <input type="text" placeholder="Search by order ID, customer or item..." value={search} onChange={(e) => setSearch(e.target.value)} className="od-search-input" />
         </div>
         <button className="od-filter-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
