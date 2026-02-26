@@ -275,7 +275,7 @@
     white-space: nowrap;
 }
 
-.os-pill{
+.od-pill{
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -284,3 +284,110 @@
     font-size: 12px;
     font-weight: 600;
 }
+
+.od-dot{
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.od-pending{
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.od-processing{
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.od-shipped{
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.od-delivered{
+    background: #d1fae5;
+    color: #059669;
+}
+
+.od-cancelled{
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.od-view-btn{
+    padding: 6px 16px;
+    border: none;
+    background: #020617;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.od-view-btn:hover {
+    background: #d4af37;
+}
+
+.od-view-btn:focus, .od-view-btn:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.od-footer-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    background: #f9fafb;
+}
+
+.od-results-text{
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.od-pagination{
+    display: flex;
+    gap: 6px;
+}
+
+.od-page-btn{
+    min-width: 32px;
+    height: 32px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor:pointer;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.od-page-btn:hover { 
+    border-color: #D4AF37; 
+    color: #D4AF37; 
+}
+
+.od-page-btn:focus, .od-page-btn:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.od-page-btn:focus, .od-page-btn:focus-visible { 
+    outline: none; 
+    box-shadow: none; }
+
+
+@media (max-width: 1100px) 
+    { .od-stats-grid { grid-template-columns: repeat(3,1fr); } }
+
+@media (max-width: 768px) 
+    { .od-stats-grid { grid-template-columns: repeat(2,1fr); } 
+    .od-tabs { gap: 12px; overflow-x: auto; } }
