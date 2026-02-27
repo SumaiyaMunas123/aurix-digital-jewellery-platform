@@ -13,6 +13,12 @@ import SettingsPage from "./SettingsPage";
 const AdminDashboard = ({ onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [navProps, setNavProps] = useState({});
+
+  const navigateTo = (menu, props = {}) => {
+    setActiveMenu(menu);
+    setNavProps(props);
+  };
 
   const handleProfileClick = () => {
     alert("User profile clicked!");
@@ -156,16 +162,16 @@ const AdminDashboard = ({ onLogout }) => {
       <div className="quick-actions-section">
         <h2>Quick Actions</h2>
         <div className="quick-actions">
-          <button className="action-btn primary" onClick={() => setActiveMenu("jewelers")}>
-            <Icons.Verify />
+          <button className="action-btn primary" onClick={() => navigateTo("jewelers", { defaultTab: "Pending" })}>
+            {/* <Icons.Verify /> */}
             <span>Verify Jeweler</span>
           </button>
-          <button className="action-btn secondary" onClick={() => setActiveMenu("products")}>
-            <Icons.Moderate />
+          <button className="action-btn secondary" onClick={() => navigateTo("products", { defaultFilter: "Pending" })}>
+            {/* <Icons.Moderate /> */}
             <span>Moderate Products</span>
           </button>
-          <button className="action-btn" onClick={() => setActiveMenu("escrow")}>
-            <Icons.Report />
+          <button className="action-btn" onClick={() => navigateTo("escrow")}>
+            {/* <Icons.Report /> */}
             <span>Generate Report</span>
           </button>
         </div>
@@ -210,8 +216,8 @@ const AdminDashboard = ({ onLogout }) => {
 
   const renderPage = () => {
     switch (activeMenu) {
-      case "jewelers":  return <JewelerVerification />;
-      case "products":  return <ProductDashboard />;
+      case "jewelers":  return <JewelerVerification defaultTab={navProps.defaultTab} />;
+      case "products":  return <ProductDashboard defaultFilter={navProps.defaultFilter} />;
       case "orders":    return <OrdersDashboard />;
       case "escrow":    return <EscrowFinance />;
       case "disputes":  return <DisputesPage />;

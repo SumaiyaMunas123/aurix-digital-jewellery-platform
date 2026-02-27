@@ -102,8 +102,8 @@ const statusClassMap = {
   Rejected: "status-pill status-rejected",
 };
 
-const JewelerVerification = () => {
-  const [activeTab, setActiveTab] = useState("All Requests");
+const JewelerVerification = ({ defaultTab = "All Requests" }) => {
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [search, setSearch] = useState("");
 
   const filteredRequests = initialRequests.filter((req) => {
