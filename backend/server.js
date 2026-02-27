@@ -2,7 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { supabase } from './src/config/supabase.js';
+import { supabase } from './src/config/supabaseClient.js';
 
 // Import auth routes
 import authRoutes from './src/routes/auth.js';
