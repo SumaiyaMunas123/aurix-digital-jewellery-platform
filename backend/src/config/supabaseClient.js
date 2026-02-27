@@ -12,4 +12,4 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-export default supabase;
+export { supabase };
