@@ -40,6 +40,6 @@ router.post('/jewellers/:jeweller_id/reject', rejectJeweller);
 // GET /api/admin/jewellers/:jeweller_id/status
 router.get('/jewellers/:jeweller_id/status', getVerificationStatus);
 
-console.log('✅ Admin routes registered');
+console.log('Admin routes registered');
 
 export default router;
