@@ -2,35 +2,26 @@ import express from 'express';
 import { 
   addProduct, 
   getAllProducts, 
-  getProductById, 
+  getProductById,
+  getJewellerProducts,
   updateProduct, 
-  deleteProduct 
+  deleteProduct,
+  toggleProductVisibility,
+  getCategories
 } from '../controllers/productController.js';
 
-// Create router
 const router = express.Router();
 
-// ==================== PRODUCT ROUTES ====================
-
-// Add new product
-// POST /api/products
-router.post('/', addProduct);
-
-// Get all products
-// GET /api/products
+// Public routes
 router.get('/', getAllProducts);
-
-// Get single product by ID
-// GET /api/products/:id
+router.get('/categories', getCategories);
 router.get('/:id', getProductById);
 
-// Update product
-// PUT /api/products/:id
+// Jeweller routes
+router.post('/', addProduct);
+router.get('/jeweller/:jeweller_id', getJewellerProducts);
 router.put('/:id', updateProduct);
-
-// Delete product
-// DELETE /api/products/:id
+router.patch('/:id/toggle-visibility', toggleProductVisibility);
 router.delete('/:id', deleteProduct);
 
-// Export router
 export default router;
