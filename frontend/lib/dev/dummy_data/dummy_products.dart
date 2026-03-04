@@ -1,0 +1,43 @@
+class DummyProducts {
+  static final items = [
+    {
+      "id": "p1",
+      "name": "Classic Gold Ring",
+      "jeweller": "Luxe Jewels",
+      "karat": "22K",
+      "weight": "4.2g",
+      "priceLkr": 215000,
+      "category": "Rings",
+      "isDeal": true,
+      "isNew": true,
+      "isFeatured": true,
+      "isTrending": true,
+    },
+    {
+      "id": "p2",
+      "name": "Minimal Chain Necklace",
+      "jeweller": "Aurora Gold",
+      "karat": "24K",
+      "weight": "7.8g",
+      "priceLkr": 320000,
+      "category": "Necklaces",
+      "isDeal": false,
+      "isNew": true,
+      "isFeatured": true,
+      "isTrending": false,
+    },
+    {
+      "id": "p3",
+      "name": "Pearl Pendant",
+      "jeweller": "Ceylon Gems",
+      "karat": "22K",
+      "weight": "3.1g",
+      "priceLkr": 145000,
+      "category": "Pendants",
+      "isDeal": true,
+      "isNew": false,
+      "isFeatured": false,
+      "isTrending": true,
+    },
+  ];
+}
