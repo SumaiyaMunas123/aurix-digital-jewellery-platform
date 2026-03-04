@@ -1,13 +1,13 @@
-import { supabase } from '../config/supabase.js';
+import { supabase } from '../config/supabaseClient.js';
 
-// ==================== GET ALL PENDING JEWELLERS ====================
+// ==================== GET PENDING JEWELLERS ====================
 export const getPendingJewellers = async (req, res) => {
   try {
-    console.log('📋 Fetching pending jewellers...');
-    
+    console.log('📋 Get pending jewellers');
+
     const { data: jewellers, error } = await supabase
       .from('users')
-      .select('id, email, name, phone, business_name, business_registration_number, certification_document_url, created_at')
+      .select('*')
       .eq('role', 'jeweller')
       .eq('verification_status', 'pending')
       .order('created_at', { ascending: false });
@@ -16,48 +16,95 @@ export const getPendingJewellers = async (req, res) => {
 
     console.log(`✅ Found ${jewellers.length} pending jewellers`);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: jewellers.length,
       jewellers: jewellers
     });
 
   } catch (error) {
-    console.error('❌ Error fetching pending jewellers:', error);
-    res.status(500).json({
+    console.error('❌ Error:', error.message);
+    return res.status(500).json({
       success: false,
-      message: 'Server error while fetching pending jewellers',
+      message: 'Server error',
       error: error.message
     });
   }
 };
 
-// ==================== GET ALL JEWELLERS (ALL STATUSES) ====================
+// ==================== GET ALL JEWELLERS ====================
 export const getAllJewellers = async (req, res) => {
   try {
-    console.log('📋 Fetching all jewellers...');
-    
-    const { data: jewellers, error } = await supabase
+    console.log('📋 Get all jewellers');
+
+    const { status } = req.query;
+
+    let query = supabase
       .from('users')
-      .select('id, email, name, phone, business_name, business_registration_number, verification_status, verified, created_at, verified_at')
+      .select('*')
       .eq('role', 'jeweller')
       .order('created_at', { ascending: false });
+
+    if (status) {
+      query = query.eq('verification_status', status);
+    }
+
+    const { data: jewellers, error } = await query;
 
     if (error) throw error;
 
     console.log(`✅ Found ${jewellers.length} jewellers`);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       count: jewellers.length,
       jewellers: jewellers
     });
 
   } catch (error) {
-    console.error('❌ Error fetching jewellers:', error);
-    res.status(500).json({
+    console.error('❌ Error:', error.message);
+    return res.status(500).json({
       success: false,
-      message: 'Server error while fetching jewellers',
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// ==================== GET JEWELLER STATUS ====================
+export const getJewellerStatus = async (req, res) => {
+  try {
+    const { jeweller_id } = req.params;
+    console.log('🔍 Get status:', jeweller_id);
+
+    const { data: jeweller, error } = await supabase
+      .from('users')
+      .select('id, verification_status, verified, rejection_reason')
+      .eq('id', jeweller_id)
+      .eq('role', 'jeweller')
+      .single();
+
+    if (error || !jeweller) {
+      return res.status(404).json({
+        success: false,
+        message: 'Jeweller not found'
+      });
+    }
+
+    console.log('✅ Status:', jeweller.verification_status);
+
+    return res.status(200).json({
+      success: true,
+      status: jeweller.verification_status,
+      verified: jeweller.verified,
+      rejection_reason: jeweller.rejection_reason
+    });
+
+  } catch (error) {
+    console.error('❌ Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
       error: error.message
     });
   }
@@ -67,71 +114,49 @@ export const getAllJewellers = async (req, res) => {
 export const approveJeweller = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
-    const { admin_id } = req.body; // ID of admin who approved (optional for now)
+    console.log('✅ Approve jeweller:', jeweller_id);
 
-    console.log(`✅ Approving jeweller ID: ${jeweller_id}`);
-
-    // First, check if jeweller exists and is pending
-    const { data: existingJeweller, error: fetchError } = await supabase
+    const { data: jeweller, error: fetchError } = await supabase
       .from('users')
       .select('*')
       .eq('id', jeweller_id)
       .eq('role', 'jeweller')
       .single();
 
-    if (fetchError || !existingJeweller) {
-      console.log('❌ Jeweller not found');
+    if (fetchError || !jeweller) {
       return res.status(404).json({
         success: false,
         message: 'Jeweller not found'
       });
     }
 
-    if (existingJeweller.verification_status !== 'pending') {
-      console.log('⚠️ Jeweller already processed:', existingJeweller.verification_status);
-      return res.status(400).json({
-        success: false,
-        message: `Jeweller is already ${existingJeweller.verification_status}`
-      });
-    }
-
-    // Update jeweller status to approved
-    const { data: updatedUser, error } = await supabase
+    const { data: updated, error } = await supabase
       .from('users')
       .update({
-        verification_status: 'approved',
         verified: true,
+        verification_status: 'approved',
         verified_at: new Date().toISOString(),
-        verified_by: admin_id || null
+        rejection_reason: null
       })
       .eq('id', jeweller_id)
-      .eq('role', 'jeweller')
       .select()
       .single();
 
     if (error) throw error;
 
-    console.log('✅ Jeweller approved successfully:', updatedUser.email);
+    console.log('✅ Jeweller approved');
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Jeweller approved successfully',
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        business_name: updatedUser.business_name,
-        verification_status: updatedUser.verification_status,
-        verified: updatedUser.verified,
-        verified_at: updatedUser.verified_at
-      }
+      jeweller: updated
     });
 
   } catch (error) {
-    console.error('❌ Error approving jeweller:', error);
-    res.status(500).json({
+    console.error('❌ Error:', error.message);
+    return res.status(500).json({
       success: false,
-      message: 'Server error while approving jeweller',
+      message: 'Server error',
       error: error.message
     });
   }
@@ -141,164 +166,102 @@ export const approveJeweller = async (req, res) => {
 export const rejectJeweller = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
-    const { admin_id, reason } = req.body;
+    const { reason } = req.body;
+    
+    console.log('❌ Reject jeweller:', jeweller_id);
 
-    console.log(`❌ Rejecting jeweller ID: ${jeweller_id}`);
-
-    if (!reason || reason.trim() === '') {
+    if (!reason) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide a reason for rejection'
+        message: 'Rejection reason is required'
       });
     }
 
-    // First, check if jeweller exists and is pending
-    const { data: existingJeweller, error: fetchError } = await supabase
+    const { data: jeweller, error: fetchError } = await supabase
       .from('users')
       .select('*')
       .eq('id', jeweller_id)
       .eq('role', 'jeweller')
       .single();
 
-    if (fetchError || !existingJeweller) {
-      console.log('❌ Jeweller not found');
+    if (fetchError || !jeweller) {
       return res.status(404).json({
         success: false,
         message: 'Jeweller not found'
       });
     }
 
-    if (existingJeweller.verification_status !== 'pending') {
-      console.log('⚠️ Jeweller already processed:', existingJeweller.verification_status);
-      return res.status(400).json({
-        success: false,
-        message: `Jeweller is already ${existingJeweller.verification_status}`
-      });
-    }
-
-    // Update jeweller status to rejected
-    const { data: updatedUser, error } = await supabase
+    const { data: updated, error } = await supabase
       .from('users')
       .update({
-        verification_status: 'rejected',
         verified: false,
-        rejection_reason: reason.trim(),
-        verified_at: new Date().toISOString(),
-        verified_by: admin_id || null
+        verification_status: 'rejected',
+        rejection_reason: reason,
+        rejected_at: new Date().toISOString()
       })
       .eq('id', jeweller_id)
-      .eq('role', 'jeweller')
       .select()
       .single();
 
     if (error) throw error;
 
-    console.log('❌ Jeweller rejected:', updatedUser.email);
+    console.log('✅ Jeweller rejected');
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Jeweller rejected',
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        business_name: updatedUser.business_name,
-        verification_status: updatedUser.verification_status,
-        verified: updatedUser.verified,
-        rejection_reason: updatedUser.rejection_reason,
-        verified_at: updatedUser.verified_at
-      }
+      message: 'Jeweller rejected successfully',
+      jeweller: updated
     });
 
   } catch (error) {
-    console.error('❌ Error rejecting jeweller:', error);
-    res.status(500).json({
+    console.error('❌ Error:', error.message);
+    return res.status(500).json({
       success: false,
-      message: 'Server error while rejecting jeweller',
+      message: 'Server error',
       error: error.message
     });
   }
 };
 
-// ==================== GET VERIFICATION STATUS ====================
-export const getVerificationStatus = async (req, res) => {
+// ==================== GET STATS ====================
+export const getPlatformStats = async (req, res) => {
   try {
-    const { jeweller_id } = req.params;
+    console.log('📊 Get stats');
 
-    console.log(`🔍 Checking verification status for: ${jeweller_id}`);
+    const [
+      { count: totalCustomers },
+      { count: totalJewellers },
+      { count: approvedJewellers },
+      { count: pendingJewellers },
+      { count: totalProducts }
+    ] = await Promise.all([
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller'),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller').eq('verified', true),
+      supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller').eq('verification_status', 'pending'),
+      supabase.from('products').select('*', { count: 'exact', head: true })
+    ]);
 
-    const { data: jeweller, error } = await supabase
-      .from('users')
-      .select('id, verification_status, rejection_reason, verified_at, verified')
-      .eq('id', jeweller_id)
-      .eq('role', 'jeweller')
-      .single();
+    const stats = {
+      totalCustomers: totalCustomers || 0,
+      totalJewellers: totalJewellers || 0,
+      approvedJewellers: approvedJewellers || 0,
+      pendingJewellers: pendingJewellers || 0,
+      totalProducts: totalProducts || 0
+    };
 
-    if (error || !jeweller) {
-      console.log('❌ Jeweller not found');
-      return res.status(404).json({
-        success: false,
-        message: 'Jeweller not found'
-      });
-    }
+    console.log('✅ Stats:', stats);
 
-    console.log(`✅ Status: ${jeweller.verification_status}`);
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      status: jeweller.verification_status,
-      verified: jeweller.verified,
-      rejection_reason: jeweller.rejection_reason,
-      verified_at: jeweller.verified_at
+      stats: stats
     });
 
   } catch (error) {
-    console.error('❌ Error checking verification status:', error);
-    res.status(500).json({
+    console.error('❌ Error:', error.message);
+    return res.status(500).json({
       success: false,
-      message: 'Server error while checking verification status',
-      error: error.message
-    });
-  }
-};
-
-// ==================== GET JEWELLER DETAILS ====================
-export const getJewellerDetails = async (req, res) => {
-  try {
-    const { jeweller_id } = req.params;
-
-    console.log(`📄 Fetching details for jeweller: ${jeweller_id}`);
-
-    const { data: jeweller, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', jeweller_id)
-      .eq('role', 'jeweller')
-      .single();
-
-    if (error || !jeweller) {
-      console.log('❌ Jeweller not found');
-      return res.status(404).json({
-        success: false,
-        message: 'Jeweller not found'
-      });
-    }
-
-    // Don't send password
-    delete jeweller.password;
-
-    console.log(`✅ Found jeweller: ${jeweller.email}`);
-
-    res.status(200).json({
-      success: true,
-      jeweller: jeweller
-    });
-
-  } catch (error) {
-    console.error('❌ Error fetching jeweller details:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching jeweller details',
+      message: 'Server error',
       error: error.message
     });
   }

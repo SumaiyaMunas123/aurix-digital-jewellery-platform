@@ -4,7 +4,7 @@ import { signup, login } from '../controllers/authController.js';
 // Create router
 const router = express.Router();
 
-console.log('✅ Auth routes file loaded!');
+console.log('Auth routes file loaded!');
 
 // TEST ROUTE - just to check if /api/auth works
 router.get('/test', (req, res) => {
@@ -26,7 +26,7 @@ router.post('/login', (req, res, next) => {
   login(req, res, next);
 });
 
-console.log('✅ Routes registered: POST /signup, POST /login');
+console.log('Routes registered: POST /signup, POST /login');
 
 // Export router
 export default router;

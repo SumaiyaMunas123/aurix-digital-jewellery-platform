@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './ProductDashboard.css';
 
-const ProductDashboard = () => {
+const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedFilter, setSelectedFilter] = useState('All Categories');
+  const [selectedFilter, setSelectedFilter] = useState(defaultFilter);
   const [viewMode, setViewMode] = useState('list');
 
   const stats = [
