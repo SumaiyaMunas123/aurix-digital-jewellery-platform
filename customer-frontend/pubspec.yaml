@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -20,4 +21,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/aurix_logo.png
- 
