@@ -1,0 +1,577 @@
+import { supabase } from '../config/supabaseClient.js';
+
+// ==================== START/GET CHAT THREAD ====================
+export const startChat = async (req, res) => {
+  try {
+    const { customer_id, jeweller_id, product_id } = req.body;
+
+    console.log('💬 Start chat request');
+    console.log('Customer:', customer_id);
+    console.log('Jeweller:', jeweller_id);
+    console.log('Product:', product_id || 'none');
+
+    // Validate required fields
+    if (!customer_id || !jeweller_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'customer_id and jeweller_id are required'
+      });
+    }
+
+    // Check if chat thread already exists
+    let query = supabase
+      .from('chat_threads')
+      .select(`
+        *,
+        customer:users!chat_threads_customer_id_fkey(id, name, email),
+        jeweller:users!chat_threads_jeweller_id_fkey(id, name, business_name, phone),
+        product:products(id, name, price, primary_image_url)
+      `)
+      .eq('customer_id', customer_id)
+      .eq('jeweller_id', jeweller_id);
+
+    if (product_id) {
+      query = query.eq('product_id', product_id);
+    } else {
+      query = query.is('product_id', null);
+    }
+
+    const { data: existingThread, error: fetchError } = await query.maybeSingle();
+
+    if (existingThread) {
+      console.log('✅ Chat thread already exists:', existingThread.id);
+      return res.status(200).json({
+        success: true,
+        message: 'Chat thread exists',
+        thread: existingThread
+      });
+    }
+
+    // Create new chat thread
+    const { data: newThread, error: createError } = await supabase
+      .from('chat_threads')
+      .insert([{
+        customer_id,
+        jeweller_id,
+        product_id: product_id || null,
+        status: 'active',
+        subject: product_id ? 'Product Inquiry' : 'General Inquiry',
+        last_message: null,
+        last_message_at: new Date().toISOString(),
+        last_message_by: null,
+        unread_by_customer: 0,
+        unread_by_jeweller: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
+      .select(`
+        *,
+        customer:users!chat_threads_customer_id_fkey(id, name, email),
+        jeweller:users!chat_threads_jeweller_id_fkey(id, name, business_name, phone),
+        product:products(id, name, price, primary_image_url)
+      `)
+      .single();
+
+    if (createError) throw createError;
+
+    console.log('✅ New chat thread created:', newThread.id);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Chat thread created',
+      thread: newThread
+    });
+
+  } catch (error) {
+    console.error('❌ Start chat error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// ==================== SEND MESSAGE ====================
+export const sendMessage = async (req, res) => {
+  try {
+    const { 
+      thread_id, 
+      sender_id, 
+      message, 
+      message_type = 'text',
+      file_url = null,
+      quotation_id = null,
+      ai_design_id = null
+    } = req.body;
+
+    console.log('💬 Send message');
+    console.log('Thread:', thread_id);
+    console.log('Sender:', sender_id);
+    console.log('Type:', message_type);
+
+    // Validate required fields
+    if (!thread_id || !sender_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'thread_id and sender_id are required'
+      });
+    }
+
+    if (!message && !file_url && !quotation_id && !ai_design_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message content is required (message, file_url, quotation_id, or ai_design_id)'
+      });
+    }
+
+    // Verify thread exists
+    const { data: thread, error: threadError } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .eq('id', thread_id)
+      .single();
+
+    if (threadError || !thread) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat thread not found'
+      });
+    }
+
+    // Verify sender is part of this thread
+    if (sender_id !== thread.customer_id && sender_id !== thread.jeweller_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not part of this chat'
+      });
+    }
+
+    // Determine who the sender is
+    const isCustomer = sender_id === thread.customer_id;
+
+    // Save message
+    const { data: newMessage, error: messageError } = await supabase
+      .from('chat_messages')
+      .insert([{
+        thread_id,
+        sender_id,
+        message_text: message ? message.trim() : null,
+        message_type,
+        file_url,
+        quotation_id,
+        ai_design_id,
+        is_read: false,
+        read_at: null,
+        created_at: new Date().toISOString()
+      }])
+      .select(`
+        *,
+        sender:users(id, name, role, business_name)
+      `)
+      .single();
+
+    if (messageError) throw messageError;
+
+    // Update thread's last message and unread counts
+    const updateData = {
+      last_message: message ? message.trim().substring(0, 100) : `[${message_type}]`,
+      last_message_at: new Date().toISOString(),
+      last_message_by: sender_id,
+      updated_at: new Date().toISOString()
+    };
+
+    // Increment unread count for the recipient
+    if (isCustomer) {
+      // Customer sent, increment jeweller's unread
+      updateData.unread_by_jeweller = (thread.unread_by_jeweller || 0) + 1;
+    } else {
+      // Jeweller sent, increment customer's unread
+      updateData.unread_by_customer = (thread.unread_by_customer || 0) + 1;
+    }
+
+    await supabase
+      .from('chat_threads')
+      .update(updateData)
+      .eq('id', thread_id);
+
+    console.log('✅ Message sent:', newMessage.id);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Message sent',
+      data: newMessage
+    });
+
+  } catch (error) {
+    console.error('❌ Send message error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// ==================== GET CHAT THREADS ====================
+export const getChatThreads = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { status = 'active' } = req.query;
+
+    console.log('📋 Get chat threads for user:', user_id);
+
+    let query = supabase
+      .from('chat_threads')
+      .select(`
+        *,
+        customer:users!chat_threads_customer_id_fkey(id, name, email),
+        jeweller:users!chat_threads_jeweller_id_fkey(id, name, business_name, phone),
+        product:products(id, name, price, primary_image_url)
+      `)
+      .or(`customer_id.eq.${user_id},jeweller_id.eq.${user_id}`)
+      .order('last_message_at', { ascending: false });
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data: threads, error } = await query;
+
+    if (error) throw error;
+
+    // Add unread count for the current user
+    const threadsWithUnread = threads.map(thread => {
+      const isCustomer = thread.customer_id === user_id;
+      const unreadCount = isCustomer ? thread.unread_by_customer : thread.unread_by_jeweller;
+
+      return {
+        ...thread,
+        unread_count: unreadCount || 0
+      };
+    });
+
+    console.log(`✅ Found ${threads.length} chat threads`);
+
+    return res.status(200).json({
+      success: true,
+      count: threads.length,
+      threads: threadsWithUnread
+    });
+
+  } catch (error) {
+    console.error('❌ Get threads error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// ==================== GET MESSAGES ====================
+export const getMessages = async (req, res) => {
+  try {
+    const { thread_id } = req.params;
+    const { limit = 100 } = req.query;
+
+    console.log('💬 Get messages for thread:', thread_id);
+
+    const { data: messages, error } = await supabase
+      .from('chat_messages')
+      .select(`
+        *,
+        sender:users(id, name, role, business_name)
+      `)
+      .eq('thread_id', thread_id)
+      .order('created_at', { ascending: true })
+      .limit(parseInt(limit));
+
+    if (error) throw error;
+
+    console.log(`✅ Found ${messages.length} messages`);
+
+    return res.status(200).json({
+      success: true,
+      count: messages.length,
+      messages: messages
+    });
+
+  } catch (error) {
+    console.error('❌ Get messages error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// ==================== MARK MESSAGES AS READ ====================
+export const markAsRead = async (req, res) => {
+  try {
+    const { thread_id, user_id } = req.body;
+
+    console.log('👁️ Mark messages as read');
+    console.log('Thread:', thread_id);
+    console.log('User:', user_id);
+
+    if (!thread_id || !user_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'thread_id and user_id are required'
+      });
+    }
+
+    // Get thread to determine if user is customer or jeweller
+    const { data: thread, error: threadError } = await supabase
+      .from('chat_threads')
+      .select('customer_id, jeweller_id')
+      .eq('id', thread_id)
+      .single();
+
+    if (threadError || !thread) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat thread not found'
+      });
+    }
+
+    const isCustomer = thread.customer_id === user_id;
+
+    // Mark all unread messages as read (where sender is NOT the current user)
+    const now = new Date().toISOString();
+    
+    const { error: updateError } = await supabase
+      .from('chat_messages')
+      .update({ 
+        is_read: true,
+        read_at: now
+      })
+      .eq('thread_id', thread_id)
+      .neq('sender_id', user_id)
+      .eq('is_read', false);
+
+    if (updateError) throw updateError;
+
+    // Reset unread count in thread
+    const resetData = isCustomer 
+      ? { unread_by_customer: 0 }
+      : { unread_by_jeweller: 0 };
+
+    await supabase
+      .from('chat_threads')
+      .update(resetData)
+      .eq('id', thread_id);
+
+    console.log('✅ Messages marked as read');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Messages marked as read'
+    });
+
+  } catch (error) {
+    console.error('❌ Mark as read error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// ==================== SEND QUOTATION ====================
+export const sendQuotation = async (req, res) => {
+  try {
+    const { 
+      thread_id, 
+      jeweller_id, 
+      quotation_id
+    } = req.body;
+
+    console.log('💰 Send quotation');
+    console.log('Thread:', thread_id);
+    console.log('Quotation ID:', quotation_id);
+
+    // Validate required fields
+    if (!thread_id || !jeweller_id || !quotation_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'thread_id, jeweller_id, and quotation_id are required'
+      });
+    }
+
+    // Verify thread exists
+    const { data: thread, error: threadError } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .eq('id', thread_id)
+      .single();
+
+    if (threadError || !thread) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat thread not found'
+      });
+    }
+
+    // Verify sender is the jeweller in this thread
+    if (jeweller_id !== thread.jeweller_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the jeweller can send quotations in this thread'
+      });
+    }
+
+    // Send quotation message
+    const { data: quotationMessage, error } = await supabase
+      .from('chat_messages')
+      .insert([{
+        thread_id,
+        sender_id: jeweller_id,
+        message_text: 'Sent a quotation',
+        message_type: 'quotation',
+        quotation_id,
+        is_read: false,
+        created_at: new Date().toISOString()
+      }])
+      .select(`
+        *,
+        sender:users(id, name, business_name)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    // Update thread
+    await supabase
+      .from('chat_threads')
+      .update({
+        last_message: 'Quotation sent',
+        last_message_at: new Date().toISOString(),
+        last_message_by: jeweller_id,
+        unread_by_customer: (thread.unread_by_customer || 0) + 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', thread_id);
+
+    console.log('✅ Quotation sent:', quotationMessage.id);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Quotation sent successfully',
+      data: quotationMessage
+    });
+
+  } catch (error) {
+    console.error('❌ Send quotation error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// ==================== SHARE AI DESIGN ====================
+export const shareAIDesign = async (req, res) => {
+  try {
+    const { 
+      thread_id, 
+      sender_id,
+      ai_design_id
+    } = req.body;
+
+    console.log('🎨 Share AI design');
+    console.log('Thread:', thread_id);
+    console.log('Design ID:', ai_design_id);
+
+    // Validate required fields
+    if (!thread_id || !sender_id || !ai_design_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'thread_id, sender_id, and ai_design_id are required'
+      });
+    }
+
+    // Verify thread exists
+    const { data: thread, error: threadError } = await supabase
+      .from('chat_threads')
+      .select('*')
+      .eq('id', thread_id)
+      .single();
+
+    if (threadError || !thread) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chat thread not found'
+      });
+    }
+
+    // Verify sender is part of this thread
+    if (sender_id !== thread.customer_id && sender_id !== thread.jeweller_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not part of this chat'
+      });
+    }
+
+    const isCustomer = sender_id === thread.customer_id;
+
+    // Send AI design message
+    const { data: designMessage, error } = await supabase
+      .from('chat_messages')
+      .insert([{
+        thread_id,
+        sender_id,
+        message_text: 'Shared an AI design',
+        message_type: 'ai_design',
+        ai_design_id,
+        is_read: false,
+        created_at: new Date().toISOString()
+      }])
+      .select(`
+        *,
+        sender:users(id, name, business_name)
+      `)
+      .single();
+
+    if (error) throw error;
+
+    // Update thread
+    const updateData = {
+      last_message: 'AI design shared',
+      last_message_at: new Date().toISOString(),
+      last_message_by: sender_id,
+      updated_at: new Date().toISOString()
+    };
+
+    if (isCustomer) {
+      updateData.unread_by_jeweller = (thread.unread_by_jeweller || 0) + 1;
+    } else {
+      updateData.unread_by_customer = (thread.unread_by_customer || 0) + 1;
+    }
+
+    await supabase
+      .from('chat_threads')
+      .update(updateData)
+      .eq('id', thread_id);
+
+    console.log('✅ AI design shared:', designMessage.id);
+
+    return res.status(201).json({
+      success: true,
+      message: 'AI design shared successfully',
+      data: designMessage
+    });
+
+  } catch (error) {
+    console.error('❌ Share AI design error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};

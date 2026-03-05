@@ -46,11 +46,25 @@ class AurixApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/customer-home': (context) => const HomeScreen(),
-        '/jeweller-registration': (context) => const JewellerRegistrationScreen(),
+        '/jeweller-registration': (context) =>
+            const JewellerRegistrationScreen(),
         '/pending-verification': (context) => const PendingVerificationScreen(),
         '/main': (context) => const MainNavigation(),
         '/chat-overview': (context) => const ChatOverviewScreen(),
-        '/chat-thread': (context) => const ChatThreadScreen(),
+        '/chat-thread': (context) {
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
+          if (args == null) {
+            return const Scaffold(body: SizedBox.shrink());
+          }
+          return ChatThreadScreen(
+            threadId: args['threadId'] ?? '',
+            shopName: args['shopName'] ?? '',
+            jewellerId: args['jewellerId'] ?? '',
+            customerId: args['customerId'] ?? '',
+          );
+        },
         '/product-detail': (context) => const ProductDetailScreen(),
         '/side-navigation': (context) => const SideNavigationScreen(),
       },
@@ -114,10 +128,7 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.home_outlined),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(
             icon: Icon(Icons.trending_up),
             label: 'Gold Rate',
