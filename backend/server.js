@@ -7,6 +7,8 @@ import { supabase } from './src/config/supabaseClient.js';
 import authRoutes from './src/routes/auth.js';
 import productRoutes from './src/routes/products.js';
 import adminRoutes from './src/routes/admin.js';
+import chatRoutes from './src/routes/chat.js';
+import aiRoutes from './src/routes/ai.js';
 
 // Load environment variables
 dotenv.config();
@@ -28,6 +30,12 @@ app.use('/api/products', productRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Chat routes
+app.use('/api/chat', chatRoutes);
+
+// AI routes (Groq-powered)
+app.use('/api/ai', aiRoutes);
 
 // Root route
 app.get('/', (req, res) => {

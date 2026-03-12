@@ -278,4 +278,61 @@ class ApiService {
       };
     }
   }
+
+  // ==================== AI CHAT (GROQ) ====================
+  Future<Map<String, dynamic>> aiChat({
+    required String message,
+    List<Map<String, String>> conversationHistory = const [],
+    String? userId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/ai/chat',
+        data: {
+          'message': message,
+          'conversation_history': conversationHistory,
+          'user_id': userId,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!.data;
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  // ==================== AI SUGGESTIONS ====================
+  Future<Map<String, dynamic>> aiSuggestions({
+    String? occasion,
+    String? budget,
+    String? materialPreference,
+    String? stylePreference,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/ai/suggestions',
+        data: {
+          'occasion': occasion,
+          'budget': budget,
+          'material_preference': materialPreference,
+          'style_preference': stylePreference,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!.data;
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  // ==================== AI HEALTH CHECK ====================
+  Future<Map<String, dynamic>> aiHealthCheck() async {
+    try {
+      final response = await _dio.get('/api/ai/health');
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!.data;
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
 }

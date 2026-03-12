@@ -106,11 +106,9 @@ class _LoginScreenState extends State<LoginScreen> {
         
         // Navigate based on role
         if (role == 'customer') {
-          // TODO: Navigate to customer home
-          Navigator.pushReplacementNamed(context, '/customer-home');
+          Navigator.pushReplacementNamed(context, '/main');
         } else if (role == 'jeweller') {
-          // TODO: Navigate to jeweller dashboard
-          Navigator.pushReplacementNamed(context, '/jeweller-dashboard');
+          Navigator.pushReplacementNamed(context, '/main');
         }
       } else {
         // Login failed

@@ -1,8 +1,9 @@
 import 'package:dio/dio.dart';
 
 class ApiService {
-  // IMPORTANT: Change to your IP address if needed
-  static const String baseUrl = 'http://127.0.0.1:5000';
+  // static const String baseUrl = 'http://10.0.2.2:5000'; // Android Emulator
+  static const String baseUrl = 'http://localhost:5000'; // iOS Simulator
+  // static const String baseUrl = 'http://YOUR_IP:5000'; // Real Device
 
   final Dio _dio = Dio(
     BaseOptions(
@@ -189,6 +190,63 @@ class ApiService {
         '/api/chat/threads/$userId',
         queryParameters: {'status': status},
       );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!.data;
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  // ==================== AI CHAT (GROQ) ====================
+  Future<Map<String, dynamic>> aiChat({
+    required String message,
+    List<Map<String, String>> conversationHistory = const [],
+    String? userId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/ai/chat',
+        data: {
+          'message': message,
+          'conversation_history': conversationHistory,
+          'user_id': userId,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!.data;
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  // ==================== AI SUGGESTIONS ====================
+  Future<Map<String, dynamic>> aiSuggestions({
+    String? occasion,
+    String? budget,
+    String? materialPreference,
+    String? stylePreference,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/ai/suggestions',
+        data: {
+          'occasion': occasion,
+          'budget': budget,
+          'material_preference': materialPreference,
+          'style_preference': stylePreference,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null) return e.response!.data;
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  // ==================== AI HEALTH CHECK ====================
+  Future<Map<String, dynamic>> aiHealthCheck() async {
+    try {
+      final response = await _dio.get('/api/ai/health');
       return response.data;
     } on DioException catch (e) {
       if (e.response != null) return e.response!.data;
