@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'services/api_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/role_selection_screen.dart';
 import 'screens/login_screen.dart';
@@ -91,6 +94,8 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  int _unreadCount = 0;
+  Timer? _unreadTimer;
 
   final List<Widget> _screens = const [
     HomeScreen(),
@@ -99,6 +104,45 @@ class _MainNavigationState extends State<MainNavigation> {
     AIDesignScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+
+    // Poll for unread messages every 30 seconds
+    _unreadTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) _loadUnreadCount();
+    });
+  }
+
+  @override
+  void dispose() {
+    _unreadTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+
+      if (userId == null) return;
+
+      final result = await ApiService().getChatThreads(userId);
+      if (result['success'] == true && mounted) {
+        final threads = result['threads'] as List? ?? [];
+        final total = threads.fold<int>(
+          0,
+          (sum, thread) =>
+              sum + ((thread['unread_count'] as num?)?.toInt() ?? 0),
+        );
+        setState(() => _unreadCount = total);
+      }
+    } catch (e) {
+      print('Failed to load unread count: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,20 +162,56 @@ class _MainNavigationState extends State<MainNavigation> {
               onPressed: () {
                 Navigator.pushNamed(context, '/ai-chat');
               },
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+              child: const Icon(Icons.auto_awesome,
+                  color: Colors.white, size: 20),
             ),
           ),
-          // Floating Chat Button
+          // Floating Chat Button with Unread Badge
           Positioned(
             right: 16,
             bottom: 80,
-            child: FloatingActionButton(
-              heroTag: 'chat_fab',
-              backgroundColor: const Color(0xFFD4AF35),
-              onPressed: () {
-                Navigator.pushNamed(context, '/chat-overview');
-              },
-              child: const Icon(Icons.chat, color: Colors.white),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                FloatingActionButton(
+                  heroTag: 'chat_fab',
+                  backgroundColor: const Color(0xFFD4AF35),
+                  onPressed: () async {
+                    await Navigator.pushNamed(context, '/chat-overview');
+                    // Refresh unread count when returning from chat
+                    _loadUnreadCount();
+                  },
+                  child: const Icon(Icons.chat, color: Colors.white),
+                ),
+                // Unread badge
+                if (_unreadCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 22,
+                        minHeight: 22,
+                      ),
+                      child: Text(
+                        _unreadCount > 99
+                            ? '99+'
+                            : _unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
