@@ -1,255 +1,309 @@
 import 'package:dio/dio.dart';
 
 class ApiService {
-  // static const String baseUrl = 'http://10.0.2.2:5000'; // Android Emulator
-  static const String baseUrl = 'http://localhost:5000'; // iOS Simulator
-  // static const String baseUrl = 'http://YOUR_IP:5000'; // Real Device
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
 
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {'Content-Type': 'application/json'},
-    ),
-  );
+  late Dio _dio;
 
-  // ==================== CUSTOMER SIGNUP ====================
-  Future<Map<String, dynamic>> signup({
+  ApiService._internal() {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: 'http://10.0.2.2:5000',
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
+
+    // Add logging interceptor for debugging
+    _dio.interceptors.add(
+      LogInterceptor(
+        requestBody: true,
+        responseBody: true,
+        logPrint: (obj) => print('📡 API: $obj'),
+      ),
+    );
+  }
+
+  // ==================== AUTH APIs ====================
+
+  Future<Map<String, dynamic>> registerUser({
+    required String name,
     required String email,
     required String password,
-    required String firstName,
-    required String lastName,
     required String phone,
-    required String dateOfBirth,
-    required String gender,
-    required String relationshipStatus,
+    String role = 'customer',
+    String? businessName,
+    String? businessAddress,
+    String? businessRegNumber,
   }) async {
     try {
-      final data = {
+      print('📤 Registering user: $email');
+
+      final Map<String, dynamic> data = {
+        'name': name,
         'email': email,
         'password': password,
-        'name': '$firstName $lastName',
-        'role': 'customer',
         'phone': phone,
-        'date_of_birth': dateOfBirth,
-        'gender': gender,
-        'relationship_status': relationshipStatus,
+        'role': role,
       };
 
-      final response = await _dio.post('/api/auth/signup', data: data);
+      if (role == 'jeweller') {
+        data['business_name'] = businessName;
+        data['business_address'] = businessAddress;
+        data['business_reg_number'] = businessRegNumber;
+      }
+
+      final response = await _dio.post('/api/auth/register', data: data);
+
+      print('✅ Registration response: ${response.statusCode}');
       return response.data;
     } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
+      print('❌ Registration error: ${e.message}');
+      if (e.response != null) {
+        print('Error response: ${e.response?.data}');
+        return e.response!.data;
+      }
       return {'success': false, 'message': 'Network error: ${e.message}'};
     }
   }
 
-  // ==================== JEWELLER REGISTRATION ====================
-  Future<Map<String, dynamic>> registerJeweller({
-    required String email,
-    required String password,
-    required String firstName,
-    required String lastName,
-    required String phone,
-    required String businessName,
-    required String registrationNumber,
-    required String certificationUrl,
-  }) async {
-    try {
-      final data = {
-        'email': email,
-        'password': password,
-        'name': '$firstName $lastName',
-        'role': 'jeweller',
-        'phone': phone,
-        'business_name': businessName,
-        'business_registration_number': registrationNumber,
-        'certification_document_url': certificationUrl,
-      };
-
-      final response = await _dio.post('/api/auth/signup', data: data);
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
-      return {'success': false, 'message': 'Network error: ${e.message}'};
-    }
-  }
-
-  // ==================== LOGIN ====================
-  Future<Map<String, dynamic>> login({
+  Future<Map<String, dynamic>> loginUser({
     required String email,
     required String password,
   }) async {
     try {
+      print('📤 Logging in: $email');
+
       final response = await _dio.post(
         '/api/auth/login',
         data: {'email': email, 'password': password},
       );
+
+      print('✅ Login response: ${response.statusCode}');
       return response.data;
     } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
+      print('❌ Login error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
       return {'success': false, 'message': 'Network error: ${e.message}'};
     }
   }
 
-  // ==================== CHECK VERIFICATION STATUS ====================
-  Future<Map<String, dynamic>> getVerificationStatus(String jewellerId) async {
-    try {
-      final response = await _dio.get(
-        '/api/admin/jewellers/$jewellerId/status',
-      );
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
-      return {'success': false, 'message': 'Network error: ${e.message}'};
-    }
-  }
+  // ==================== PRODUCT APIs ====================
 
-  // ==================== GET ALL PRODUCTS ====================
-  Future<Map<String, dynamic>> getAllProducts() async {
-    try {
-      final response = await _dio.get('/api/products');
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
-      return {'success': false, 'message': 'Network error: ${e.message}'};
-    }
-  }
-
-  // ==================== CHAT: GET MESSAGES ====================
-  Future<Map<String, dynamic>> getMessages(
-    String threadId, {
-    int limit = 100,
+  Future<Map<String, dynamic>> getProducts({
+    String? category,
+    String? jewellerId,
+    double? minPrice,
+    double? maxPrice,
+    String? search,
   }) async {
     try {
+      print('📤 Getting products...');
+
+      final Map<String, dynamic> queryParams = {};
+      if (category != null) queryParams['category'] = category;
+      if (jewellerId != null) queryParams['jeweller_id'] = jewellerId;
+      if (minPrice != null) queryParams['min_price'] = minPrice;
+      if (maxPrice != null) queryParams['max_price'] = maxPrice;
+      if (search != null) queryParams['search'] = search;
+
       final response = await _dio.get(
-        '/api/chat/$threadId/messages',
-        queryParameters: {'limit': limit},
+        '/api/products',
+        queryParameters: queryParams,
       );
+
+      print('✅ Products response: ${response.statusCode}');
       return response.data;
     } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
+      print('❌ Products error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
       return {'success': false, 'message': 'Network error: ${e.message}'};
     }
   }
 
-  // ==================== CHAT: MARK AS READ ====================
-  Future<Map<String, dynamic>> markMessagesAsRead({
-    required String threadId,
-    required String userId,
+  Future<Map<String, dynamic>> getProductById(String productId) async {
+    try {
+      print('📤 Getting product: $productId');
+
+      final response = await _dio.get('/api/products/$productId');
+
+      print('✅ Product response: ${response.statusCode}');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ Product error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> addProduct({
+    required String jewellerId,
+    required String name,
+    required String description,
+    required String category,
+    required double price,
+    required double weight,
+    required String karat,
+    required String primaryImageUrl,
+    List<String>? additionalImages,
+    bool isCustomizable = false,
   }) async {
     try {
+      print('📤 Adding product: $name');
+
       final response = await _dio.post(
-        '/api/chat/read',
-        data: {'thread_id': threadId, 'user_id': userId},
+        '/api/products',
+        data: {
+          'jeweller_id': jewellerId,
+          'name': name,
+          'description': description,
+          'category': category,
+          'price': price,
+          'weight': weight,
+          'karat': karat,
+          'primary_image_url': primaryImageUrl,
+          'additional_images': additionalImages ?? [],
+          'is_customizable': isCustomizable,
+        },
       );
+
+      print('✅ Add product response: ${response.statusCode}');
       return response.data;
     } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
+      print('❌ Add product error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
       return {'success': false, 'message': 'Network error: ${e.message}'};
     }
   }
 
-  // ==================== CHAT: SEND MESSAGE ====================
+  // ==================== CHAT APIs ====================
+
+  /// Start or get an existing chat thread between customer and jeweller
+  Future<Map<String, dynamic>> startChat({
+    required String customerId,
+    required String jewellerId,
+    String? productId,
+  }) async {
+    try {
+      print('📤 Starting chat...');
+
+      final response = await _dio.post(
+        '/api/chat/start',
+        data: {
+          'customer_id': customerId,
+          'jeweller_id': jewellerId,
+          'product_id': productId,
+        },
+      );
+
+      print('✅ Chat started: ${response.data}');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ Start chat error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  /// Get all chat threads for a user (works for both customer and jeweller)
+  Future<Map<String, dynamic>> getChatThreads(String userId) async {
+    try {
+      print('📤 Getting chat threads for: $userId');
+
+      final response = await _dio.get('/api/chat/threads/$userId');
+
+      print('✅ Got ${response.data['count']} threads');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ Get threads error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  /// Get all messages in a specific chat thread
+  Future<Map<String, dynamic>> getMessages(String threadId) async {
+    try {
+      print('📤 Getting messages for thread: $threadId');
+
+      final response = await _dio.get('/api/chat/$threadId/messages');
+
+      print('✅ Got ${response.data['count']} messages');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ Get messages error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  /// Send a text message in a chat thread
   Future<Map<String, dynamic>> sendMessage({
     required String threadId,
     required String senderId,
     required String message,
     String messageType = 'text',
-    String? fileUrl,
-    String? quotationId,
-    String? aiDesignId,
   }) async {
     try {
-      final payload = {
-        'thread_id': threadId,
-        'sender_id': senderId,
-        'message': message,
-        'message_type': messageType,
-        'file_url': fileUrl,
-        'quotation_id': quotationId,
-        'ai_design_id': aiDesignId,
-      };
+      print('📤 Sending message...');
 
-      final response = await _dio.post('/api/chat/send', data: payload);
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
-      return {'success': false, 'message': 'Network error: ${e.message}'};
-    }
-  }
-
-  // ==================== CHAT: GET THREADS FOR USER ====================
-  Future<Map<String, dynamic>> getChatThreads(
-    String userId, {
-    String status = 'active',
-  }) async {
-    try {
-      final response = await _dio.get(
-        '/api/chat/threads/$userId',
-        queryParameters: {'status': status},
-      );
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
-      return {'success': false, 'message': 'Network error: ${e.message}'};
-    }
-  }
-
-  // ==================== AI CHAT (GROQ) ====================
-  Future<Map<String, dynamic>> aiChat({
-    required String message,
-    List<Map<String, String>> conversationHistory = const [],
-    String? userId,
-  }) async {
-    try {
       final response = await _dio.post(
-        '/api/ai/chat',
+        '/api/chat/send',
         data: {
+          'thread_id': threadId,
+          'sender_id': senderId,
           'message': message,
-          'conversation_history': conversationHistory,
-          'user_id': userId,
+          'message_type': messageType,
         },
       );
+
+      print('✅ Message sent');
       return response.data;
     } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
+      print('❌ Send message error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
       return {'success': false, 'message': 'Network error: ${e.message}'};
     }
   }
 
-  // ==================== AI SUGGESTIONS ====================
-  Future<Map<String, dynamic>> aiSuggestions({
-    String? occasion,
-    String? budget,
-    String? materialPreference,
-    String? stylePreference,
+  /// Mark all unread messages in a thread as read for a specific user
+  Future<Map<String, dynamic>> markMessagesAsRead({
+    required String threadId,
+    required String userId,
   }) async {
     try {
-      final response = await _dio.post(
-        '/api/ai/suggestions',
-        data: {
-          'occasion': occasion,
-          'budget': budget,
-          'material_preference': materialPreference,
-          'style_preference': stylePreference,
-        },
-      );
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
-      return {'success': false, 'message': 'Network error: ${e.message}'};
-    }
-  }
+      print('📤 Marking messages as read...');
 
-  // ==================== AI HEALTH CHECK ====================
-  Future<Map<String, dynamic>> aiHealthCheck() async {
-    try {
-      final response = await _dio.get('/api/ai/health');
+      final response = await _dio.post(
+        '/api/chat/read',
+        data: {'thread_id': threadId, 'user_id': userId},
+      );
+
+      print('✅ Messages marked as read');
       return response.data;
     } on DioException catch (e) {
-      if (e.response != null) return e.response!.data;
+      print('❌ Mark as read error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
       return {'success': false, 'message': 'Network error: ${e.message}'};
     }
   }
