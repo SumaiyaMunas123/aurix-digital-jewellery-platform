@@ -10,6 +10,9 @@ import adminRoutes from './src/routes/admin.js';
 import chatRoutes from './src/routes/chat.js';
 import aiRoutes from './src/routes/ai.js';
 
+// Import AI routes
+import aiRoutes from './src/routes/ai.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -22,6 +25,33 @@ app.use(express.json());
 
 // ============ ROUTES ============
 
+// Root route
+app.get('/', (req, res) => {
+  console.log(' Root route accessed');
+  res.json({ 
+    message: 'Aurix Backend is running',
+    timestamp: new Date().toISOString(),
+    available_endpoints: [
+      'POST /api/auth/signup',
+      'POST /api/auth/login',
+      'POST /api/products',
+      'GET /api/products',
+      'GET /api/products/:id',
+      'PUT /api/products/:id',
+      'DELETE /api/products/:id',
+      'GET /api/admin/jewellers/pending',      // NEW
+      'GET /api/admin/jewellers',              // NEW
+      'POST /api/admin/jewellers/:id/approve', // NEW
+      'POST /api/admin/jewellers/:id/reject',  // NEW
+      'GET /api/admin/jewellers/:id/status',   // NEW
+      'GET /api/ai/health',                      // AI
+      'POST /api/ai/generate',                   // AI
+      'GET /test-db'
+    ]
+  });
+});
+
+// Auth routes - connects /api/auth to authRoutes
 // Auth routes
 app.use('/api/auth', authRoutes);
 
@@ -30,6 +60,9 @@ app.use('/api/products', productRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// AI routes
+app.use('/api/ai', aiRoutes);
 
 // Chat routes
 app.use('/api/chat', chatRoutes);
@@ -89,6 +122,14 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('   - PUT  /api/admin/jewellers/:id/approve');
   console.log('   - PUT  /api/admin/jewellers/:id/reject');
   console.log('');
+  console.log('   AI:');
+  console.log(`   GET  /api/ai/health             - AI service status`);
+  console.log(`   POST /api/ai/generate           - Generate jewellery image`);
+  console.log('');
+  console.log('   TESTING:');
+  console.log(`   GET  /                          - Server info`);
+  console.log(`   GET  /test-db                   - Test database`);
+  console.log('='.repeat(70));
   console.log('Ready to accept requests! 🎉');
   console.log('════════════════════════════════════════');*/
 });
