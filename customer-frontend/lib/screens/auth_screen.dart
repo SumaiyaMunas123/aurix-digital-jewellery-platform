@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'ai_text_prompt_screen.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -107,6 +108,34 @@ class AuthScreen extends StatelessWidget {
                       child: const Text(
                         'Sign up',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // AI Design Button (New Integration)
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AITextPromptScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text(
+                        'Try AI Design Generator',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white10,
+                        foregroundColor: gold,
+                        side: const BorderSide(color: gold, width: 1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
