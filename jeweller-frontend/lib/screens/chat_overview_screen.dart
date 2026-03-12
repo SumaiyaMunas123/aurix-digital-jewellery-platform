@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
-import 'chat_thread_screen.dart';
 
 class ChatOverviewScreen extends StatefulWidget {
   const ChatOverviewScreen({super.key});
@@ -67,6 +66,8 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
   }
 
   void _openChat(BuildContext context, dynamic chat) {
+    if (_userId == null) return;
+
     final isCustomer = chat['customer_id'] == _userId;
     final otherUser = isCustomer ? chat['jeweller'] : chat['customer'];
 
@@ -80,22 +81,18 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
       return;
     }
 
-    Navigator.push(
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => ChatThreadScreen(
-          threadId: chat['id'],
-          shopName: otherUser['business_name'] ?? otherUser['name'] ?? 'Chat',
-          otherUserId: otherUser['id'],
-          currentUserId: _userId!,
-          onMessageSent: () {
-            _loadChats(); // Refresh the list when coming back
-          },
-          jewellerId: '',
-          customerId: '',
-        ),
-      ),
-    );
+      '/chat-thread',
+      arguments: {
+        'threadId': chat['id'] ?? '',
+        'shopName': otherUser['business_name'] ?? otherUser['name'] ?? 'Chat',
+        'jewellerId': chat['jeweller_id'] ?? '',
+        'customerId': chat['customer_id'] ?? '',
+      },
+    ).then((_) {
+      _loadChats();
+    });
   }
 
   @override

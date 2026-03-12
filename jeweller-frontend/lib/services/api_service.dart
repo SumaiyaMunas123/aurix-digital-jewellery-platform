@@ -55,7 +55,7 @@ class ApiService {
         data['business_reg_number'] = businessRegNumber;
       }
 
-      final response = await _dio.post('/api/auth/register', data: data);
+      final response = await _dio.post('/api/auth/signup', data: data);
 
       print('✅ Registration response: ${response.statusCode}');
       return response.data;
@@ -63,6 +63,41 @@ class ApiService {
       print('❌ Registration error: ${e.message}');
       if (e.response != null) {
         print('Error response: ${e.response?.data}');
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> registerJeweller({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String businessName,
+    required String registrationNumber,
+    required String certificationUrl,
+  }) async {
+    try {
+      print('📤 Registering jeweller: $email');
+
+      final response = await _dio.post('/api/auth/signup', data: {
+        'name': '$firstName $lastName',
+        'email': email,
+        'password': password,
+        'phone': phone,
+        'role': 'jeweller',
+        'business_name': businessName,
+        'business_registration_number': registrationNumber,
+        'certification_document_url': certificationUrl,
+      });
+
+      print('✅ Jeweller registration response: ${response.statusCode}');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ Jeweller registration error: ${e.message}');
+      if (e.response != null) {
         return e.response!.data;
       }
       return {'success': false, 'message': 'Network error: ${e.message}'};
@@ -85,6 +120,81 @@ class ApiService {
       return response.data;
     } on DioException catch (e) {
       print('❌ Login error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> signup({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String dateOfBirth,
+    required String gender,
+    required String relationshipStatus,
+  }) async {
+    try {
+      print('📤 Signing up customer: $email');
+
+      final response = await _dio.post('/api/auth/signup', data: {
+        'name': '$firstName $lastName',
+        'email': email,
+        'password': password,
+        'phone': phone,
+        'role': 'customer',
+        'date_of_birth': dateOfBirth,
+        'gender': gender,
+        'relationship_status': relationshipStatus,
+      });
+
+      print('✅ Signup response: ${response.statusCode}');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ Signup error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> getVerificationStatus(String jewellerId) async {
+    try {
+      print('📤 Getting verification status for: $jewellerId');
+
+      final response = await _dio.get('/api/admin/jewellers/$jewellerId/status');
+
+      print('✅ Verification status response: ${response.statusCode}');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ Get verification status error: ${e.message}');
+      if (e.response != null) {
+        return e.response!.data;
+      }
+      return {'success': false, 'message': 'Network error: ${e.message}'};
+    }
+  }
+
+  Future<Map<String, dynamic>> aiChat({
+    required String message,
+    required List<Map<String, String>> conversationHistory,
+  }) async {
+    try {
+      print('📤 Sending AI chat message...');
+
+      final response = await _dio.post('/api/ai/chat', data: {
+        'message': message,
+        'conversation_history': conversationHistory,
+      });
+
+      print('✅ AI chat response: ${response.statusCode}');
+      return response.data;
+    } on DioException catch (e) {
+      print('❌ AI chat error: ${e.message}');
       if (e.response != null) {
         return e.response!.data;
       }

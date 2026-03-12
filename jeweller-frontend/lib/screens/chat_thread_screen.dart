@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 
 class ChatThreadScreen extends StatefulWidget {
   final String threadId;
   final String shopName;
-  final String otherUserId;
-  final String currentUserId;
-  final VoidCallback? onMessageSent;
+  final String jewellerId;
+  final String customerId;
 
   const ChatThreadScreen({
     super.key,
     required this.threadId,
     required this.shopName,
-    required this.otherUserId,
-    required this.currentUserId,
-    this.onMessageSent,
+    required this.jewellerId,
+    required this.customerId,
   });
 
   @override
@@ -33,10 +32,26 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
   bool _isLoading = true;
   bool _isSending = false;
   Timer? _refreshTimer;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
+    _initCurrentUser();
+
+  }
+
+  Future<void> _initCurrentUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('user_id');
+      if (userId != null && mounted) {
+        setState(() => _currentUserId = userId);
+      }
+    } catch (e) {
+      // Fallback to customerId
+      setState(() => _currentUserId = widget.customerId);
+    }
     _loadMessages();
     _markAsRead();
 
@@ -93,11 +108,13 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     }
   }
 
+  String get _effectiveUserId => _currentUserId ?? widget.customerId;
+
   Future<void> _markAsRead() async {
     try {
       await _apiService.markMessagesAsRead(
         threadId: widget.threadId,
-        userId: widget.currentUserId,
+        userId: _effectiveUserId,
       );
     } catch (e) {
       print('❌ Error marking as read: $e');
@@ -114,13 +131,12 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
     try {
       final result = await _apiService.sendMessage(
         threadId: widget.threadId,
-        senderId: widget.currentUserId,
+        senderId: _effectiveUserId,
         message: text,
       );
 
       if (result['success'] == true) {
         await _loadMessages();
-        widget.onMessageSent?.call();
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -336,7 +352,7 @@ class _ChatThreadScreenState extends State<ChatThreadScreen> {
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       final message = _messages[index];
-                      final isMe = message['sender_id'] == widget.currentUserId;
+                      final isMe = message['sender_id'] == _effectiveUserId;
 
                       final List<Widget> widgets = [];
 

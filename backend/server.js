@@ -8,6 +8,7 @@ import authRoutes from './src/routes/auth.js';
 import productRoutes from './src/routes/products.js';
 import adminRoutes from './src/routes/admin.js';
 import chatRoutes from './src/routes/chat.js';
+import aiRoutes from './src/routes/ai.js';
 
 dotenv.config();
 
@@ -33,6 +34,10 @@ app.use('/api/admin', adminRoutes);
 // ============ CHAT ROUTES ============
 
 app.use('/api/chat', chatRoutes);
+
+// ============ AI ROUTES ============
+
+app.use('/api/ai', aiRoutes);
 
 
 // ============ BASIC ROUTES ============
