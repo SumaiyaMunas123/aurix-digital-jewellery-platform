@@ -10,6 +10,7 @@
         "cupertino_icons",
         "dio",
         "flutter",
+        "http",
         "shared_preferences"
       ],
       "devDependencies": [
@@ -150,7 +151,7 @@
     },
     {
       "name": "matcher",
-      "version": "0.12.18",
+      "version": "0.12.17",
       "dependencies": [
         "async",
         "meta",
@@ -161,7 +162,7 @@
     },
     {
       "name": "test_api",
-      "version": "0.7.9",
+      "version": "0.7.7",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -272,14 +273,14 @@
     },
     {
       "name": "material_color_utilities",
-      "version": "0.13.0",
+      "version": "0.11.1",
       "dependencies": [
         "collection"
       ]
     },
     {
       "name": "characters",
-      "version": "1.4.1",
+      "version": "1.4.0",
       "dependencies": []
     },
     {
@@ -416,6 +417,16 @@
       "dependencies": [
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "http",
+      "version": "1.6.0",
+      "dependencies": [
+        "async",
+        "http_parser",
+        "meta",
+        "web"
       ]
     }
   ],
