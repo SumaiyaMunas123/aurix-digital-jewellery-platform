@@ -11,6 +11,9 @@ import authRoutes from './src/routes/auth.js';
 import productRoutes from './src/routes/products.js';  
 import adminRoutes from './src/routes/admin.js';
 
+// Import AI routes
+import aiRoutes from './src/routes/ai.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -42,6 +45,8 @@ app.get('/', (req, res) => {
       'POST /api/admin/jewellers/:id/approve', // NEW
       'POST /api/admin/jewellers/:id/reject',  // NEW
       'GET /api/admin/jewellers/:id/status',   // NEW
+      'GET /api/ai/health',                      // AI
+      'POST /api/ai/generate',                   // AI
       'GET /test-db'
     ]
   });
@@ -55,6 +60,9 @@ app.use('/api/products', productRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// AI routes
+app.use('/api/ai', aiRoutes);
 
 // Test database connection
 app.get('/test-db', async (req, res) => {
@@ -122,6 +130,10 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   POST /api/admin/jewellers/:id/approve   - Approve jeweller`);
   console.log(`   POST /api/admin/jewellers/:id/reject    - Reject jeweller`);
   console.log(`   GET  /api/admin/jewellers/:id/status    - Check status`);
+  console.log('');
+  console.log('   AI:');
+  console.log(`   GET  /api/ai/health             - AI service status`);
+  console.log(`   POST /api/ai/generate           - Generate jewellery image`);
   console.log('');
   console.log('   TESTING:');
   console.log(`   GET  /                          - Server info`);
