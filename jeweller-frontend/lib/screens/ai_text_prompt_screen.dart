@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import '../services/jewelry_ai_service.dart';
 
 class AITextPromptScreen extends StatefulWidget {
   const AITextPromptScreen({super.key});
@@ -11,7 +14,10 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
   static const Color primaryColor = Color(0xFFD4AF35);
   final TextEditingController _promptController = TextEditingController();
   bool _isGenerating = false;
-  String? _generatedImageUrl;
+  String? _generatedImageBase64;
+  String? _errorMessage;
+  bool _backendHealthy = false;
+  bool _checkingBackend = true;
 
   final List<String> _examplePrompts = [
     'A 22K gold necklace with lotus motifs and small ruby stones',
@@ -22,9 +28,25 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _checkBackendHealth();
+  }
+
+  @override
   void dispose() {
     _promptController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkBackendHealth() async {
+    final healthy = await JewelryAIService.isBackendHealthy();
+    if (mounted) {
+      setState(() {
+        _backendHealthy = healthy;
+        _checkingBackend = false;
+      });
+    }
   }
 
   Future<void> _generateDesign() async {
@@ -37,19 +59,39 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
 
     setState(() {
       _isGenerating = true;
+      _errorMessage = null;
+      _generatedImageBase64 = null;
     });
 
-    // Simulate AI generation (replace with actual API call)
-    await Future.delayed(const Duration(seconds: 3));
-
-    setState(() {
-      _isGenerating = false;
-      _generatedImageUrl = 'generated'; // Placeholder
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Design generated successfully!')),
-    );
+    try {
+      final imageBase64 =
+          await JewelryAIService.generateImage(_promptController.text.trim());
+      if (mounted) {
+        setState(() {
+          _generatedImageBase64 = imageBase64;
+          _isGenerating = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✨ Design generated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          _isGenerating = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -74,7 +116,8 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
                     const SizedBox(height: 24),
                     _buildExamplePrompts(isDark),
                     const SizedBox(height: 24),
-                    if (_generatedImageUrl != null) _buildGeneratedResult(isDark),
+                    if (_errorMessage != null) _buildErrorCard(isDark),
+                    if (_generatedImageBase64 != null) _buildGeneratedResult(isDark),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -120,6 +163,69 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Backend connection status
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: _checkingBackend
+                ? Colors.orange.withOpacity(0.1)
+                : (_backendHealthy
+                    ? Colors.green.withOpacity(0.1)
+                    : Colors.red.withOpacity(0.1)),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _checkingBackend
+                  ? Colors.orange.withOpacity(0.3)
+                  : (_backendHealthy
+                      ? Colors.green.withOpacity(0.3)
+                      : Colors.red.withOpacity(0.3)),
+            ),
+          ),
+          child: Row(
+            children: [
+              if (_checkingBackend)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Icon(
+                  _backendHealthy ? Icons.check_circle : Icons.error,
+                  color: _backendHealthy ? Colors.green : Colors.red,
+                  size: 18,
+                ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _checkingBackend
+                      ? 'Checking AI server...'
+                      : (_backendHealthy
+                          ? 'AI Server Connected'
+                          : 'AI Server Offline — start the backend'),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: _checkingBackend
+                        ? Colors.orange[800]
+                        : (_backendHealthy
+                            ? Colors.green[800]
+                            : Colors.red[800]),
+                  ),
+                ),
+              ),
+              if (!_checkingBackend && !_backendHealthy)
+                GestureDetector(
+                  onTap: () {
+                    setState(() => _checkingBackend = true);
+                    _checkBackendHealth();
+                  },
+                  child: const Icon(Icons.refresh, size: 18, color: Colors.red),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
             Icon(Icons.text_fields, color: primaryColor, size: 32),
@@ -273,6 +379,8 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
   }
 
   Widget _buildGeneratedResult(bool isDark) {
+    final Uint8List imageBytes = base64Decode(_generatedImageBase64!);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -285,40 +393,40 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Generated Design',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.black,
-            ),
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, color: primaryColor, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Generated Design',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          Container(
-            height: 300,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.diamond,
-                    size: 80,
-                    color: primaryColor.withOpacity(0.5),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.memory(
+              imageBytes,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 350,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 300,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'AI Generated Design',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
-                    ),
+                  child: const Center(
+                    child: Text('Failed to display image'),
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 16),
@@ -364,6 +472,34 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorCard(bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: TextStyle(
+                color: Colors.red[800],
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
           ),
         ],
       ),
