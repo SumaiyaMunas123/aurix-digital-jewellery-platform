@@ -19,7 +19,7 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
 
   List<dynamic> _allChats = [];
   bool _isLoading = true;
-  String? _customerId;
+  String? _userId;
 
   @override
   void initState() {
@@ -31,21 +31,18 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Get customer ID from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      _customerId =
-          prefs.getString('user_id') ?? prefs.getString('customer_id');
+      _userId = prefs.getString('user_id');
 
-      if (_customerId == null) {
-        print('❌ No customer ID found');
+      if (_userId == null) {
+        print('❌ No user ID found in SharedPreferences');
         setState(() => _isLoading = false);
         return;
       }
 
-      print('📱 Loading chats for customer: $_customerId');
+      print('📱 Loading chats for user: $_userId');
 
-      // Get chat threads from backend
-      final result = await _apiService.getChatThreads(_customerId!);
+      final result = await _apiService.getChatThreads(_userId!);
 
       if (result['success'] == true) {
         setState(() {
@@ -55,28 +52,47 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
         print('✅ Loaded ${_allChats.length} chats');
       } else {
         print('❌ Failed to load chats: ${result['message']}');
-        setState(() => _isLoading = false);
+        setState(() {
+          _allChats = [];
+          _isLoading = false;
+        });
       }
     } catch (e) {
       print('❌ Error loading chats: $e');
-      setState(() => _isLoading = false);
+      setState(() {
+        _allChats = [];
+        _isLoading = false;
+      });
     }
   }
 
   void _openChat(BuildContext context, dynamic chat) {
+    final isCustomer = chat['customer_id'] == _userId;
+    final otherUser = isCustomer ? chat['jeweller'] : chat['customer'];
+
+    if (otherUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Could not load chat participant info'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ChatThreadScreen(
           threadId: chat['id'],
-          shopName:
-              chat['jeweller']['business_name'] ?? chat['jeweller']['name'],
-          jewellerId: chat['jeweller']['id'],
-          customerId: _customerId!,
+          shopName: otherUser['business_name'] ?? otherUser['name'] ?? 'Chat',
+          otherUserId: otherUser['id'],
+          currentUserId: _userId!,
           onMessageSent: () {
-            // Refresh chat list when returning
-            _loadChats();
+            _loadChats(); // Refresh the list when coming back
           },
+          jewellerId: '',
+          customerId: '',
         ),
       ),
     );
@@ -92,16 +108,18 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Filter chats based on search query
     final filteredChats = _searchQuery.isEmpty
         ? _allChats
         : _allChats.where((chat) {
+            final isCustomer = chat['customer_id'] == _userId;
+            final otherUser = isCustomer ? chat['jeweller'] : chat['customer'];
             final name =
-                (chat['jeweller']['business_name'] ??
-                        chat['jeweller']['name'] ??
-                        '')
+                (otherUser?['business_name'] ?? otherUser?['name'] ?? '')
+                    .toString()
                     .toLowerCase();
-            final message = (chat['last_message'] ?? '').toLowerCase();
+            final message = (chat['last_message'] ?? '')
+                .toString()
+                .toLowerCase();
             final query = _searchQuery.toLowerCase();
             return name.contains(query) || message.contains(query);
           }).toList();
@@ -113,7 +131,7 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar
+            // ===== TOP BAR =====
             Container(
               height: 60,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -147,24 +165,54 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
                 ],
               ),
             ),
-            // Search Bar
-            _SearchBar(
-              isDark: isDark,
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              onClear: () {
-                _searchController.clear();
-                setState(() {
-                  _searchQuery = '';
-                });
-              },
-              hasText: _searchQuery.isNotEmpty,
+
+            // ===== SEARCH BAR =====
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search conversations',
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.grey[500] : Colors.grey[600],
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: isDark
+                      ? const Color(0xFF201D12)
+                      : const Color(0xFFF1F1F1),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              ),
             ),
-            // Chat List
+
+            // ===== CHAT LIST =====
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -196,6 +244,18 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
                             ),
                             textAlign: TextAlign.center,
                           ),
+                          if (_searchQuery.isEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Start chatting from a product page!',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDark
+                                    ? Colors.grey[600]
+                                    : Colors.grey[500],
+                              ),
+                            ),
+                          ],
                           if (_searchQuery.isNotEmpty) ...[
                             const SizedBox(height: 8),
                             TextButton(
@@ -225,8 +285,9 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
                         itemCount: filteredChats.length,
                         itemBuilder: (context, index) {
                           final chat = filteredChats[index];
-                          return ChatTile(
+                          return _ChatTile(
                             chat: chat,
+                            currentUserId: _userId!,
                             onTap: () => _openChat(context, chat),
                             isDark: isDark,
                           );
@@ -241,69 +302,16 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
   }
 }
 
-// Search Bar Widget
-class _SearchBar extends StatelessWidget {
-  final bool isDark;
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-  final VoidCallback onClear;
-  final bool hasText;
-
-  const _SearchBar({
-    required this.isDark,
-    required this.controller,
-    required this.onChanged,
-    required this.onClear,
-    required this.hasText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          hintText: 'Search for jewellers or messages',
-          hintStyle: TextStyle(
-            color: isDark ? Colors.grey[500] : Colors.grey[600],
-          ),
-          prefixIcon: Icon(
-            Icons.search,
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
-          ),
-          suffixIcon: hasText
-              ? IconButton(
-                  icon: Icon(
-                    Icons.clear,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  onPressed: onClear,
-                )
-              : null,
-          filled: true,
-          fillColor: isDark ? const Color(0xFF201D12) : const Color(0xFFF1F1F1),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        style: TextStyle(color: isDark ? Colors.white : Colors.black),
-      ),
-    );
-  }
-}
-
-// Chat Tile Widget
-class ChatTile extends StatelessWidget {
+// ===== INDIVIDUAL CHAT TILE WIDGET =====
+class _ChatTile extends StatelessWidget {
   final dynamic chat;
+  final String currentUserId;
   final VoidCallback onTap;
   final bool isDark;
 
-  const ChatTile({
-    super.key,
+  const _ChatTile({
     required this.chat,
+    required this.currentUserId,
     required this.onTap,
     required this.isDark,
   });
@@ -312,21 +320,24 @@ class ChatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final jeweller = chat['jeweller'];
+    final isCustomer = chat['customer_id'] == currentUserId;
+    final otherUser = isCustomer ? chat['jeweller'] : chat['customer'];
     final product = chat['product'];
-    final name = jeweller['business_name'] ?? jeweller['name'] ?? 'Unknown';
+    final name = otherUser?['business_name'] ?? otherUser?['name'] ?? 'Unknown';
     final lastMessage = chat['last_message'] ?? 'No messages yet';
     final unreadCount = chat['unread_count'] ?? 0;
 
     // Format time
-    String time = 'Recently';
+    String time = '';
     if (chat['last_message_at'] != null) {
       try {
         final DateTime messageTime = DateTime.parse(chat['last_message_at']);
         final now = DateTime.now();
         final difference = now.difference(messageTime);
 
-        if (difference.inMinutes < 60) {
+        if (difference.inMinutes < 1) {
+          time = 'Just now';
+        } else if (difference.inMinutes < 60) {
           time = '${difference.inMinutes}m ago';
         } else if (difference.inHours < 24) {
           time = '${difference.inHours}h ago';
@@ -336,7 +347,7 @@ class ChatTile extends StatelessWidget {
           time = '${messageTime.day}/${messageTime.month}/${messageTime.year}';
         }
       } catch (e) {
-        time = 'Recently';
+        time = '';
       }
     }
 
@@ -362,16 +373,18 @@ class ChatTile extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: isDark ? Colors.grey[800] : Colors.grey[300],
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.store,
                 size: 28,
-                color: primaryColor.withOpacity(0.5),
+                color: primaryColor.withOpacity(0.7),
               ),
             ),
             const SizedBox(width: 14),
+
+            // Name + last message
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,8 +401,8 @@ class ChatTile extends StatelessWidget {
                   if (product != null) ...[
                     const SizedBox(height: 2),
                     Text(
-                      'Re: ${product['name']}',
-                      style: TextStyle(fontSize: 12, color: primaryColor),
+                      'Re: ${product['name'] ?? 'Product'}',
+                      style: const TextStyle(fontSize: 12, color: primaryColor),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -400,7 +413,7 @@ class ChatTile extends StatelessWidget {
                       fontSize: 14,
                       color: isRead
                           ? (isDark ? Colors.grey[500] : Colors.grey[600])
-                          : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                          : (isDark ? Colors.grey[300] : Colors.grey[800]),
                       fontWeight: isRead ? FontWeight.normal : FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -410,6 +423,8 @@ class ChatTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+
+            // Time + unread badge
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [

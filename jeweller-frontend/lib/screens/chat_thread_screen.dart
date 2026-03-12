@@ -17,6 +17,8 @@ class ChatThreadScreen extends StatefulWidget {
     required this.jewellerId,
     required this.customerId,
     this.onMessageSent,
+    required String currentUserId,
+    required otherUserId,
   });
 
   @override
