@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/api_service.dart';
 import 'chat_thread_screen.dart';
 
 class ChatOverviewScreen extends StatefulWidget {
@@ -10,46 +12,70 @@ class ChatOverviewScreen extends StatefulWidget {
 
 class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
   static const Color primaryColor = Color(0xFFD4AF35);
+
+  final ApiService _apiService = ApiService();
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  Map<String, int> _unreadCounts = {
-    'luxe': 2,
-    'cartier': 1,
-    'tiffany': 0,
-    'bvlgari': 0,
-    'veni': 3,
-    'diamond_palace': 0,
-    'gold_house': 1,
-    'royal_gems': 0,
-    'sapphire': 0,
-    'pearl_boutique': 0,
-    'crystal_jewels': 2,
-    'emerald_creations': 0,
-  };
+  List<dynamic> _allChats = [];
+  bool _isLoading = true;
+  String? _customerId;
 
-  final List<Map<String, String>> _allChats = [
-    {'id': 'luxe', 'name': 'LUXE Jewellers', 'message': 'This looks perfect! Thank you.', 'time': '10:45 AM'},
-    {'id': 'cartier', 'name': 'Cartier', 'message': 'Can you confirm the carat size?', 'time': '9:30 AM'},
-    {'id': 'tiffany', 'name': 'Tiffany & Co.', 'message': 'Yes, we have that ring in stock.', 'time': 'Yesterday'},
-    {'id': 'bvlgari', 'name': 'Bvlgari', 'message': 'Thank you for your purchase!', 'time': 'Yesterday'},
-    {'id': 'veni', 'name': 'Veni Jewellers', 'message': 'Your custom piece is ready!', 'time': '2 days ago'},
-    {'id': 'diamond_palace', 'name': 'Diamond Palace', 'message': 'We received your inquiry.', 'time': '3 days ago'},
-    {'id': 'gold_house', 'name': 'Gold House', 'message': 'New designs available!', 'time': '4 days ago'},
-    {'id': 'royal_gems', 'name': 'Royal Gems', 'message': 'Your order has been shipped.', 'time': '5 days ago'},
-    {'id': 'sapphire', 'name': 'Sapphire Collection', 'message': 'Thank you for visiting our store.', 'time': '1 week ago'},
-    {'id': 'pearl_boutique', 'name': 'Pearl Boutique', 'message': 'Your quotation is ready.', 'time': '1 week ago'},
-    {'id': 'crystal_jewels', 'name': 'Crystal Jewels', 'message': 'Special discount this weekend!', 'time': '2 weeks ago'},
-    {'id': 'emerald_creations', 'name': 'Emerald Creations', 'message': 'We\'d love to hear your feedback.', 'time': '2 weeks ago'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadChats();
+  }
 
-  void _openChat(BuildContext context, String chatId, String shopName) {
+  Future<void> _loadChats() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Get customer ID from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      _customerId =
+          prefs.getString('user_id') ?? prefs.getString('customer_id');
+
+      if (_customerId == null) {
+        print('❌ No customer ID found');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      print('📱 Loading chats for customer: $_customerId');
+
+      // Get chat threads from backend
+      final result = await _apiService.getChatThreads(_customerId!);
+
+      if (result['success'] == true) {
+        setState(() {
+          _allChats = result['threads'] ?? [];
+          _isLoading = false;
+        });
+        print('✅ Loaded ${_allChats.length} chats');
+      } else {
+        print('❌ Failed to load chats: ${result['message']}');
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      print('❌ Error loading chats: $e');
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _openChat(BuildContext context, dynamic chat) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ChatThreadScreen(
-          onViewed: () {
-            setState(() => _unreadCounts[chatId] = 0);
+          threadId: chat['id'],
+          shopName:
+              chat['jeweller']['business_name'] ?? chat['jeweller']['name'],
+          jewellerId: chat['jeweller']['id'],
+          customerId: _customerId!,
+          onMessageSent: () {
+            // Refresh chat list when returning
+            _loadChats();
           },
         ),
       ),
@@ -70,14 +96,20 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
     final filteredChats = _searchQuery.isEmpty
         ? _allChats
         : _allChats.where((chat) {
-            final name = chat['name']!.toLowerCase();
-            final message = chat['message']!.toLowerCase();
+            final name =
+                (chat['jeweller']['business_name'] ??
+                        chat['jeweller']['name'] ??
+                        '')
+                    .toLowerCase();
+            final message = (chat['last_message'] ?? '').toLowerCase();
             final query = _searchQuery.toLowerCase();
             return name.contains(query) || message.contains(query);
           }).toList();
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF201D12) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark
+          ? const Color(0xFF201D12)
+          : const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Column(
           children: [
@@ -107,15 +139,11 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
                   const Spacer(),
                   IconButton(
                     icon: Icon(
-                      Icons.edit_square,
+                      Icons.refresh,
                       color: isDark ? Colors.white : const Color(0xFF171612),
                     ),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('New chat')),
-                      );
-                    },
-                  )
+                    onPressed: _loadChats,
+                  ),
                 ],
               ),
             ),
@@ -138,60 +166,72 @@ class _ChatOverviewScreenState extends State<ChatOverviewScreen> {
             ),
             // Chat List
             Expanded(
-              child: filteredChats.isEmpty
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: primaryColor),
+                    )
+                  : filteredChats.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.search_off,
+                            _searchQuery.isEmpty
+                                ? Icons.chat_bubble_outline
+                                : Icons.search_off,
                             size: 80,
                             color: isDark ? Colors.grey[600] : Colors.grey[400],
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No chats found for "$_searchQuery"',
+                            _searchQuery.isEmpty
+                                ? 'No conversations yet'
+                                : 'No chats found for "$_searchQuery"',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.grey[500] : Colors.grey[600],
+                              color: isDark
+                                  ? Colors.grey[500]
+                                  : Colors.grey[600],
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {
-                                _searchQuery = '';
-                              });
-                            },
-                            child: const Text(
-                              'Clear search',
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                          if (_searchQuery.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                              child: const Text(
+                                'Clear search',
+                                style: TextStyle(
+                                  color: primaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: filteredChats.length,
-                      itemBuilder: (context, index) {
-                        final chat = filteredChats[index];
-                        return ChatTile(
-                          chatId: chat['id']!,
-                          name: chat['name']!,
-                          message: chat['message']!,
-                          time: chat['time']!,
-                          unreadCount: _unreadCounts[chat['id']!]!,
-                          onTap: () => _openChat(context, chat['id']!, chat['name']!),
-                          isDark: isDark,
-                        );
-                      },
+                  : RefreshIndicator(
+                      onRefresh: _loadChats,
+                      color: primaryColor,
+                      child: ListView.builder(
+                        itemCount: filteredChats.length,
+                        itemBuilder: (context, index) {
+                          final chat = filteredChats[index];
+                          return ChatTile(
+                            chat: chat,
+                            onTap: () => _openChat(context, chat),
+                            isDark: isDark,
+                          );
+                        },
+                      ),
                     ),
             ),
           ],
@@ -249,9 +289,7 @@ class _SearchBar extends StatelessWidget {
             borderSide: BorderSide.none,
           ),
         ),
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-        ),
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
       ),
     );
   }
@@ -259,29 +297,49 @@ class _SearchBar extends StatelessWidget {
 
 // Chat Tile Widget
 class ChatTile extends StatelessWidget {
-  final String chatId;
-  final String name;
-  final String message;
-  final String time;
-  final int unreadCount;
+  final dynamic chat;
   final VoidCallback onTap;
   final bool isDark;
 
   const ChatTile({
     super.key,
-    required this.chatId,
-    required this.name,
-    required this.message,
-    required this.time,
+    required this.chat,
     required this.onTap,
     required this.isDark,
-    this.unreadCount = 0,
   });
 
   static const Color primaryColor = Color(0xFFD4AF35);
 
   @override
   Widget build(BuildContext context) {
+    final jeweller = chat['jeweller'];
+    final product = chat['product'];
+    final name = jeweller['business_name'] ?? jeweller['name'] ?? 'Unknown';
+    final lastMessage = chat['last_message'] ?? 'No messages yet';
+    final unreadCount = chat['unread_count'] ?? 0;
+
+    // Format time
+    String time = 'Recently';
+    if (chat['last_message_at'] != null) {
+      try {
+        final DateTime messageTime = DateTime.parse(chat['last_message_at']);
+        final now = DateTime.now();
+        final difference = now.difference(messageTime);
+
+        if (difference.inMinutes < 60) {
+          time = '${difference.inMinutes}m ago';
+        } else if (difference.inHours < 24) {
+          time = '${difference.inHours}h ago';
+        } else if (difference.inDays < 7) {
+          time = '${difference.inDays}d ago';
+        } else {
+          time = '${messageTime.day}/${messageTime.month}/${messageTime.year}';
+        }
+      } catch (e) {
+        time = 'Recently';
+      }
+    }
+
     final bool isRead = unreadCount == 0;
 
     return InkWell(
@@ -299,7 +357,7 @@ class ChatTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Avatar placeholder
+            // Avatar
             Container(
               width: 56,
               height: 56,
@@ -327,9 +385,17 @@ class ChatTile extends StatelessWidget {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (product != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Re: ${product['name']}',
+                      style: TextStyle(fontSize: 12, color: primaryColor),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Text(
-                    message,
+                    lastMessage,
                     style: TextStyle(
                       fontSize: 14,
                       color: isRead
@@ -352,7 +418,9 @@ class ChatTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: unreadCount > 0 ? primaryColor : (isDark ? Colors.grey[500] : Colors.grey[600]),
+                    color: unreadCount > 0
+                        ? primaryColor
+                        : (isDark ? Colors.grey[500] : Colors.grey[600]),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -368,7 +436,7 @@ class ChatTile extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Text(
-                      unreadCount.toString(),
+                      unreadCount > 99 ? '99+' : unreadCount.toString(),
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -380,7 +448,7 @@ class ChatTile extends StatelessWidget {
                 else
                   const SizedBox(height: 22),
               ],
-            )
+            ),
           ],
         ),
       ),

@@ -8,14 +8,37 @@ const AdminLogin = ({ onLogin }) => {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Login:", { email, password });
-        // Call the onLogin callback to switch to dashboard
-        if (onLogin) {
-            onLogin();
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+        const response = await fetch("http://localhost:5000/api/admin/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert("Login successful!");
+            console.log("Admin:", data.user);
+
+            // Call parent function to navigate dashboard
+            if (onLogin) {
+                onLogin(data.user);
+            }
+        } else {
+            alert(data.message);
         }
-    };
+
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("Server error. Try again later.");
+    }
+};
 
     const handleSocialLogin = (provider) => {
         console.log(`Login with ${provider}`);
@@ -43,7 +66,7 @@ const AdminLogin = ({ onLogin }) => {
                             placeholder="Enter your email address"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            required
+                            // required
                         />
                     </div>
 
@@ -56,7 +79,7 @@ const AdminLogin = ({ onLogin }) => {
                                 placeholder="Enter your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                required
+                                // required
                             />
                             <button
                                 type="button"

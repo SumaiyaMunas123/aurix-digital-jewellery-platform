@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'ai_text_prompt_screen.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -111,6 +112,34 @@ class AuthScreen extends StatelessWidget {
                     ),
                   ),
 
+                  const SizedBox(height: 20),
+
+                  // AI Design Button (New Integration)
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AITextPromptScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text(
+                        'Try AI Design Generator',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white10,
+                        foregroundColor: gold,
+                        side: const BorderSide(color: gold, width: 1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 26),
 
                   // Divider
@@ -186,7 +215,7 @@ class _SocialCircleButton extends StatelessWidget {
           color: const Color(0xFF141414),
           shape: BoxShape.circle,
           border: Border.all(
-            color: const Color(0xFFD4AF37), // Aurix gold
+            color: const Color(0xFFD4AF37), 
             width: 1.2,
           ),
         ),
