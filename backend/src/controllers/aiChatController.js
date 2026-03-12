@@ -54,7 +54,8 @@ export const aiChat = async (req, res) => {
       });
     }
 
-
+    // Add current message
+    messages.push({ role: 'user', content: message.trim() });
 
     // Call Groq API
     const chatCompletion = await groq.chat.completions.create({
