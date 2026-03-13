@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'api_config.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -9,9 +10,9 @@ class ApiService {
   ApiService._internal() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: 'http://10.0.2.2:5000',
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
+        baseUrl: ApiConfig.baseUrl,
+        connectTimeout: ApiConfig.connectTimeout,
+        receiveTimeout: ApiConfig.receiveTimeout,
         headers: {'Content-Type': 'application/json'},
       ),
     );
@@ -109,7 +110,7 @@ class ApiService {
     required String password,
   }) async {
     try {
-      print('📤 Logging in: $email');
+      print('📤 Logging in: $email via ${ApiConfig.baseUrl}');
 
       final response = await _dio.post(
         '/api/auth/login',
@@ -122,6 +123,13 @@ class ApiService {
       print('❌ Login error: ${e.message}');
       if (e.response != null) {
         return e.response!.data;
+      }
+      if (e.type == DioExceptionType.connectionTimeout) {
+        return {
+          'success': false,
+          'message':
+              'Connection timeout to ${ApiConfig.baseUrl}. Ensure backend is running and reachable from this platform.',
+        };
       }
       return {'success': false, 'message': 'Network error: ${e.message}'};
     }

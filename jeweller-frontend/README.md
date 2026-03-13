@@ -2,6 +2,23 @@
 
 A new Flutter project.
 
+## Fast Local Run (Web + Backend)
+
+1. Start backend first (from project root):
+	 `cd backend && npm install && npm run dev`
+2. Start Flutter web with HTML renderer (faster startup, avoids CanvasKit CDN dependency):
+	 `cd jeweller-frontend && flutter run -d chrome --web-renderer html`
+
+## API Base URL
+
+- Default behavior is platform-aware:
+	- Web/desktop: `http://localhost:5000`
+	- Android emulator: `http://10.0.2.2:5000`
+- To override manually:
+	`flutter run -d chrome --web-renderer html --dart-define=API_BASE_URL=http://localhost:5000`
+
+If you run backend on another machine/IP, pass that IP in `API_BASE_URL`.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'api_config.dart';
 
 class JewelryAIService {
   // ⚠️ UPDATE THIS BASED ON YOUR SETUP:
@@ -9,7 +10,7 @@ class JewelryAIService {
   // Web (Chrome):      http://localhost:5000
   //
   // This points to the Node.js backend (same as ApiService)
-  static const String _baseUrl = "http://localhost:5000";
+  static String get _baseUrl => ApiConfig.baseUrl;
 
   /// Generate an AI jewellery image from a text prompt.
   /// Returns base64-encoded PNG image data on success.
