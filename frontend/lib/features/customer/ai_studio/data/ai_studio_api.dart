@@ -36,17 +36,39 @@ class AiStudioApi {
       payload['user_id'] = userId.trim();
     }
 
-    final response = await _dio.post('/designs/generate-styled', data: payload);
-    final data = response.data;
+    try {
+      final response = await _dio.post('/designs/generate-styled', data: payload);
+      final data = response.data;
 
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Invalid response from AI backend');
+      if (data is! Map<String, dynamic>) {
+        throw Exception('Invalid response from AI backend');
+      }
+
+      if (data['success'] != true) {
+        throw Exception(data['error']?.toString() ?? 'AI generation failed');
+      }
+
+      return (data['data'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionError) {
+        throw Exception(
+          'Cannot reach AI backend at ${Environment.aiBaseUrl}. '
+          'If you are on Android emulator, keep AI BACKEND running on port 7000.',
+        );
+      }
+
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        throw Exception('AI request timed out. Please retry in a moment.');
+      }
+
+      final apiError = e.response?.data;
+      if (apiError is Map && apiError['error'] != null) {
+        throw Exception(apiError['error'].toString());
+      }
+
+      throw Exception('AI request failed: ${e.message}');
     }
-
-    if (data['success'] != true) {
-      throw Exception(data['error']?.toString() ?? 'AI generation failed');
-    }
-
-    return (data['data'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
   }
 }
