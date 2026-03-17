@@ -1,5 +1,6 @@
 name: aurix
-description: Aurix - eGold marketplace application
+description: Aurix Gold Marketplace
+
 publish_to: "none"
 
 version: 1.0.0+1
@@ -12,21 +13,44 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.6
+
+  # State management
   provider: ^6.1.2
+
+  # Network
   dio: ^5.4.0
+
+  # Charts (gold price graph)
   fl_chart: ^0.68.0
+
+  # Formatting
   intl: ^0.19.0
+
+  # Pick sketch image
   image_picker: ^1.0.7
+
+  # Share generated design
+  share_plus: ^10.1.4
+
+  # Save generated image to gallery
+  saver_gallery: ^4.1.0
+
+  # Permissions (Android / iOS)
+  permission_handler: ^12.0.1
+
+  # Google login
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
   flutter_lints: ^3.0.2
 
 flutter:
+
   uses-material-design: true
 
   assets:
     - assets/images/aurix_logo.png
     - assets/images/google_logo.png
-    - assets/images/apple_logo.png
