@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 import { load } from 'cheerio';
 
 const CACHE_TTL_MS = parseInt(process.env.CACHE_TTL_MS ?? '300000', 10); // 5 minutes

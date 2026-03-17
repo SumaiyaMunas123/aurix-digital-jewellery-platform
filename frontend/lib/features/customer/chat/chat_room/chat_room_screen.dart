@@ -4,86 +4,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
-
 import 'package:aurix/features/customer/chat/models/chat_message.dart';
-import 'package:aurix/features/customer/chat/data/chat_api.dart';
 import 'package:aurix/core/theme/app_colors.dart';
-
 
 class ChatRoomScreen extends StatefulWidget {
   final String title;
-  final String? threadId;
-  final String? myUserId;
-
-  const ChatRoomScreen({
-    super.key,
-    required this.title,
-    this.threadId,
-    this.myUserId,
-  });
+  const ChatRoomScreen({super.key, required this.title});
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
-
   final _picker = ImagePicker();
   final _controller = TextEditingController();
   final _scroll = ScrollController();
 
-  List<ChatMessage> _messages = [];
-  bool _loading = true;
-  bool _sending = false;
-
-  bool get _hasRemoteChatContext {
-    final tid = widget.threadId?.trim();
-    final uid = widget.myUserId?.trim();
-    return tid != null && tid.isNotEmpty && uid != null && uid.isNotEmpty;
-  }
-
-
-  @override
-  void initState() {
-    super.initState();
-    if (_hasRemoteChatContext) {
-      _loadMessages();
-      _markAsRead();
-    } else {
-      _messages = [
-        ChatMessage(id: '1', text: 'Hi! How can I help you today?', isMe: false, time: DateTime.now()),
-        ChatMessage(id: '2', text: 'I want a 22K ring design.', isMe: true, time: DateTime.now()),
-      ];
-      _loading = false;
-    }
-  }
-
-  Future<void> _loadMessages() async {
-    if (!_hasRemoteChatContext) return;
-
-    setState(() => _loading = true);
-    try {
-      final msgs = await ChatApi.getMessages(widget.threadId!, widget.myUserId!);
-      setState(() {
-        _messages = msgs;
-        _loading = false;
-      });
-      _scrollToBottom();
-    } catch (e) {
-      setState(() => _loading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load messages: $e')));
-      }
-    }
-  }
-
-  Future<void> _markAsRead() async {
-    if (!_hasRemoteChatContext) return;
-
-    try {
-      await ChatApi.markAsRead(threadId: widget.threadId!, userId: widget.myUserId!);
-    } catch (_) {}
-  }
+  final List<ChatMessage> _messages = [
+    ChatMessage(id: "1", text: "Hi! How can I help you today?", isMe: false, time: DateTime.now()),
+    ChatMessage(id: "2", text: "I want a 22K ring design.", isMe: true, time: DateTime.now()),
+  ];
 
   @override
   void dispose() {
@@ -103,44 +43,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
-
-  Future<void> _sendText() async {
+  void _sendText() {
     final text = _controller.text.trim();
-    if (text.isEmpty || _sending) return;
+    if (text.isEmpty) return;
 
     HapticFeedback.selectionClick();
 
-    if (!_hasRemoteChatContext) {
-      setState(() {
-        _messages.add(ChatMessage(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          text: text,
-          isMe: true,
-          time: DateTime.now(),
-        ));
-        _controller.clear();
-      });
-      _scrollToBottom();
-      return;
-    }
-
-    setState(() => _sending = true);
-    try {
-      await ChatApi.sendMessage(
-        threadId: widget.threadId!,
-        senderId: widget.myUserId!,
+    setState(() {
+      _messages.add(ChatMessage(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
         text: text,
-      );
+        isMe: true,
+        time: DateTime.now(),
+      ));
       _controller.clear();
-      await _loadMessages();
-      await _markAsRead();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send: $e')));
-      }
-    } finally {
-      setState(() => _sending = false);
-    }
+    });
+
+    _scrollToBottom();
   }
 
   Future<void> _pickImage() async {
@@ -179,14 +98,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         child: Column(
           children: [
             Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      controller: _scroll,
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                      itemCount: _messages.length,
-                      itemBuilder: (context, i) => _Bubble(m: _messages[i]),
-                    ),
+              child: ListView.builder(
+                controller: _scroll,
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                itemCount: _messages.length,
+                itemBuilder: (context, i) => _Bubble(m: _messages[i]),
+              ),
             ),
             _InputBar(
               controller: _controller,

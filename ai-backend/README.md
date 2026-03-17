@@ -25,7 +25,7 @@ Standalone AI service for Aurix. This is intentionally outside the `backend/` fo
 4. Install and run:
 
 ```bash
-cd "AI BACKEND"
+cd ai-backend
 npm install
 npm start
 ```
