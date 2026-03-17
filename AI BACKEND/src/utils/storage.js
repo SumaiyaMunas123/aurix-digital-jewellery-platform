@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabaseClient.js';
+import { ensureSupabaseConfigured, supabase } from '../config/supabaseClient.js';
 
 const DESIGN_BUCKET = 'designs';
 
@@ -19,6 +19,8 @@ export const parseBase64Image = (value) => {
 };
 
 export const uploadBufferToDesigns = async ({ path, buffer, contentType = 'image/png' }) => {
+  ensureSupabaseConfigured();
+
   const { error } = await supabase.storage.from(DESIGN_BUCKET).upload(path, buffer, {
     contentType,
     upsert: false,
@@ -44,6 +46,8 @@ export const extractDesignStoragePath = (publicUrl) => {
 };
 
 export const removeDesignObjects = async (urls = []) => {
+  ensureSupabaseConfigured();
+
   const paths = urls
     .map((u) => extractDesignStoragePath(u))
     .filter(Boolean);
