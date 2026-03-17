@@ -18,6 +18,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Request logging
+app.use((req, res, next) => {
+  console.log(`\n[${new Date().toLocaleTimeString()}] ${req.method} ${req.path}`);
+  next();
+});
 
 // ============ AUTH ROUTES ============ 
 
@@ -66,7 +71,7 @@ app.get('/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('');
   console.log('========================================');
   console.log('||   AURIX BACKEND RUNNING ! ||');
@@ -75,4 +80,24 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(` Database: Connected to Supabase`);
   console.log('========================================');
   console.log('');
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Error handling
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
 });

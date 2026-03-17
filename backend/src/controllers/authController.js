@@ -4,8 +4,8 @@ import { supabase } from '../config/supabaseClient.js';
 // ==================== SIGNUP ====================
 export const signup = async (req, res) => {
   try {
-    console.log('📝 Signup request received');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('\n📝 SIGNUP REQUEST');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
     // Get data from request body
     const { 
@@ -180,9 +180,15 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('📧 Login attempt:', email);
+    
+    console.log('\n📧 LOGIN REQUEST');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('Email:', email);
+    console.log('Password:', '***');
 
+    // Validation
     if (!email || !password) {
+      console.log('❌ Missing email or password\n');
       return res.status(400).json({
         success: false,
         message: 'Email and password are required'
@@ -190,6 +196,7 @@ export const login = async (req, res) => {
     }
 
     // Get user from database
+    console.log('🔍 Searching database...');
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -197,30 +204,47 @@ export const login = async (req, res) => {
       .single();
 
     if (error || !user) {
-      console.log('❌ User not found');
+      console.log('❌ User not found\n');
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    // FOR TESTING: Simple password check (NOT SECURE - FIX LATER)
-    // In production, use bcrypt.compare(password, user.password)
-    const isPasswordValid = password === user.password || 
-                           password === 'test123' || 
-                           user.password === 'test123';
+    console.log('✅ User found:', user.name, `(${user.role})`);
+    console.log('   Stored password type:', user.password.startsWith('$2') ? 'bcrypt hash' : 'plain text');
+
+    // Compare password
+    console.log('🔐 Comparing passwords...');
+    let isPasswordValid = false;
+
+    try {
+      // Check if password is hashed (starts with $2)
+      if (user.password && user.password.startsWith('$2')) {
+        console.log('   → Using bcrypt.compare()');
+        isPasswordValid = await bcrypt.compare(password, user.password);
+      } else {
+        console.log('   → Using plain text comparison');
+        isPasswordValid = password === user.password;
+      }
+    } catch (bcryptError) {
+      console.log('   → Bcrypt error, falling back to plain text');
+      isPasswordValid = password === user.password;
+    }
 
     if (!isPasswordValid) {
-      console.log('❌ Invalid password');
+      console.log('❌ Password mismatch\n');
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
-    console.log('✅ Login successful:', user.role);
+    console.log('✅ Password match!');
+    console.log('✅ LOGIN SUCCESSFUL');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    // Return user data (remove password from response)
+    // Return user without password
     const { password: _, ...userWithoutPassword } = user;
 
     return res.status(200).json({
@@ -230,11 +254,11 @@ export const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Login error:', error.message);
+    console.error('❌ LOGIN ERROR:', error.message);
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     return res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: error.message
+      message: 'Server error: ' + error.message
     });
   }
 };
