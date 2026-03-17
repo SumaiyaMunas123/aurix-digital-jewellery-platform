@@ -4,26 +4,61 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
+
 import 'package:aurix/features/customer/chat/models/chat_message.dart';
+import 'package:aurix/features/customer/chat/data/chat_api.dart';
 import 'package:aurix/core/theme/app_colors.dart';
 
+
 class ChatRoomScreen extends StatefulWidget {
+  final String threadId;
+  final String myUserId;
   final String title;
-  const ChatRoomScreen({super.key, required this.title});
+  const ChatRoomScreen({super.key, required this.threadId, required this.myUserId, required this.title});
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends State<ChatRoomScreen> {
+
   final _picker = ImagePicker();
   final _controller = TextEditingController();
   final _scroll = ScrollController();
 
-  final List<ChatMessage> _messages = [
-    ChatMessage(id: "1", text: "Hi! How can I help you today?", isMe: false, time: DateTime.now()),
-    ChatMessage(id: "2", text: "I want a 22K ring design.", isMe: true, time: DateTime.now()),
-  ];
+  List<ChatMessage> _messages = [];
+  bool _loading = true;
+  bool _sending = false;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMessages();
+    _markAsRead();
+  }
+
+  Future<void> _loadMessages() async {
+    setState(() => _loading = true);
+    try {
+      final msgs = await ChatApi.getMessages(widget.threadId, widget.myUserId);
+      setState(() {
+        _messages = msgs;
+        _loading = false;
+      });
+      _scrollToBottom();
+    } catch (e) {
+      setState(() => _loading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load messages: $e')));
+      }
+    }
+  }
+
+  Future<void> _markAsRead() async {
+    try {
+      await ChatApi.markAsRead(threadId: widget.threadId, userId: widget.myUserId);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -43,23 +78,28 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
-  void _sendText() {
+
+  Future<void> _sendText() async {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
-
+    if (text.isEmpty || _sending) return;
     HapticFeedback.selectionClick();
-
-    setState(() {
-      _messages.add(ChatMessage(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
+    setState(() => _sending = true);
+    try {
+      await ChatApi.sendMessage(
+        threadId: widget.threadId,
+        senderId: widget.myUserId,
         text: text,
-        isMe: true,
-        time: DateTime.now(),
-      ));
+      );
       _controller.clear();
-    });
-
-    _scrollToBottom();
+      await _loadMessages();
+      await _markAsRead();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send: $e')));
+      }
+    } finally {
+      setState(() => _sending = false);
+    }
   }
 
   Future<void> _pickImage() async {
@@ -98,12 +138,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                itemCount: _messages.length,
-                itemBuilder: (context, i) => _Bubble(m: _messages[i]),
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      controller: _scroll,
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, i) => _Bubble(m: _messages[i]),
+                    ),
             ),
             _InputBar(
               controller: _controller,
