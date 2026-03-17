@@ -1,12 +1,20 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 import requests
 import base64
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-HF_TOKEN = "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"
+HF_TOKEN = os.getenv("HF_TOKEN")
+if not HF_TOKEN:
+    print("❌ ERROR: HF_TOKEN not found in .env file!")
+    exit(1)
+
 HF_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
 HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
 
