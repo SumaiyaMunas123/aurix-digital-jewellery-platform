@@ -204,11 +204,8 @@ export const login = async (req, res) => {
       });
     }
 
-    // FOR TESTING: Simple password check (NOT SECURE - FIX LATER)
-    // In production, use bcrypt.compare(password, user.password)
-    const isPasswordValid = password === user.password || 
-                           password === 'test123' || 
-                           user.password === 'test123';
+    // Verify password with bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       console.log('❌ Invalid password');

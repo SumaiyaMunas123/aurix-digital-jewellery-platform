@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./AdminDashboard.css";
 import Footer from "./Footer";
 import Sidebar from "./Sidebar";
@@ -6,14 +6,22 @@ import TopBar from "./TopBar";
 import JewelerVerification from "./JewelerVerification";
 import ProductDashboard from "./ProductDashboard";
 import OrdersDashboard from "./OrdersDashboard";
-// import EscrowFinance from "./EscrowFinance";
-// import DisputesPage from "./DisputesPage";
 import SettingsPage from "./SettingsPage";
+import { apiCall } from "./api/client";
 
 const AdminDashboard = ({ onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [navProps, setNavProps] = useState({});
+  const [liveStats, setLiveStats] = useState(null);
+
+  useEffect(() => {
+    apiCall("/admin/stats")
+      .then((data) => {
+        if (data.success) setLiveStats(data.stats);
+      })
+      .catch((err) => console.error("Failed to load stats:", err));
+  }, []);
 
   const navigateTo = (menu, props = {}) => {
     setActiveMenu(menu);
@@ -124,11 +132,11 @@ const AdminDashboard = ({ onLogout }) => {
   ];
 
   const stats = [
-    { label: "Jeweler Verifications", value: "12", icon: "People" },
-    { label: "Product Approvals", value: "90", icon: "Products" },
-    { label: "Active Orders", value: "20", icon: "Orders" },
-    { label: "Escrow Balance", value: "$1.1M", icon: "Finance" },
-    { label: "Disputes", value: "3", icon: "Disputes" },
+    { label: "Jeweler Verifications", value: liveStats ? String(liveStats.pendingJewellers) : "…", icon: "People" },
+    { label: "Total Products",        value: liveStats ? String(liveStats.totalProducts)    : "…", icon: "Products" },
+    { label: "Active Orders",         value: "—",                                                  icon: "Orders" },
+    { label: "Escrow Balance",        value: "—",                                                  icon: "Finance" },
+    { label: "Total Jewellers",       value: liveStats ? String(liveStats.totalJewellers)   : "…", icon: "People" },
   ];
 
   const recentActivity = [
@@ -219,8 +227,8 @@ const AdminDashboard = ({ onLogout }) => {
       case "jewelers":  return <JewelerVerification defaultTab={navProps.defaultTab} />;
       case "products":  return <ProductDashboard defaultFilter={navProps.defaultFilter} />;
       case "orders":    return <OrdersDashboard />;
-      case "escrow":    return <EscrowFinance />;
-      case "disputes":  return <DisputesPage />;
+      case "escrow":    return <div style={{ padding: "2rem" }}><h2>Escrow / Finance</h2><p>Coming soon.</p></div>;
+      case "disputes":  return <div style={{ padding: "2rem" }}><h2>Disputes</h2><p>Coming soon.</p></div>;
       case "settings":  return <SettingsPage />;
       default:          return renderDashboardOverview();
     }
