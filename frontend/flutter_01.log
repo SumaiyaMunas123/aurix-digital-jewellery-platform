@@ -1,0 +1,108 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter run
+
+## exception
+
+ShaderCompilerException: ShaderCompilerException: Shader compilation of "/Users/sanathsajeevakumara/Desktop/flutter/packages/flutter/lib/src/material/shaders/ink_sparkle.frag" to "build/flutter_assets/shaders/ink_sparkle.frag" failed with exit code -10.
+impellerc stdout:
+
+impellerc stderr:
+[ERROR:flutter/fml/backtrace.cc(108)] Caught signal SIGBUS during program execution.
+Frame 0: 0x100cb3f10 glslang::TPpContext::tokenize()
+Frame 1: 0x100c3b020 glslang::TScanContext::tokenize()
+Frame 2: 0x100c3af98 yylex()
+Frame 3: 0x100c5d814 yyparse()
+Frame 4: 0x100c00f6c glslang::TParseContext::parseShaderStrings()
+Frame 5: 0x100c3fd20 (anonymous namespace)::CompileDeferred()
+Frame 6: 0x100c40ec4 glslang::TShader::parse()
+Frame 7: 0x100cfb968 shaderc_util::Compiler::Compile()
+Frame 8: 0x100b5acdc (anonymous namespace)::CompileToSpecifiedOutputType()
+Frame 9: 0x100b038a4 impeller::compiler::SPIRVCompiler::CompileToSPV()
+Frame 10: 0x100aa43dc impeller::compiler::Compiler::Compiler()
+Frame 11: 0x100aa0f5c impeller::compiler::Main()
+Frame 12: 0x100aa2d80 main
+Frame 13: 0x19c735d54 start
+
+
+
+
+
+```
+#0      ShaderCompiler.compileShader (package:flutter_tools/src/build_system/tools/shader_compiler.dart:196:9)
+<asynchronous suspension>
+#1      writeBundle.<anonymous closure> (package:flutter_tools/src/bundle_builder.dart:208:25)
+<asynchronous suspension>
+#2      Future.wait.<anonymous closure> (dart:async/future.dart:546:21)
+<asynchronous suspension>
+#3      writeBundle (package:flutter_tools/src/bundle_builder.dart:171:3)
+<asynchronous suspension>
+#4      WebDevFS.update (package:flutter_tools/src/isolated/devfs_web.dart:342:9)
+<asynchronous suspension>
+#5      ResidentWebRunner._updateDevFS (package:flutter_tools/src/isolated/resident_web_runner.dart:801:35)
+<asynchronous suspension>
+#6      ResidentWebRunner.run.<anonymous closure> (package:flutter_tools/src/isolated/resident_web_runner.dart:334:41)
+<asynchronous suspension>
+#7      asyncGuard.<anonymous closure> (package:flutter_tools/src/base/async_guard.dart:108:24)
+<asynchronous suspension>
+```
+
+## flutter doctor
+
+```
+[33m[!][39m Flutter (Channel stable, 3.41.1, on macOS 26.1 25B78 darwin-arm64, locale en-LK) [45.7s]
+    [32m•[39m Flutter version 3.41.1 on channel stable at /Users/sanathsajeevakumara/Desktop/flutter
+    [32m•[39m Upstream repository https://github.com/flutter/flutter.git
+    [32m•[39m Framework revision 582a0e7c55 (4 weeks ago), 2026-02-12 17:12:32 -0800
+    [32m•[39m Engine revision 3452d735bd
+    [32m•[39m Dart version 3.11.0
+    [32m•[39m DevTools version 2.54.1
+    [32m•[39m Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop,
+      enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets,
+      omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration
+    [31m✗[39m Downloaded executables cannot execute on host.
+      See https://github.com/flutter/flutter/issues/6207 for more information.
+      Flutter requires the Rosetta translation environment on ARM Macs. Try running:
+        sudo softwareupdate --install-rosetta --agree-to-license
+
+    [32m•[39m If those were intentional, you can disregard the above warnings; however it is
+      recommended to use "git" directly to perform update checks and upgrades.
+
+[32m[✓][39m Android toolchain - develop for Android devices (Android SDK version 36.1.0) [2.2s]
+    [32m•[39m Android SDK at /Users/sanathsajeevakumara/Library/Android/sdk
+    [32m•[39m Emulator version 36.4.9.0 (build_id 14788078) (CL:N/A)
+    [32m•[39m Platform android-36.1, build-tools 36.1.0
+    [32m•[39m Java binary at: /Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/java
+      This is the JDK bundled with the latest Android Studio installation on this machine.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    [32m•[39m Java version OpenJDK Runtime Environment (build 21.0.9+-14649483-b1163.86)
+    [32m•[39m All Android licenses accepted.
+
+[32m[✓][39m Xcode - develop for iOS and macOS (Xcode 26.2) [2.4s]
+    [32m•[39m Xcode at /Applications/Xcode.app/Contents/Developer
+    [32m•[39m Build 17C52
+    [32m•[39m CocoaPods version 1.16.2
+
+[32m[✓][39m Chrome - develop for the web [4ms]
+    [32m•[39m Chrome at /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+
+[32m[✓][39m Connected device (2 available) [6.6s]
+    [32m•[39m macOS (desktop) • macos  • darwin-arm64   • macOS 26.1 25B78 darwin-arm64
+    [32m•[39m Chrome (web)    • chrome • web-javascript • Google Chrome 145.0.7632.160
+
+[33m[!][39m Network resources [48ms]
+    [31m✗[39m A network error occurred while checking "https://pub.dev/": Failed host lookup: 'pub.dev'
+    [31m✗[39m A network error occurred while checking "https://storage.googleapis.com/": Failed host
+      lookup: 'storage.googleapis.com'
+    [31m✗[39m A network error occurred while checking "https://maven.google.com/": Failed host lookup:
+      'maven.google.com'
+    [31m✗[39m A network error occurred while checking "https://cocoapods.org/": Failed host lookup:
+      'cocoapods.org'
+    [31m✗[39m A network error occurred while checking "https://github.com/": Failed host lookup:
+      'github.com'
+
+[33m![39m Doctor found issues in 2 categories.
+```
