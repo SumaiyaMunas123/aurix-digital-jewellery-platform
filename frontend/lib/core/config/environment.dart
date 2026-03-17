@@ -14,4 +14,7 @@ class Environment {
 
   // Dedicated AI backend (separate service in /AI BACKEND)
   static String get aiBaseUrl => 'http://$_host:7000/api';
+
+  // Gold rate microservice
+  static String get goldRateUrl => 'http://$_host:6000/api';
 }
