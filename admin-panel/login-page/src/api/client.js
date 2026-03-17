@@ -1,5 +1,5 @@
-// API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+// API Configuration — uses Vite proxy in dev, relative path in production
+const API_BASE_URL = '/api';
 
 /**
  * Base API call function
@@ -165,7 +165,7 @@ export const getJewellerById = (jewellerId) => {
  */
 export const approveJeweller = (jewellerId, approvalData = {}) => {
   return apiCall(`/admin/jewellers/${jewellerId}/approve`, {
-    method: 'POST',
+    method: 'PUT',
     body: JSON.stringify(approvalData),
   });
 };
@@ -178,7 +178,7 @@ export const approveJeweller = (jewellerId, approvalData = {}) => {
  */
 export const rejectJeweller = (jewellerId, reason = '') => {
   return apiCall(`/admin/jewellers/${jewellerId}/reject`, {
-    method: 'POST',
+    method: 'PUT',
     body: JSON.stringify({ reason }),
   });
 };
@@ -201,7 +201,7 @@ export const getJewellerStatus = (jewellerId) => {
  * @returns {Promise} Server status and endpoints
  */
 export const getServerInfo = () => {
-  return fetch('http://localhost:5000/')
+  return fetch('/')
     .then((res) => res.json())
     .catch((error) => {
       console.error('Failed to connect to server:', error);
@@ -209,12 +209,8 @@ export const getServerInfo = () => {
     });
 };
 
-/**
- * Test database connection
- * @returns {Promise} Database status and user count
- */
 export const testDatabaseConnection = () => {
-  return fetch('http://localhost:5000/test-db')
+  return fetch('/test-db')
     .then((res) => res.json())
     .catch((error) => {
       console.error('Failed to connect to database:', error);

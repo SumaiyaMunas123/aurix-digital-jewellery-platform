@@ -1,10 +1,10 @@
-import Groq from 'groq-sdk';
+// import Groq from 'groq-sdk';
 import { supabase } from '../config/supabaseClient.js';
 
 // Initialize Groq client
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+// const groq = new Groq({
+//   apiKey: process.env.GROQ_API_KEY,
+// });
 
 // System prompt for jewelry AI assistant
 const JEWELRY_SYSTEM_PROMPT = `You are Aurix AI, an expert jewelry consultant for the Aurix digital jewellery marketplace. You help customers with:
