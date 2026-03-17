@@ -48,7 +48,7 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
     }
 
     setState(() {
-      _isLoading = true;
+      _isGenerating = true;
       _errorMessage = null;
       _generatedImageBase64 = null;
     });
@@ -57,13 +57,13 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
       final imageBase64 = await JewelryAIService.generateImage(prompt);
       setState(() {
         _generatedImageBase64 = imageBase64;
-        _isLoading = false;
+        _isGenerating = false;
       });
       _showSnackbar("Design generated successfully!");
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceFirst("Exception: ", "");
-        _isLoading = false;
+        _isGenerating = false;
       });
       _showSnackbar(_errorMessage!, isError: true);
     }
@@ -102,7 +102,7 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      _backendHealthy ? Icons.check_circle : Icons.error_circle,
+                      _backendHealthy ? Icons.check_circle : Icons.error,
                       color: _backendHealthy ? Colors.green : Colors.red,
                     ),
                     const SizedBox(width: 8),
@@ -138,9 +138,9 @@ class _AITextPromptScreenState extends State<AITextPromptScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _generateImage,
-                  icon: _isLoading ? const CircularProgressIndicator(strokeWidth: 2) : const Icon(Icons.sparkles),
-                  label: Text(_isLoading ? "Generating..." : "Generate Design"),
+                  onPressed: _isGenerating ? null : _generateImage,
+                  icon: _isGenerating ? const CircularProgressIndicator(strokeWidth: 2) : const Icon(Icons.auto_awesome),
+                  label: Text(_isGenerating ? "Generating..." : "Generate Design"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
                     foregroundColor: Colors.white,
