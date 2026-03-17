@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/gold_rate.dart';
 import 'gold_rate_repository.dart';
-import '../../../core/network/api_client.dart';
+import '../../../../core/network/api_client.dart';
 
 class GoldRateRepoApi implements GoldRateRepository {
   @override

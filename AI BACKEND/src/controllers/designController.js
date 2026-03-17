@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabaseClient.js';
+import { ensureSupabaseConfigured, supabase } from '../config/supabaseClient.js';
 import { generateImageWithHuggingFace } from '../utils/hfClient.js';
 import { parseBase64Image, removeDesignObjects, toSafeFileSegment, uploadBufferToDesigns } from '../utils/storage.js';
 
@@ -43,6 +43,8 @@ const saveDesign = async ({ userId, userType, prompt, styleParams, imageUrl, ske
 
 export const getUserDesigns = async (req, res) => {
   try {
+    ensureSupabaseConfigured();
+
     const { user_id: userId, user_type: userType } = req.query;
     const { limit, offset } = getPagination(req.query);
 
@@ -79,6 +81,8 @@ export const getUserDesigns = async (req, res) => {
 
 export const getDesignById = async (req, res) => {
   try {
+    ensureSupabaseConfigured();
+
     const { id } = req.params;
 
     const { data, error } = await supabase.from('designs').select('*').eq('id', id).single();
@@ -99,6 +103,8 @@ export const getDesignById = async (req, res) => {
 
 export const deleteDesign = async (req, res) => {
   try {
+    ensureSupabaseConfigured();
+
     const { id } = req.params;
 
     const { data: design, error: fetchError } = await supabase
@@ -128,6 +134,8 @@ export const deleteDesign = async (req, res) => {
 
 export const toggleFavorite = async (req, res) => {
   try {
+    ensureSupabaseConfigured();
+
     const { id } = req.params;
 
     const { data: design, error: fetchError } = await supabase
@@ -161,6 +169,8 @@ export const toggleFavorite = async (req, res) => {
 
 export const generateWithStyle = async (req, res) => {
   try {
+    ensureSupabaseConfigured();
+
     const { prompt, user_id: userId, user_type: userType = 'customer', style = {} } = req.body;
 
     if (!prompt || !prompt.trim()) {
@@ -200,6 +210,8 @@ export const generateWithStyle = async (req, res) => {
 
 export const uploadSketch = async (req, res) => {
   try {
+    ensureSupabaseConfigured();
+
     const {
       prompt,
       sketch_base64: sketchBase64,
