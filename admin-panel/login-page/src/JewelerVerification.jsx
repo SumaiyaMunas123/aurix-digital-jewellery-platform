@@ -85,11 +85,14 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
 
   return (
     <div className="verification-page">
+
+      {/* ── Header ── */}
       <div className="verification-header">
         <h1>Jeweler Verification</h1>
-        <button className="btn-register" onClick={fetchJewellers}>↻ Refresh</button>
+        <button className="btn-register">Register Jeweler</button>
       </div>
 
+      {/* ── Tabs ── */}
       <div className="verification-toolbar">
         <div className="verification-tabs">
           {tabs.map((tab) => (
@@ -104,6 +107,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
         </div>
       </div>
 
+      {/* ── Search / Filter row ── */}
       <div className="verification-filters-row">
         <div className="verification-search">
           <input
@@ -113,13 +117,15 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <button className="btn-filters" onClick={() => setSearch("")}>Clear</button>
+        <button className="btn-filters" onClick={() => setSearch("")}>Filter</button>
       </div>
 
+      {/* ── Card ── */}
       <div className="verification-card">
+
         {loading ? (
           <div style={{ padding: "2rem", textAlign: "center", color: "#888" }}>
-            Loading jewellers...
+            Loading jewellers…
           </div>
         ) : error ? (
           <div style={{ padding: "2rem", textAlign: "center", color: "#c0392b" }}>
@@ -150,54 +156,56 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
                   </tr>
                 ) : (
                   filteredRequests.map((req) => {
-                    const status = (req.verification_status || "pending").toLowerCase();
+                    const status      = (req.verification_status || "pending").toLowerCase();
+                    const displayName = req.business_name || req.name || "Unknown";
+
                     return (
                       <tr key={req.id}>
+
+                        {/* Name */}
                         <td>
                           <div className="jeweler-cell">
                             <div className="jeweler-text">
-                              <p className="jeweler-name">{req.business_name || req.name}</p>
+                              <p className="jeweler-name">{displayName}</p>
                               <p className="jeweler-email">{req.email}</p>
                             </div>
                           </div>
                         </td>
+
+                        {/* BRN */}
                         <td>
                           <span className="brn-label">BRN:</span>{" "}
-                          <span className="brn-value">{req.business_registration_number || "—"}</span>
+                          <span className="brn-value">
+                            {req.business_registration_number || "—"}
+                          </span>
                         </td>
+
+                        {/* Date */}
                         <td>{formatDate(req.created_at)}</td>
+
+                        {/* Status pill */}
                         <td>
                           <span className={statusClassMap[status] || "status-pill status-pending"}>
                             <span />
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                           </span>
                         </td>
+
+                        {/* Actions */}
                         <td>
-                          {status === "approved" ? (
-                            <button className="btn-dark">View</button>
-                          ) : status === "pending" ? (
-                            <div style={{ display: "flex", gap: "6px" }}>
-                              <button
-                                className="btn-dark"
-                                disabled={!!actionLoading}
-                                onClick={() => handleApprove(req.id)}
-                                style={{ background: "#27ae60", color: "#fff", border: "none" }}
-                              >
-                                {actionLoading === req.id + "_approve" ? "..." : "Approve"}
-                              </button>
-                              <button
-                                className="btn-dark"
-                                disabled={!!actionLoading}
-                                onClick={() => handleReject(req.id)}
-                                style={{ background: "#e74c3c", color: "#fff", border: "none" }}
-                              >
-                                {actionLoading === req.id + "_reject" ? "..." : "Reject"}
-                              </button>
-                            </div>
-                          ) : (
+                          {status === "approved" && (
                             <button className="btn-dark">View</button>
                           )}
+
+                          {status === "pending" && (
+                            <button className="btn-dark">Review</button>
+                          )}
+
+                          {status === "rejected" && (
+                            <button className="btn-dark">Review</button>
+                          )}
                         </td>
+
                       </tr>
                     );
                   })
@@ -212,6 +220,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             Showing {filteredRequests.length} of {requests.length} results
           </p>
         </div>
+
       </div>
     </div>
   );

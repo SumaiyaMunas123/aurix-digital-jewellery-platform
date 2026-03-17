@@ -15,12 +15,12 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
   ];
 
   const products = [
-    { id: 1, image: '', name: 'Diamond Solitaire Ring 1ct', description: '18k White Gold • Round Cut', sku: 'SKU-DR-001', category: 'RINGS', price: 2500.00, stock: 15, status: 'APPROVED' },
-    { id: 2, image: '', name: '18k Gold Cuban Link', description: '22-Inch • Solid Gold', sku: 'SKU-GC-042', category: 'NECKLACES', price: 1200.00, stock: 8, status: 'PENDING' },
-    { id: 3, image: '', name: 'South Sea Pearl Drop', description: 'Tahitian Grade AA • Pair', sku: 'SKU-PE-015', category: 'EARRINGS', price: 850.00, stock: 20, status: 'APPROVED' },
-    { id: 4, image: '', name: 'Square Cut Emerald Band', description: 'Natural Colombian • Platinum', sku: 'SKU-ES-822', category: 'RINGS', price: 1800.00, stock: 0, status: 'FLAGGED' },
-    { id: 5, image: '', name: 'Rose Gold Bangle Set', description: '14k Rose Gold • Set of 3', sku: 'SKU-BG-103', category: 'BRACELETS', price: 620.00, stock: 5, status: 'PENDING' },
-    { id: 6, image: '', name: 'Sapphire Tennis Bracelet', description: 'Natural Ceylon • Silver', sku: 'SKU-TB-211', category: 'BRACELETS', price: 3200.00, stock: 3, status: 'APPROVED' },
+    { id: 1, image: '', name: 'Diamond Solitaire Ring 1ct', description: '18k White Gold • Round Cut', sku: 'SKU-DR-001', category: 'RINGS', price: 250000.00, stock: 15, status: 'APPROVED' },
+    { id: 2, image: '', name: '18k Gold Cuban Link', description: '22-Inch • Solid Gold', sku: 'SKU-GC-042', category: 'NECKLACES', price: 120000.00, stock: 8, status: 'PENDING' },
+    { id: 3, image: '', name: 'South Sea Pearl Drop', description: 'Tahitian Grade AA • Pair', sku: 'SKU-PE-015', category: 'EARRINGS', price: 85000.00, stock: 20, status: 'APPROVED' },
+    { id: 4, image: '', name: 'Square Cut Emerald Band', description: 'Natural Colombian • Platinum', sku: 'SKU-ES-822', category: 'RINGS', price: 180000.00, stock: 0, status: 'FLAGGED' },
+    { id: 5, image: '', name: 'Rose Gold Bangle Set', description: '14k Rose Gold • Set of 3', sku: 'SKU-BG-103', category: 'BRACELETS', price: 620000.00, stock: 5, status: 'PENDING' },
+    { id: 6, image: '', name: 'Sapphire Tennis Bracelet', description: 'Natural Ceylon • Silver', sku: 'SKU-TB-211', category: 'BRACELETS', price: 32000.00, stock: 3, status: 'APPROVED' },
   ];
 
   const getTrendIcon = (trend) => {
@@ -69,7 +69,7 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
           </button>
           <div className="pd-filter-group">
-            {['All Categories', 'In Stock', 'Pending'].map((f) => (
+            {['All Categories', 'In Stock', 'Pending','Flagged'].map((f) => (
               <button key={f} className={`pd-filter-btn ${selectedFilter === f ? 'active' : ''}`} onClick={() => setSelectedFilter(f)}>{f}</button>
             ))}
           </div>
@@ -97,7 +97,7 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                 </td>
                 <td className="pd-sku">{product.sku}</td>
                 <td><span className="pd-category-badge">{product.category}</span></td>
-                <td className="pd-price">${product.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                <td className="pd-price">LKR {product.price.toLocaleString('en-LK', { maximumFractionDigits: 2 })}</td>
                 <td className={`pd-stock ${product.stock === 0 ? 'out-of-stock' : ''}`}>{product.stock === 0 ? 'Out of Stock' : product.stock}</td>
                 <td><span className={`pd-status-badge ${getStatusColor(product.status)}`}>{product.status}</span></td>
                 <td>
