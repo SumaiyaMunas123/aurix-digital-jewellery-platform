@@ -12,7 +12,7 @@ class Environment {
   // Main backend (auth, products, chat, etc.)
   static String get baseUrl => 'http://$_host:5000/api';
 
-  // Dedicated AI backend (separate service in /AI BACKEND)
+  // Dedicated AI backend (separate service in /ai-backend)
   static String get aiBaseUrl => 'http://$_host:7000/api';
 
   // Gold rate microservice
