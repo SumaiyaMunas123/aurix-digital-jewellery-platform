@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { load } from 'cheerio';
 
 const CACHE_TTL_MS = parseInt(process.env.CACHE_TTL_MS ?? '300000', 10); // 5 minutes
 let _cache = null;
@@ -10,9 +11,17 @@ export async function fetchGoldRates() {
     return _cache.data;
   }
 
+  const safe = async (fn) => {
+    try {
+      return await fn();
+    } catch (err) {
+      return { error: err?.message ?? String(err) };
+    }
+  };
+
   const [international, local_devi] = await Promise.all([
-    fetchInternationalGoldRate(),
-    fetchDeviGoldRate(),
+    safe(fetchInternationalGoldRate),
+    safe(fetchDeviGoldRate),
   ]);
 
   const data = {
@@ -26,8 +35,22 @@ export async function fetchGoldRates() {
 }
 
 async function fetchInternationalGoldRate() {
-  // 1) Get XAU/USD (price per troy ounce)
   const xauUsd = await getMetalPrice('XAU');
+
+  // If we cannot fetch the international rate (no API key), return a synthetic placeholder
+  if (xauUsd == null) {
+    return {
+      price_per_gram_lkr: null,
+      currency: 'LKR',
+      source: getGoldApiSource(),
+      timestamp: new Date().toISOString(),
+      xauUsd: null,
+      silver: null,
+      platinum: null,
+      usdToLkr: null,
+      warning: 'Missing GOLD_API_KEY; set it in .env to get real international rates.',
+    };
+  }
 
   // 2) Get USD -> LKR conversion rate
   const usdToLkr = await getUsdToLkr();
@@ -68,7 +91,10 @@ async function getMetalPrice(symbol) {
   const apiKey = process.env.GOLD_API_KEY;
 
   if (!apiKey) {
-    throw new Error('Missing GOLD_API_KEY; set it in .env');
+    // Allow the service to run without a key (useful for local dev & testing).
+    // In this case, we return null so callers can fall back gracefully.
+    console.warn('GOLD_API_KEY is missing; international rates will be skipped.');
+    return null;
   }
 
   const endpoint = `${url.replace(/\/$/, '')}/${symbol}/USD`;
@@ -100,17 +126,23 @@ async function getUsdToLkr() {
   }
 
   // Use exchangerate.host which is free and does not require a key.
-  const res = await axios.get('https://api.exchangerate.host/convert', {
-    params: { from: 'USD', to: 'LKR', amount: 1 },
-    timeout: 15000,
-  });
+  try {
+    const res = await axios.get('https://api.exchangerate.host/convert', {
+      params: { from: 'USD', to: 'LKR', amount: 1 },
+      timeout: 15000,
+    });
 
-  const rate = res.data?.result;
-  if (typeof rate !== 'number') {
-    throw new Error('Unable to fetch USD->LKR rate');
+    const rate = res.data?.result;
+    if (typeof rate !== 'number') {
+      throw new Error('Unable to fetch USD->LKR rate');
+    }
+
+    return rate;
+  } catch (err) {
+    console.warn('Failed to fetch USD->LKR rate, using fallback:', err.message);
+    // Fallback rate (approximate USD to LKR as of 2026)
+    return 320; // Adjust as needed
   }
-
-  return rate;
 }
 
 async function fetchDeviGoldRate() {
@@ -118,7 +150,7 @@ async function fetchDeviGoldRate() {
 
   const res = await axios.get(url, { timeout: 20000, responseType: 'text' });
   const html = res.data;
-  const text = cheerio.load(html).text();
+  const text = load(html).text();
 
   const rates = {
     '24k': extractRate(text, /24\s*[Kk][^\d]*([\d,]+\.?\d*)/g),

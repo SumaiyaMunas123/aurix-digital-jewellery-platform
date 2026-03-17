@@ -231,6 +231,8 @@ export const login = async (req, res) => {
       console.log('   → Bcrypt error, falling back to plain text');
       isPasswordValid = password === user.password;
     }
+    // Verify password with bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       console.log('❌ Password mismatch\n');

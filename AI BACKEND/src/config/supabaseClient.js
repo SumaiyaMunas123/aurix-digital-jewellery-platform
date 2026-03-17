@@ -4,8 +4,18 @@ import 'dotenv/config';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY).');
+export const hasSupabaseConfig = Boolean(supabaseUrl && supabaseKey);
+
+if (!hasSupabaseConfig) {
+  console.warn('⚠️ Supabase not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY).');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = hasSupabaseConfig ? createClient(supabaseUrl, supabaseKey) : null;
+
+export const ensureSupabaseConfigured = () => {
+  if (!hasSupabaseConfig || !supabase) {
+    const error = new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY).');
+    error.statusCode = 500;
+    throw error;
+  }
+};
