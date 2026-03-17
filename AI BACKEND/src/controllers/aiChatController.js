@@ -1,5 +1,5 @@
 import Groq from 'groq-sdk';
-import { supabase } from '../config/supabaseClient.js';
+import { hasSupabaseConfig, supabase } from '../config/supabaseClient.js';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -42,7 +42,7 @@ export const aiChat = async (req, res) => {
       throw new Error('No response from AI model');
     }
 
-    if (user_id) {
+    if (user_id && hasSupabaseConfig && supabase) {
       await supabase.from('ai_chat_logs').insert([
         {
           user_id,

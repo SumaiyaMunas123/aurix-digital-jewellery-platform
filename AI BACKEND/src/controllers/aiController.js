@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabaseClient.js';
+import { ensureSupabaseConfigured, supabase } from '../config/supabaseClient.js';
 import { buildBaseJewelryPrompt, generateImageWithHuggingFace } from '../utils/hfClient.js';
 import { toSafeFileSegment, uploadBufferToDesigns } from '../utils/storage.js';
 
@@ -24,6 +24,8 @@ const createDesignRecord = async ({ userId, userType, prompt, imageUrl, stylePar
 
 export const generateImage = async (req, res) => {
   try {
+    ensureSupabaseConfigured();
+
     const { prompt, user_id: userId, user_type: userType = 'customer' } = req.body;
 
     if (!prompt || !prompt.trim()) {
