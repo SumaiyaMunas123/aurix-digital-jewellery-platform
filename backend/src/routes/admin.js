@@ -1,5 +1,6 @@
 import express from 'express';
 import { adminLogin } from '../controllers/adminLogin.js';
+import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import {
   getPendingJewellers,
   getAllJewellers,
@@ -15,13 +16,13 @@ const router = express.Router();
 router.post('/login', adminLogin);
 
 // ============ JEWELLERS ============
-router.get('/jewellers', getAllJewellers);
-router.get('/jewellers/pending', getPendingJewellers);
-router.get('/jewellers/:jeweller_id/status', getJewellerStatus);
-router.put('/jewellers/:jeweller_id/approve', approveJeweller);
-router.put('/jewellers/:jeweller_id/reject', rejectJeweller);
+router.get('/jewellers', requireAuth, requireAdmin, getAllJewellers);
+router.get('/jewellers/pending', requireAuth, requireAdmin, getPendingJewellers);
+router.get('/jewellers/:jeweller_id/status', requireAuth, requireAdmin, getJewellerStatus);
+router.put('/jewellers/:jeweller_id/approve', requireAuth, requireAdmin, approveJeweller);
+router.put('/jewellers/:jeweller_id/reject', requireAuth, requireAdmin, rejectJeweller);
 
 // ============ STATS ============
-router.get('/stats', getPlatformStats);
+router.get('/stats', requireAuth, requireAdmin, getPlatformStats);
 
 export default router;
