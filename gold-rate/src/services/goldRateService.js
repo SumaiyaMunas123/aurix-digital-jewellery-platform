@@ -146,23 +146,17 @@ async function getUsdToLkr() {
 }
 
 async function fetchDeviGoldRate() {
-  const url = process.env.DEVI_GOLD_URL || 'https://www.deviwatches.com/';
-
-  const res = await axios.get(url, { timeout: 20000, responseType: 'text' });
-  const html = res.data;
-  const text = load(html).text();
-
-  const rates = {
-    '24k': extractRate(text, /24\s*[Kk][^\d]*([\d,]+\.?\d*)/g),
-    '22k': extractRate(text, /22\s*[Kk][^\d]*([\d,]+\.?\d*)/g),
-    '20k': extractRate(text, /20\s*[Kk][^\d]*([\d,]+\.?\d*)/g),
-  };
-
+  // For MVP demo, return dummy local rates since the website is not accessible
+  // In production, replace with actual scraping logic
   return {
-    source: url,
+    source: 'demo',
     timestamp: new Date().toISOString(),
-    raw_text: text.slice(0, 2000),
-    rates,
+    raw_text: 'Demo data for MVP',
+    rates: {
+      '24k': 50000, // Dummy values in LKR per gram
+      '22k': 46000,
+      '20k': 42000,
+    },
   };
 }
 

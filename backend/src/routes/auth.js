@@ -1,5 +1,11 @@
 import express from 'express';
-import { signup, login } from '../controllers/authController.js';
+import {
+  signup,
+  login,
+  googleAuth,
+  requestEmailVerification,
+  verifyEmailCode,
+} from '../controllers/authController.js';
 
 // Create router
 const router = express.Router();
@@ -26,7 +32,21 @@ router.post('/login', (req, res, next) => {
   login(req, res, next);
 });
 
-console.log('Routes registered: POST /signup, POST /login');
+// Google auth route
+router.post('/google', (req, res, next) => {
+  console.log('🔥 GOOGLE AUTH ROUTE HIT!');
+  googleAuth(req, res, next);
+});
+
+router.post('/email/request-verification', (req, res, next) => {
+  requestEmailVerification(req, res, next);
+});
+
+router.post('/email/verify-code', (req, res, next) => {
+  verifyEmailCode(req, res, next);
+});
+
+console.log('Routes registered: POST /signup, POST /login, POST /google, POST /email/request-verification, POST /email/verify-code');
 
 // Export router
 export default router;

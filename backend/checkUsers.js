@@ -5,7 +5,12 @@ dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});
 
 async function checkUsers() {
   try {
@@ -32,15 +37,15 @@ async function checkUsers() {
       console.log(`${index + 1}. ${user.name} (${user.role})`);
       console.log(`   Email: ${user.email}`);
       console.log(`   Password: ${user.password}`);
-      console.log(`   Starts with $2: ${user.password.startsWith('$2')}`);
+      console.log(`   Starts with $2: ${typeof user.password === 'string' ? user.password.startsWith('$2') : false}`);
       console.log('');
     });
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    process.exit(0);
+    process.exitCode = 0;
   } catch (error) {
     console.error('❌ Error:', error.message);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
