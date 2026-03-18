@@ -1,0 +1,151 @@
+.ef-page { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 16px; 
+}
+
+.ef-page-header { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+}
+
+.ef-page-header h1 {
+    margin: 0;
+    font-size: 26px; 
+    font-weight: 700; 
+    color: #111827; 
+}
+
+.ef-report-btn {
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
+  background: linear-gradient(135deg, #D4AF37, #C9A227); 
+  color: white;
+  border: none; 
+  border-radius: 10px; 
+  padding: 10px 18px;
+  font-size: 13px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(212,175,55,0.3);
+}
+
+.ef-report-btn:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 18px rgba(212,175,55,0.4); 
+    border-color: transparent; 
+}
+
+.ef-summary-grid { 
+    display: grid; grid-template-columns: 
+    repeat(5, 1fr); gap: 14px; 
+}
+
+.ef-summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 18px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    line-height: 28px;
+
+}
+
+.ef-summary-card:hover { 
+    box-shadow: 0 6px 18px rgba(212,175,55,0.15); 
+    border-color: #D4AF37; 
+    transform: translateY(-3px); 
+}
+
+
+.ef-summary-label { 
+    margin: 0 0 4px; 
+    font-size: 11px; 
+    font-weight: 600; 
+    color: #9ca3af; 
+    text-transform: uppercase; 
+    letter-spacing: 0.05em; 
+}
+
+.ef-summary-value { 
+    margin: 0; 
+    font-size: 20px; 
+    font-weight: 700; 
+}
+
+.ef-toolbar { 
+    border-bottom: 1px solid #e5e7eb; 
+}
+
+.ef-tabs { 
+    display: flex; 
+    gap: 20px; 
+}
+
+.ef-tab {
+  position: relative; 
+  padding: 10px 0; 
+  border: none; 
+  background: transparent;
+  cursor: pointer; 
+  font-size: 14px; 
+  font-weight: 600; 
+  color: #6b7280;
+}
+
+.ef-tab:focus, .ef-tab:focus-visible { 
+    outline: none; 
+    box-shadow: none; 
+}
+
+.ef-tab.active { 
+    color: #111827; 
+}
+
+.ef-tab.active::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 100%; height: 3px; border-radius: 999px; background: #D4AF37; }
+
+.ef-card { background: white; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.04); overflow: hidden; }
+.ef-table-wrapper { overflow-x: auto; }
+.ef-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ef-table thead { background: #f9fafb; }
+.ef-table th, .ef-table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.ef-table th { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9ca3af; }
+.ef-table tbody tr:last-child td { border-bottom: none; }
+.ef-table tbody tr:hover { background: #fafafa; }
+
+.ef-id { font-family: monospace; font-weight: 700; color: #D4AF37; }
+.ef-order-id { font-family: monospace; font-size: 12px; color: #6b7280; }
+.ef-jeweler, .ef-buyer { font-size: 13px; color: #374151; }
+.ef-amount { font-weight: 700; color: #111827; }
+.ef-date { font-size: 12px; color: #6b7280; white-space: nowrap; }
+
+.ef-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.ef-dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
+.ef-held     { background: #dbeafe; color: #2563eb; }
+.ef-released { background: #d1fae5; color: #059669; }
+.ef-disputed { background: #fee2e2; color: #dc2626; }
+.ef-refunded { background: #f3f4f6; color: #6b7280; }
+
+.ef-action-row { display: flex; gap: 6px; }
+.ef-release-btn {
+  padding: 6px 14px; border: 1px solid #D4AF37; background: #fff9f0;
+  color: #D4AF37; border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.ef-release-btn:hover { background: #D4AF37; color: white; border-color: transparent; }
+.ef-view-btn {
+  padding: 6px 14px; border: none; background: #020617; color: white;
+  border-radius: 999px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.ef-view-btn:hover { background: #111827; }
+.ef-release-btn:focus, .ef-release-btn:focus-visible,
+.ef-view-btn:focus, .ef-view-btn:focus-visible { outline: none; box-shadow: none; }
+
+.ef-footer-row { padding: 12px 18px; background: #f9fafb; }
+.ef-results-text { margin: 0; font-size: 12px; color: #6b7280; }
+
+@media (max-width: 1200px) { .ef-summary-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .ef-summary-grid { grid-template-columns: repeat(2, 1fr); } }

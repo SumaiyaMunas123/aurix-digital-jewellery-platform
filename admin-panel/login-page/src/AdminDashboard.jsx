@@ -6,6 +6,7 @@ import TopBar from "./TopBar";
 import JewelerVerification from "./JewelerVerification";
 import ProductDashboard from "./ProductDashboard";
 import OrdersDashboard from "./OrdersDashboard";
+import EscrowFinance from "./EscrowFinance";
 import SettingsPage from "./SettingsPage";
 import { apiCall } from "./api/client";
 
@@ -227,7 +228,7 @@ const AdminDashboard = ({ onLogout }) => {
       case "jewelers":  return <JewelerVerification defaultTab={navProps.defaultTab} />;
       case "products":  return <ProductDashboard defaultFilter={navProps.defaultFilter} />;
       case "orders":    return <OrdersDashboard />;
-      case "escrow":    return <div style={{ padding: "2rem" }}><h2>Escrow / Finance</h2><p>Coming soon.</p></div>;
+      case "escrow":   return <EscrowFinance />;
       case "disputes":  return <div style={{ padding: "2rem" }}><h2>Disputes</h2><p>Coming soon.</p></div>;
       case "settings":  return <SettingsPage />;
       default:          return renderDashboardOverview();
