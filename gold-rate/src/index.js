@@ -20,7 +20,10 @@ app.get('/', (req, res) => {
     message: 'Aurix gold rate service is running',
     timestamp: new Date().toISOString(),
     endpoints: {
-      goldRate: '/api/gold-rate',
+      allRates: '/api/gold-rate',
+      gold: '/api/gold-rate/gold',
+      silver: '/api/gold-rate/silver',
+      platinum: '/api/gold-rate/platinum',
     },
   });
 });
