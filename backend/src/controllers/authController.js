@@ -1,5 +1,98 @@
 import bcrypt from 'bcrypt';
+import nodemailer from 'nodemailer';
 import { supabase } from '../config/supabaseClient.js';
+import { signAuthToken } from '../utils/jwt.js';
+
+const sanitize = (value) => (typeof value === 'string' ? value.trim() : '');
+
+const normalizeEmail = (value) => sanitize(value).toLowerCase();
+
+const normalizePhone = (value) => sanitize(value).replace(/[^0-9]/g, '');
+
+const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
+const emailVerificationStore = new Map();
+
+let mailTransporter;
+
+const getMailTransporter = () => {
+  if (mailTransporter) {
+    return mailTransporter;
+  }
+
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 587);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !port || !user || !pass) {
+    throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in backend .env');
+  }
+
+  mailTransporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass
+    }
+  });
+
+  return mailTransporter;
+};
+
+const createEmailVerificationCode = (email) => {
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  emailVerificationStore.set(normalizeEmail(email), {
+    code,
+    expiresAt: Date.now() + EMAIL_CODE_TTL_MS
+  });
+  return code;
+};
+
+const sendVerificationCodeEmail = async (email, code) => {
+  const transporter = getMailTransporter();
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+
+  await transporter.sendMail({
+    from,
+    to: email,
+    subject: 'Aurix email verification code',
+    text: `Your Aurix verification code is ${code}. It expires in 10 minutes.`,
+    html: `<p>Your Aurix verification code is <strong>${code}</strong>.</p><p>This code expires in 10 minutes.</p>`
+  });
+};
+
+const findUserByIdentifier = async (identifier) => {
+  const normalizedEmail = normalizeEmail(identifier);
+  const normalizedPhone = normalizePhone(identifier);
+
+  if (normalizedEmail) {
+    const { data: userByEmail, error: emailError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (userByEmail && !emailError) {
+      return userByEmail;
+    }
+  }
+
+  if (normalizedPhone) {
+    const { data: userByPhone, error: phoneError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone', normalizedPhone)
+      .single();
+
+    if (userByPhone && !phoneError) {
+      return userByPhone;
+    }
+  }
+
+  return null;
+};
 
 // ==================== SIGNUP ====================
 export const signup = async (req, res) => {
@@ -8,7 +101,7 @@ export const signup = async (req, res) => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
     // Get data from request body
-    const { 
+    const {
       email, 
       password, 
       name, 
@@ -89,11 +182,11 @@ export const signup = async (req, res) => {
     // ========== PREPARE USER DATA ==========
     
     const userData = {
-      email: email.toLowerCase().trim(),
+      email: normalizeEmail(email),
       password: hashedPassword,
-      name: name.trim(),
+      name: sanitize(name),
       role: role,
-      phone: phone.trim(),
+      phone: normalizePhone(phone),
       created_at: new Date().toISOString()
     };
 
@@ -102,14 +195,14 @@ export const signup = async (req, res) => {
       userData.date_of_birth = date_of_birth;
       userData.gender = gender;
       userData.relationship_status = relationship_status;
-      userData.verified = true; // Customers are auto-verified
-      userData.verification_status = null; // NULL for customers
+      userData.verified = false;
+      userData.verification_status = null;
     }
 
     // Add jeweller-specific fields
     if (role === 'jeweller') {
-      userData.business_name = business_name.trim();
-      userData.business_registration_number = business_registration_number.trim();
+      userData.business_name = sanitize(business_name);
+      userData.business_registration_number = sanitize(business_registration_number);
       userData.certification_document_url = certification_document_url;
       userData.date_of_birth = date_of_birth || '2000-01-01'; // Optional
       userData.gender = gender || 'Not specified';
@@ -161,7 +254,7 @@ export const signup = async (req, res) => {
           email: newUser.email,
           name: newUser.name,
           role: newUser.role,
-          verified: true
+          verified: false
         }
       });
     }
@@ -179,40 +272,37 @@ export const signup = async (req, res) => {
 // ==================== LOGIN ====================
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const identifier = sanitize(req.body?.identifier || req.body?.email);
+    const password = sanitize(req.body?.password);
     
     console.log('\n📧 LOGIN REQUEST');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('Email:', email);
+    console.log('Identifier:', identifier);
     console.log('Password:', '***');
 
     // Validation
-    if (!email || !password) {
-      console.log('❌ Missing email or password\n');
+    if (!identifier || !password) {
+      console.log('❌ Missing identifier or password\n');
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required'
+        message: 'Identifier and password are required'
       });
     }
 
     // Get user from database
     console.log('🔍 Searching database...');
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email.toLowerCase().trim())
-      .single();
+    const user = await findUserByIdentifier(identifier);
 
-    if (error || !user) {
+    if (!user) {
       console.log('❌ User not found\n');
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid credentials'
       });
     }
 
     console.log('✅ User found:', user.name, `(${user.role})`);
-    console.log('   Stored password type:', user.password.startsWith('$2') ? 'bcrypt hash' : 'plain text');
+    console.log('   Stored password type:', user.password?.startsWith('$2') ? 'bcrypt hash' : 'plain text');
 
     // Compare password
     console.log('🔐 Comparing passwords...');
@@ -231,14 +321,46 @@ export const login = async (req, res) => {
       console.log('   → Bcrypt error, falling back to plain text');
       isPasswordValid = password === user.password;
     }
-    // Verify password with bcrypt
-    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       console.log('❌ Password mismatch\n');
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid credentials'
+      });
+    }
+
+    if (user.role === 'jeweller') {
+      if (user.verification_status === 'pending') {
+        return res.status(403).json({
+          success: false,
+          code: 'JEWELLER_PENDING',
+          message: 'Your jeweller account is pending admin approval.'
+        });
+      }
+
+      if (user.verification_status === 'rejected') {
+        return res.status(403).json({
+          success: false,
+          code: 'JEWELLER_REJECTED',
+          message: 'Your jeweller account has been rejected. Contact support.'
+        });
+      }
+
+      if (!user.verified || user.verification_status !== 'approved') {
+        return res.status(403).json({
+          success: false,
+          code: 'JEWELLER_NOT_APPROVED',
+          message: 'Your jeweller account is not approved yet.'
+        });
+      }
+    }
+
+    if (user.role === 'customer' && !user.verified) {
+      return res.status(403).json({
+        success: false,
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Please verify your email before logging in.'
       });
     }
 
@@ -248,11 +370,13 @@ export const login = async (req, res) => {
 
     // Return user without password
     const { password: _, ...userWithoutPassword } = user;
+    const token = signAuthToken(userWithoutPassword);
 
     return res.status(200).json({
       success: true,
       message: 'Login successful',
-      user: userWithoutPassword
+      user: userWithoutPassword,
+      token
     });
 
   } catch (error) {
@@ -261,6 +385,265 @@ export const login = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error: ' + error.message
+    });
+  }
+};
+
+// ==================== GOOGLE AUTH ====================
+export const googleAuth = async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const name = sanitize(req.body?.name) || 'Google User';
+    const role = sanitize(req.body?.role || 'customer').toLowerCase();
+    const phone = normalizePhone(req.body?.phone);
+    const googleId = sanitize(req.body?.google_id);
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google account email is required'
+      });
+    }
+
+    if (role !== 'customer' && role !== 'jeweller') {
+      return res.status(400).json({
+        success: false,
+        message: 'Role must be either "customer" or "jeweller"'
+      });
+    }
+
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (existingUser) {
+      if (existingUser.role === 'jeweller') {
+        if (existingUser.verification_status === 'pending') {
+          return res.status(403).json({
+            success: false,
+            code: 'JEWELLER_PENDING',
+            message: 'Your jeweller account is pending admin approval.'
+          });
+        }
+
+        if (existingUser.verification_status === 'rejected') {
+          return res.status(403).json({
+            success: false,
+            code: 'JEWELLER_REJECTED',
+            message: 'Your jeweller account has been rejected. Contact support.'
+          });
+        }
+
+        if (!existingUser.verified || existingUser.verification_status !== 'approved') {
+          return res.status(403).json({
+            success: false,
+            code: 'JEWELLER_NOT_APPROVED',
+            message: 'Your jeweller account is not approved yet.'
+          });
+        }
+      }
+
+      const { password: _, ...userWithoutPassword } = existingUser;
+      const token = signAuthToken(userWithoutPassword);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Google sign-in successful',
+        user: userWithoutPassword,
+        token
+      });
+    }
+
+    const generatedPassword = await bcrypt.hash(
+      `google-${googleId || email}-${Date.now()}`,
+      10
+    );
+
+    const userData = {
+      email,
+      password: generatedPassword,
+      name,
+      role,
+      phone: phone || null,
+      created_at: new Date().toISOString()
+    };
+
+    if (role === 'customer') {
+      userData.verified = true;
+      userData.verification_status = null;
+      userData.gender = 'Not specified';
+      userData.relationship_status = 'Not specified';
+      userData.date_of_birth = '2000-01-01';
+    } else {
+      const businessName = sanitize(req.body?.business_name);
+      const businessRegistrationNumber = sanitize(req.body?.business_registration_number);
+      const certificationDocumentUrl = sanitize(req.body?.certification_document_url);
+
+      if (!businessName || !businessRegistrationNumber || !certificationDocumentUrl) {
+        return res.status(400).json({
+          success: false,
+          message: 'Jewellers must provide business details and certification document'
+        });
+      }
+
+      userData.business_name = businessName;
+      userData.business_registration_number = businessRegistrationNumber;
+      userData.certification_document_url = certificationDocumentUrl;
+      userData.verified = false;
+      userData.verification_status = 'pending';
+      userData.gender = 'Not specified';
+      userData.relationship_status = 'Not specified';
+      userData.date_of_birth = '2000-01-01';
+    }
+
+    const { data: newUser, error } = await supabase
+      .from('users')
+      .insert([userData])
+      .select('*')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const { password: _, ...userWithoutPassword } = newUser;
+    const token = signAuthToken(userWithoutPassword);
+
+    return res.status(201).json({
+      success: true,
+      message: role === 'jeweller'
+        ? 'Jeweller registered with Google and pending admin approval.'
+        : 'Google sign-up successful',
+      user: userWithoutPassword,
+      token,
+      requires_verification: role === 'jeweller'
+    });
+  } catch (error) {
+    console.error('❌ Google auth error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during Google authentication',
+      error: error.message
+    });
+  }
+};
+
+export const requestEmailVerification = async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, email, role, verified')
+      .eq('email', email)
+      .single();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found for this email'
+      });
+    }
+
+    if (user.role !== 'customer') {
+      return res.status(400).json({
+        success: false,
+        message: 'Email verification is only required for customer accounts'
+      });
+    }
+
+    if (user.verified) {
+      return res.status(200).json({
+        success: true,
+        message: 'Email is already verified'
+      });
+    }
+
+    const code = createEmailVerificationCode(email);
+    await sendVerificationCodeEmail(email, code);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Verification code sent to email'
+    });
+  } catch (error) {
+    console.error('❌ requestEmailVerification error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+export const verifyEmailCode = async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const code = sanitize(req.body?.code);
+
+    if (!email || !code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and code are required'
+      });
+    }
+
+    const saved = emailVerificationStore.get(email);
+
+    if (!saved) {
+      return res.status(400).json({
+        success: false,
+        message: 'No verification code found. Please request a new one.'
+      });
+    }
+
+    if (saved.expiresAt < Date.now()) {
+      emailVerificationStore.delete(email);
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code expired. Please request a new one.'
+      });
+    }
+
+    if (saved.code !== code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code'
+      });
+    }
+
+    const { data: updatedUser, error } = await supabase
+      .from('users')
+      .update({ verified: true })
+      .eq('email', email)
+      .select('id, email, name, role, verified')
+      .single();
+
+    if (error || !updatedUser) {
+      throw error || new Error('Unable to verify email');
+    }
+
+    emailVerificationStore.delete(email);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Email verified successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('❌ verifyEmailCode error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to verify email',
+      error: error.message
     });
   }
 };

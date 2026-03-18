@@ -5,9 +5,9 @@ export const addProduct = async (req, res) => {
   try {
     console.log(' Add product request');
     console.log('Body:', req.body);
+    console.log('User:', req.user);
     
     const { 
-      jeweller_id, 
       name, 
       description, 
       price,
@@ -21,11 +21,13 @@ export const addProduct = async (req, res) => {
       stock_quantity 
     } = req.body;
 
+    const jeweller_id = req.user?.id;
+
     // Validate
     if (!jeweller_id || !name || !description) {
       return res.status(400).json({
         success: false,
-        message: 'jeweller_id, name, and description are required'
+        message: 'name and description are required'
       });
     }
 
@@ -228,6 +230,13 @@ export const getJewellerProducts = async (req, res) => {
     const { jeweller_id } = req.params;
     console.log(' Get jeweller products:', jeweller_id);
 
+    if (req.user?.role === 'jeweller' && req.user.id !== jeweller_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only view your own products'
+      });
+    }
+
     const { data: products, error } = await supabase
       .from('products')
       .select('*')
@@ -270,6 +279,13 @@ export const updateProduct = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Product not found'
+      });
+    }
+
+    if (req.user?.role === 'jeweller' && existing.jeweller_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only update your own products'
       });
     }
 
@@ -320,7 +336,7 @@ export const toggleProductVisibility = async (req, res) => {
 
     const { data: product, error: fetchError } = await supabase
       .from('products')
-      .select('is_active')
+      .select('is_active, jeweller_id')
       .eq('id', id)
       .single();
 
@@ -328,6 +344,13 @@ export const toggleProductVisibility = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Product not found'
+      });
+    }
+
+    if (req.user?.role === 'jeweller' && product.jeweller_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only change visibility of your own products'
       });
     }
 
@@ -379,6 +402,13 @@ export const deleteProduct = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Product not found'
+      });
+    }
+
+    if (req.user?.role === 'jeweller' && existing.jeweller_id !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only delete your own products'
       });
     }
 
