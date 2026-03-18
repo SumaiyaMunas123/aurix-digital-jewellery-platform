@@ -225,21 +225,6 @@
     gap: 10px;
 }
 
-/* .od-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 999px;
-    background: #d4af37;
-    color: white;
-    font-weight: 700;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    object-fit: cover;
-} */
-
 .od-customer-name{
     margin: 0 0 2px;
     font-size: 13px;
@@ -294,28 +279,33 @@
 }
 
 .od-pending{
-    background: #fef3c7;
+    background: transparent;
     color: #d97706;
+    border: 1.5px solid #d97706;
 }
 
 .od-processing{
-    background: #dbeafe;
+    background: transparent;
     color: #2563eb;
+    border: 1.5px solid #2563eb;
 }
 
 .od-shipped{
-    background: #ede9fe;
+    background: transparent;
     color: #7c3aed;
+    border: 1.5px solid #7c3aed;
 }
 
 .od-delivered{
-    background: #d1fae5;
+    background: transparent;
     color: #059669;
+    border: 1.5px solid #059669;
 }
 
 .od-cancelled{
-    background: #fee2e2;
+    background: transparent;
     color: #dc2626;
+    border: 1.5px solid #dc2626;
 }
 
 .od-view-btn{
@@ -380,10 +370,6 @@
     outline: none;
     box-shadow: none;
 }
-
-.od-page-btn:focus, .od-page-btn:focus-visible { 
-    outline: none; 
-    box-shadow: none; }
 
 
 @media (max-width: 1100px) 

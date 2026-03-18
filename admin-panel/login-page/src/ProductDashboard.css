@@ -266,6 +266,7 @@
   font-weight: 600;
 }
 
+/* ── Status badges: outline only, no background fill ── */
 .pd-status-badge {
   padding: 4px 10px;
   border-radius: 20px;
@@ -273,9 +274,23 @@
   font-weight: 600;
 }
 
-.pd-status-badge.status-approved { background: #d1fae5; color: #059669; }
-.pd-status-badge.status-pending  { background: #fef3c7; color: #d97706; }
-.pd-status-badge.status-flagged  { background: #fee2e2; color: #dc2626; }
+.pd-status-badge.status-approved {
+  background: transparent;
+  color: #059669;
+  border: 1.5px solid #059669;
+}
+
+.pd-status-badge.status-pending {
+  background: transparent;
+  color: #d97706;
+  border: 1.5px solid #d97706;
+}
+
+.pd-status-badge.status-flagged {
+  background: transparent;
+  color: #dc2626;
+  border: 1.5px solid #dc2626;
+}
 
 .pd-action-group {
   display: flex;
@@ -297,6 +312,7 @@
   transition: all 0.2s;
 }
 
+/* ── View icon turns gold on hover ── */
 .pd-action-icon:hover {
   border-color: #D4AF37;
   color: #D4AF37;
