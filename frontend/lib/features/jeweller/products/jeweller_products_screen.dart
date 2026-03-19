@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:aurix/core/widgets/aurix_glass_card.dart';
 import 'package:aurix/core/theme/app_colors.dart';
+import 'package:aurix/core/widgets/aurix_glass_card.dart';
+
+import 'jeweller_add_product_screen.dart';
 
 class JewellerProductsScreen extends StatelessWidget {
   const JewellerProductsScreen({super.key});
@@ -46,12 +48,16 @@ class JewellerProductsScreen extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 HapticFeedback.selectionClick();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Add product screen next.")),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const JewellerAddProductScreen(),
+                  ),
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   color: AppColors.gold,

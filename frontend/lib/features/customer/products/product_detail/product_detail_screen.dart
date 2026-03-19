@@ -1,100 +1,239 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:aurix/core/widgets/aurix_glass_card.dart';
-import 'package:aurix/features/customer/products/models/product.dart';
-import 'package:aurix/core/theme/app_colors.dart';
-
-import 'package:aurix/features/customer/chat/chat_room/chat_room_screen.dart';
-import 'package:aurix/core/navigation/nav.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/aurix_background.dart';
+import '../../../../core/widgets/aurix_glass_card.dart';
 
 class ProductDetailScreen extends StatelessWidget {
-  final Product product;
-  const ProductDetailScreen({super.key, required this.product});
+  final dynamic product;
+
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+  });
+
+  String _readString(dynamic source, String field, String fallback) {
+    try {
+      final value = source
+          .toJson()[field];
+      if (value == null) return fallback;
+      return value.toString();
+    } catch (_) {
+      try {
+        final value = source.toMap()[field];
+        if (value == null) return fallback;
+        return value.toString();
+      } catch (_) {
+        try {
+          final value = source[field];
+          if (value == null) return fallback;
+          return value.toString();
+        } catch (_) {
+          return fallback;
+        }
+      }
+    }
+  }
+
+  bool _isAskPrice(dynamic source) {
+    final rawPrice = _readString(source, 'price', '');
+    final rawAsk = _readString(source, 'isAskPrice', 'false').toLowerCase();
+
+    if (rawAsk == 'true') return true;
+    if (rawPrice.isEmpty) return true;
+    if (rawPrice == '0') return true;
+    if (rawPrice.toLowerCase() == 'ask price') return true;
+
+    return false;
+  }
+
+  String _priceLabel(dynamic source) {
+    if (_isAskPrice(source)) return 'Ask Price';
+
+    final rawPrice = _readString(source, 'price', '0');
+    if (rawPrice.toLowerCase().contains('lkr')) return rawPrice;
+
+    return 'LKR $rawPrice';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final title = _readString(product, 'name', 'Jewellery Product');
+    final jeweller = _readString(product, 'jeweller', 'Aurix Jeweller');
+    final description = _readString(
+      product,
+      'description',
+      'Beautiful jewellery product from a verified jeweller.',
+    );
+    final priceText = _priceLabel(product);
+    final askPrice = _isAskPrice(product);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(product.name),
-        centerTitle: true,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-        children: [
-          AurixGlassCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Product Details", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
-                const SizedBox(height: 10),
-                _row("Jeweller", product.jeweller),
-                _row("Karat", product.karat),
-                _row("Weight", product.weight),
-                _row("Category", product.category),
-                _row("Price", product.priceLabel),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          AurixGlassCard(
-            child: Row(
-              children: [
-                Expanded(
-                  child: _button(
-                    label: "Chat",
-                    icon: Icons.chat_bubble_rounded,
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      Nav.push(context, ChatRoomScreen(title: product.jeweller));
-                    },
+      body: AurixBackground(
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Product Detail',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 40),
+                ],
+              ),
+              const SizedBox(height: 12),
+              AurixGlassCard(
+                child: Container(
+                  height: 240,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppColors.gold.withOpacity(0.20),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.image_outlined,
+                    size: 60,
+                    color: AppColors.gold,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _button(
-                    label: "Add to Wishlist",
-                    icon: Icons.favorite_rounded,
-                    onTap: () => HapticFeedback.selectionClick(),
-                  ),
+              ),
+              const SizedBox(height: 16),
+              AurixGlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      jeweller,
+                      style: TextStyle(
+                        color: Theme.of(context).hintColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        color: askPrice
+                            ? AppColors.gold.withOpacity(0.16)
+                            : AppColors.gold.withOpacity(0.12),
+                        border: Border.all(
+                          color: AppColors.gold.withOpacity(0.22),
+                        ),
+                      ),
+                      child: Text(
+                        priceText,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Description',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      description,
+                      style: const TextStyle(height: 1.5),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Added to cart.'),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: AppColors.gold.withOpacity(0.28),
+                          ),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Add to Cart',
+                            style: TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Quotation request flow next.'),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          color: AppColors.gold,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Get Quotation',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _row(String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          SizedBox(width: 90, child: Text(k, style: const TextStyle(fontWeight: FontWeight.w800))),
-          Expanded(child: Text(v, style: const TextStyle(fontWeight: FontWeight.w700))),
-        ],
-      ),
-    );
-  }
-
-  Widget _button({required String label, required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.gold,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.black),
-            const SizedBox(width: 10),
-            Text(label, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
-          ],
         ),
       ),
     );
