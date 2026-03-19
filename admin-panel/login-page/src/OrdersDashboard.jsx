@@ -1,25 +1,112 @@
 import React, { useState } from "react";
 import "./OrdersDashboard.css";
 
-const tabs = ["All Orders", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
+const tabs = [
+  "All Orders",
+  "Pending",
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
+];
 
 const orders = [
-  { id: "ORD-8492", customer: "Amara Silva", email: "amara@gmail.com", initials: "AS", jeweler: "Golden Aura Jewelry", item: "Diamond Ring 2ct", amount: 48000.00, date: "Oct 14, 2023", status: "Processing" },
-  { id: "ORD-8491", customer: "Ravi Perera", email: "ravi@gmail.com", initials: "RP", jeweler: "Diamond District Co.", item: "Gold Cuban Link", amount: 12000.00, date: "Oct 13, 2023", status: "Delivered" },
-  { id: "ORD-8490", customer: "Nisha Fernando", email: "nisha@gmail.com", initials: "NF", jeweler: "Legacy Jewels", item: "Pearl Drop Earrings", amount: 85000.00, date: "Oct 13, 2023", status: "Shipped" },
-  { id: "ORD-8489", customer: "Kiran Jayasena", email: "kiran@gmail.com", initials: "KJ", jeweler: "Orchid Gem House", item: "Emerald Band Platinum", amount: 18000.00, date: "Oct 12, 2023", status: "Pending" },
-  { id: "ORD-8488", customer: "Dulani Wickrama", email: "dulani@gmail.com", initials: "DW", jeweler: "Sunrise Jewels", item: "Sapphire Tennis Bracelet", amount: 32000.00, date: "Oct 12, 2023", status: "Processing" },
-  { id: "ORD-8487", customer: "Tharidu Saman", email: "tharidu@gmail.com", initials: "TS", jeweler: "Crystal Ridge", item: "Rose Gold Bangle Set", amount: 62000.00, date: "Oct 11, 2023", status: "Cancelled" },
-  { id: "ORD-8486", customer: "Mala Gunawardena", email: "mala@gmail.com", initials: "MG", jeweler: "Golden Aura Jewelry", item: "White Gold Necklace", amount: 21000.00, date: "Oct 10, 2023", status: "Delivered" },
-  { id: "ORD-8485", customer: "Shan Bandara", email: "shan@gmail.com", initials: "SB", jeweler: "Diamond District Co.", item: "Diamond Stud Set", amount: 16500.00, date: "Oct 10, 2023", status: "Pending" },
+  {
+    id: "ORD-8492",
+    customer: "Amara Silva",
+    email: "amara@gmail.com",
+    initials: "AS",
+    jeweler: "Golden Aura Jewelry",
+    item: "Diamond Ring 2ct",
+    amount: 48000.0,
+    date: "Oct 14, 2023",
+    status: "Processing",
+  },
+  {
+    id: "ORD-8491",
+    customer: "Ravi Perera",
+    email: "ravi@gmail.com",
+    initials: "RP",
+    jeweler: "Diamond District Co.",
+    item: "Gold Cuban Link",
+    amount: 12000.0,
+    date: "Oct 13, 2023",
+    status: "Delivered",
+  },
+  {
+    id: "ORD-8490",
+    customer: "Nisha Fernando",
+    email: "nisha@gmail.com",
+    initials: "NF",
+    jeweler: "Legacy Jewels",
+    item: "Pearl Drop Earrings",
+    amount: 85000.0,
+    date: "Oct 13, 2023",
+    status: "Shipped",
+  },
+  {
+    id: "ORD-8489",
+    customer: "Kiran Jayasena",
+    email: "kiran@gmail.com",
+    initials: "KJ",
+    jeweler: "Orchid Gem House",
+    item: "Emerald Band Platinum",
+    amount: 18000.0,
+    date: "Oct 12, 2023",
+    status: "Pending",
+  },
+  {
+    id: "ORD-8488",
+    customer: "Dulani Wickrama",
+    email: "dulani@gmail.com",
+    initials: "DW",
+    jeweler: "Sunrise Jewels",
+    item: "Sapphire Tennis Bracelet",
+    amount: 32000.0,
+    date: "Oct 12, 2023",
+    status: "Processing",
+  },
+  {
+    id: "ORD-8487",
+    customer: "Tharidu Saman",
+    email: "tharidu@gmail.com",
+    initials: "TS",
+    jeweler: "Crystal Ridge",
+    item: "Rose Gold Bangle Set",
+    amount: 62000.0,
+    date: "Oct 11, 2023",
+    status: "Cancelled",
+  },
+  {
+    id: "ORD-8486",
+    customer: "Mala Gunawardena",
+    email: "mala@gmail.com",
+    initials: "MG",
+    jeweler: "Golden Aura Jewelry",
+    item: "White Gold Necklace",
+    amount: 21000.0,
+    date: "Oct 10, 2023",
+    status: "Delivered",
+  },
+  {
+    id: "ORD-8485",
+    customer: "Shan Bandara",
+    email: "shan@gmail.com",
+    initials: "SB",
+    jeweler: "Diamond District Co.",
+    item: "Diamond Stud Set",
+    amount: 16500.0,
+    date: "Oct 10, 2023",
+    status: "Pending",
+  },
 ];
 
 const statusClassMap = {
-  Pending:    "od-pill od-pending",
+  Pending: "od-pill od-pending",
   Processing: "od-pill od-processing",
-  Shipped:    "od-pill od-shipped",
-  Delivered:  "od-pill od-delivered",
-  Cancelled:  "od-pill od-cancelled",
+  Shipped: "od-pill od-shipped",
+  Delivered: "od-pill od-delivered",
+  Cancelled: "od-pill od-cancelled",
 };
 
 const OrdersDashboard = () => {
@@ -27,9 +114,16 @@ const OrdersDashboard = () => {
   const [search, setSearch] = useState("");
 
   const filtered = orders.filter((o) => {
-    const matchesTab = activeTab === "All Orders" ? true : o.status === activeTab;
+    const matchesTab =
+      activeTab === "All Orders" ? true : o.status === activeTab;
     const q = search.toLowerCase();
-    return matchesTab && (!q || o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q) || o.item.toLowerCase().includes(q));
+    return (
+      matchesTab &&
+      (!q ||
+        o.id.toLowerCase().includes(q) ||
+        o.customer.toLowerCase().includes(q) ||
+        o.item.toLowerCase().includes(q))
+    );
   });
 
   const summary = [
@@ -64,21 +158,38 @@ const OrdersDashboard = () => {
       <div className="od-controls-bar">
         <div className="od-tabs">
           {tabs.map((tab) => (
-            <button key={tab} className={`od-tab ${activeTab === tab ? "active" : ""}`} onClick={() => setActiveTab(tab)}>{tab}</button>
+            <button
+              key={tab}
+              className={`od-tab ${activeTab === tab ? "active" : ""}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab}
+            </button>
           ))}
         </div>
       </div>
 
       <div className="od-search-filter-bar">
         <div className="od-search-wrap">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Search by order ID, customer or item..." value={search} onChange={(e) => setSearch(e.target.value)} className="od-search-input" />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by order ID, customer or item..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="od-search-input"
+          />
         </div>
-        <button className="od-filter-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          Filter
-        </button>
-        {/* <button className="od-refresh-btn">Refresh Table</button> */}
       </div>
 
       <div className="od-card">
@@ -111,7 +222,12 @@ const OrdersDashboard = () => {
                   </td>
                   <td className="od-jeweler">{o.jeweler}</td>
                   <td className="od-item">{o.item}</td>
-                  <td className="od-amount">LKR {o.amount.toLocaleString("en-LK", { maximumFractionDigits: 2 })}</td>
+                  <td className="od-amount">
+                    LKR{" "}
+                    {o.amount.toLocaleString("en-LK", {
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
                   <td className="od-date">{o.date}</td>
                   <td>
                     <span className={statusClassMap[o.status]}>
@@ -128,10 +244,17 @@ const OrdersDashboard = () => {
           </table>
         </div>
         <div className="od-footer-row">
-          <p className="od-results">Showing {filtered.length} of {orders.length} results</p>
+          <p className="od-results">
+            Showing {filtered.length} of {orders.length} results
+          </p>
           <div className="od-pagination">
             {["‹", "1", "2", "3", "›"].map((p, i) => (
-              <button key={i} className={`od-page-btn ${p === "1" ? "active" : ""}`}>{p}</button>
+              <button
+                key={i}
+                className={`od-page-btn ${p === "1" ? "active" : ""}`}
+              >
+                {p}
+              </button>
             ))}
           </div>
         </div>

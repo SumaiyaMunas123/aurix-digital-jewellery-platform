@@ -5,7 +5,7 @@ import { getAllJewellers, approveJeweller, rejectJeweller } from "./api/client";
 const tabs = ["All Requests", "Pending", "Approved", "Rejected"];
 
 const statusClassMap = {
-  pending:  "status-pill status-pending",
+  pending: "status-pill status-pending",
   approved: "status-pill status-approved",
   rejected: "status-pill status-rejected",
 };
@@ -13,7 +13,9 @@ const statusClassMap = {
 const formatDate = (dateStr) => {
   if (!dateStr) return "—";
   return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 };
 
@@ -22,7 +24,8 @@ const REQUIRED_DOCUMENTS = [
   {
     key: "business_registration_cert",
     label: "Business Registration Certificate",
-    description: "Issued by the Registrar of Companies confirming legal incorporation.",
+    description:
+      "Issued by the Registrar of Companies confirming legal incorporation.",
   },
   {
     key: "tax_identification",
@@ -32,32 +35,38 @@ const REQUIRED_DOCUMENTS = [
   {
     key: "trade_license",
     label: "Trade / Operating License",
-    description: "Municipal or provincial license permitting jewellery retail or wholesale.",
+    description:
+      "Municipal or provincial license permitting jewellery retail or wholesale.",
   },
   {
     key: "identity_proof",
     label: "Owner / Director Identity Proof",
-    description: "National ID, passport, or driver's license of the primary business owner.",
+    description:
+      "National ID, passport, or driver's license of the primary business owner.",
   },
   {
     key: "address_proof",
     label: "Business Address Proof",
-    description: "Utility bill, lease agreement, or official letter confirming business premises.",
+    description:
+      "Utility bill, lease agreement, or official letter confirming business premises.",
   },
   {
     key: "hallmarking_cert",
     label: "Hallmarking / Assay Certificate",
-    description: "Certification from an approved assay office for gold/silver quality standards.",
+    description:
+      "Certification from an approved assay office for gold/silver quality standards.",
   },
   {
     key: "anti_money_laundering",
     label: "AML Compliance Declaration",
-    description: "Signed declaration of compliance with Anti-Money Laundering regulations.",
+    description:
+      "Signed declaration of compliance with Anti-Money Laundering regulations.",
   },
   {
     key: "bank_statement",
     label: "Bank Statement / Letter",
-    description: "Recent 3-month bank statement or a letter of good standing from the bank.",
+    description:
+      "Recent 3-month bank statement or a letter of good standing from the bank.",
   },
 ];
 
@@ -65,8 +74,9 @@ const REQUIRED_DOCUMENTS = [
 const FileViewerModal = ({ file, label, onClose }) => {
   if (!file) return null;
 
-  const isImage = typeof file === "string" && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file);
-  const isPdf   = typeof file === "string" && /\.pdf$/i.test(file);
+  const isImage =
+    typeof file === "string" && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file);
+  const isPdf = typeof file === "string" && /\.pdf$/i.test(file);
   const fileUrl = typeof file === "string" ? file : URL.createObjectURL(file);
 
   return (
@@ -75,18 +85,36 @@ const FileViewerModal = ({ file, label, onClose }) => {
       <div className="file-modal">
         <div className="file-modal-header">
           <span className="file-modal-title">{label}</span>
-          <button className="panel-close" onClick={onClose}>✕</button>
+          <button className="panel-close" onClick={onClose}>
+            ✕
+          </button>
         </div>
         <div className="file-modal-body">
-          {isImage && <img src={fileUrl} alt={label} className="file-preview-img" />}
+          {isImage && (
+            <img src={fileUrl} alt={label} className="file-preview-img" />
+          )}
           {isPdf && (
-            <iframe src={fileUrl} title={label} className="file-preview-iframe" />
+            <iframe
+              src={fileUrl}
+              title={label}
+              className="file-preview-iframe"
+            />
           )}
           {!isImage && !isPdf && (
             <div className="file-preview-fallback">
               <div className="file-icon-big">📄</div>
               <p>{label}</p>
-              <a href={fileUrl} target="_blank" rel="noreferrer" className="btn-panel-approve" style={{ textDecoration: "none", display: "inline-block", marginTop: 12 }}>
+              <a
+                href={fileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-panel-approve"
+                style={{
+                  textDecoration: "none",
+                  display: "inline-block",
+                  marginTop: 12,
+                }}
+              >
                 Open File
               </a>
             </div>
@@ -98,10 +126,16 @@ const FileViewerModal = ({ file, label, onClose }) => {
 };
 
 /* ─── Detail side-panel ─── */
-const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoading }) => {
-  const [rejectReason, setRejectReason]     = useState("");
+const JewelerDetailPanel = ({
+  jeweler,
+  onClose,
+  onApprove,
+  onReject,
+  actionLoading,
+}) => {
+  const [rejectReason, setRejectReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
-  const [viewingFile, setViewingFile]       = useState(null); // { file, label }
+  const [viewingFile, setViewingFile] = useState(null); // { file, label }
 
   useEffect(() => {
     // Reset reject state when jeweler changes
@@ -111,8 +145,8 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
 
   if (!jeweler) return null;
 
-  const status      = (jeweler.verification_status || "pending").toLowerCase();
-  const isApproved  = status === "approved";
+  const status = (jeweler.verification_status || "pending").toLowerCase();
+  const isApproved = status === "approved";
   const displayName = jeweler.business_name || jeweler.name || "Unknown";
 
   const handleRejectSubmit = () => {
@@ -138,32 +172,38 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
 
       {/* Panel */}
       <div className="detail-panel">
-
         {/* ── Header ── */}
         <div className="panel-header">
           <div style={{ minWidth: 0 }}>
             <h2 className="panel-title">{displayName}</h2>
             <p className="panel-subtitle">{jeweler.email}</p>
           </div>
-          <button className="panel-close" onClick={onClose} aria-label="Close">✕</button>
+          <button className="panel-close" onClick={onClose} aria-label="Close">
+            ✕
+          </button>
         </div>
 
         {/* ── Status & date ── */}
         <div className="panel-status-row">
-          <span className={statusClassMap[status] || "status-pill status-pending"}>
+          <span
+            className={statusClassMap[status] || "status-pill status-pending"}
+          >
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </span>
-          <span className="panel-date">Submitted {formatDate(jeweler.created_at)}</span>
+          <span className="panel-date">
+            Submitted {formatDate(jeweler.created_at)}
+          </span>
         </div>
 
         {/* ── Business info ── */}
         <div className="panel-section">
           <h3 className="panel-section-title">Business Information</h3>
           <div className="panel-info-grid">
-
             <div className="panel-info-item">
               <span className="panel-info-label">Business Name</span>
-              <span className="panel-info-value">{jeweler.business_name || "—"}</span>
+              <span className="panel-info-value">
+                {jeweler.business_name || "—"}
+              </span>
             </div>
 
             <div className="panel-info-item">
@@ -207,14 +247,15 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
 
             <div className="panel-info-item">
               <span className="panel-info-label">BRN Number</span>
-              <span className="panel-info-value">{jeweler.business_registration_number || "—"}</span>
+              <span className="panel-info-value">
+                {jeweler.business_registration_number || "—"}
+              </span>
             </div>
 
             <div className="panel-info-item">
               <span className="panel-info-label">Business Address</span>
               <span className="panel-info-value">{jeweler.address || "—"}</span>
             </div>
-
           </div>
         </div>
 
@@ -228,13 +269,14 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
           )}
           {!isApproved && (
             <p className="panel-section-note">
-              Documents required for jewellery business registration and verification.
+              Documents required for jewellery business registration and
+              verification.
             </p>
           )}
           <div className="doc-list">
             {REQUIRED_DOCUMENTS.map((doc) => {
               const submitted = getDocStatus(doc);
-              const file      = getDocFile(doc);
+              const file = getDocFile(doc);
 
               return (
                 <div
@@ -256,7 +298,9 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
                         {file && (
                           <button
                             className="btn-view-file"
-                            onClick={() => setViewingFile({ file, label: doc.label })}
+                            onClick={() =>
+                              setViewingFile({ file, label: doc.label })
+                            }
                             title="View document"
                           >
                             View
@@ -277,7 +321,9 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
         {jeweler.rejection_reason && (
           <div className="panel-section">
             <h3 className="panel-section-title">Rejection Reason</h3>
-            <div className="rejection-reason-box">{jeweler.rejection_reason}</div>
+            <div className="rejection-reason-box">
+              {jeweler.rejection_reason}
+            </div>
           </div>
         )}
 
@@ -312,65 +358,74 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
                     onClick={handleRejectSubmit}
                     disabled={!rejectReason.trim() || !!actionLoading}
                   >
-                    {actionLoading === jeweler.id + "_reject" ? "Processing…" : "Confirm Revoke"}
+                    {actionLoading === jeweler.id + "_reject"
+                      ? "Processing…"
+                      : "Confirm Revoke"}
                   </button>
                   <button
                     className="btn-panel-cancel"
-                    onClick={() => { setShowRejectInput(false); setRejectReason(""); }}
+                    onClick={() => {
+                      setShowRejectInput(false);
+                      setRejectReason("");
+                    }}
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             )
+          ) : /* Pending / Rejected: Approve + Reject */
+          !showRejectInput ? (
+            <>
+              <button
+                className="btn-panel-approve"
+                onClick={() => onApprove(jeweler.id)}
+                disabled={!!actionLoading}
+              >
+                {actionLoading === jeweler.id + "_approve"
+                  ? "Approving…"
+                  : "✓ Approve"}
+              </button>
+              <button
+                className="btn-panel-reject"
+                onClick={() => setShowRejectInput(true)}
+                disabled={!!actionLoading}
+              >
+                ✕ Reject
+              </button>
+            </>
           ) : (
-            /* Pending / Rejected: Approve + Reject */
-            !showRejectInput ? (
-              <>
-                <button
-                  className="btn-panel-approve"
-                  onClick={() => onApprove(jeweler.id)}
-                  disabled={!!actionLoading}
-                >
-                  {actionLoading === jeweler.id + "_approve" ? "Approving…" : "✓ Approve"}
-                </button>
+            <div className="reject-input-block">
+              <textarea
+                className="reject-textarea"
+                placeholder="Enter reason for rejection…"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={3}
+              />
+              <div className="reject-input-actions">
                 <button
                   className="btn-panel-reject"
-                  onClick={() => setShowRejectInput(true)}
-                  disabled={!!actionLoading}
+                  onClick={handleRejectSubmit}
+                  disabled={!rejectReason.trim() || !!actionLoading}
                 >
-                  ✕ Reject
+                  {actionLoading === jeweler.id + "_reject"
+                    ? "Rejecting…"
+                    : "Confirm Reject"}
                 </button>
-              </>
-            ) : (
-              <div className="reject-input-block">
-                <textarea
-                  className="reject-textarea"
-                  placeholder="Enter reason for rejection…"
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  rows={3}
-                />
-                <div className="reject-input-actions">
-                  <button
-                    className="btn-panel-reject"
-                    onClick={handleRejectSubmit}
-                    disabled={!rejectReason.trim() || !!actionLoading}
-                  >
-                    {actionLoading === jeweler.id + "_reject" ? "Rejecting…" : "Confirm Reject"}
-                  </button>
-                  <button
-                    className="btn-panel-cancel"
-                    onClick={() => { setShowRejectInput(false); setRejectReason(""); }}
-                  >
-                    Cancel
-                  </button>
-                </div>
+                <button
+                  className="btn-panel-cancel"
+                  onClick={() => {
+                    setShowRejectInput(false);
+                    setRejectReason("");
+                  }}
+                >
+                  Cancel
+                </button>
               </div>
-            )
+            </div>
           )}
         </div>
-
       </div>
 
       {/* ── File viewer modal ── */}
@@ -387,12 +442,12 @@ const JewelerDetailPanel = ({ jeweler, onClose, onApprove, onReject, actionLoadi
 
 /* ─── Main component ─── */
 const JewelerVerification = ({ defaultTab = "All Requests" }) => {
-  const [activeTab, setActiveTab]             = useState(defaultTab);
-  const [search, setSearch]                   = useState("");
-  const [requests, setRequests]               = useState([]);
-  const [loading, setLoading]                 = useState(true);
-  const [error, setError]                     = useState(null);
-  const [actionLoading, setActionLoading]     = useState(null);
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [search, setSearch] = useState("");
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
   const [selectedJeweler, setSelectedJeweler] = useState(null);
 
   const fetchJewellers = async () => {
@@ -409,7 +464,9 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
     }
   };
 
-  useEffect(() => { fetchJewellers(); }, []);
+  useEffect(() => {
+    fetchJewellers();
+  }, []);
 
   const handleApprove = async (id) => {
     setActionLoading(id + "_approve");
@@ -437,12 +494,19 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
     }
   };
 
-  const tabToStatus = { "Pending": "pending", "Approved": "approved", "Rejected": "rejected" };
+  const tabToStatus = {
+    Pending: "pending",
+    Approved: "approved",
+    Rejected: "rejected",
+  };
 
   const filteredRequests = requests.filter((req) => {
-    const reqStatus   = (req.verification_status || "").toLowerCase();
-    const matchesTab  = activeTab === "All Requests" ? true : reqStatus === tabToStatus[activeTab];
-    const query       = search.toLowerCase();
+    const reqStatus = (req.verification_status || "").toLowerCase();
+    const matchesTab =
+      activeTab === "All Requests"
+        ? true
+        : reqStatus === tabToStatus[activeTab];
+    const query = search.toLowerCase();
     const matchesSearch =
       !query ||
       (req.name || "").toLowerCase().includes(query) ||
@@ -454,7 +518,6 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
 
   return (
     <div className="verification-page">
-
       {/* ── Header ── */}
       <div className="verification-header">
         <h1>Jeweler Verification</h1>
@@ -479,6 +542,17 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
       {/* ── Search / Filter ── */}
       <div className="verification-filters-row">
         <div className="verification-search">
+           <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="11" cy="5" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
           <input
             type="text"
             placeholder="Search by jeweler name, BRN number or email..."
@@ -486,7 +560,9 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <button className="btn-filters" onClick={() => setSearch("")}>Filter</button>
+        {/* <button className="btn-filters" onClick={() => setSearch("")}>
+          Filter
+        </button> */}
       </div>
 
       {/* ── Table card ── */}
@@ -496,9 +572,16 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             Loading jewellers…
           </div>
         ) : error ? (
-          <div style={{ padding: "2rem", textAlign: "center", color: "#c0392b" }}>
-            {error}<br />
-            <button className="btn-dark" style={{ marginTop: "1rem" }} onClick={fetchJewellers}>
+          <div
+            style={{ padding: "2rem", textAlign: "center", color: "#c0392b" }}
+          >
+            {error}
+            <br />
+            <button
+              className="btn-dark"
+              style={{ marginTop: "1rem" }}
+              onClick={fetchJewellers}
+            >
               Retry
             </button>
           </div>
@@ -517,14 +600,24 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
               <tbody>
                 {filteredRequests.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center", padding: "2rem", color: "#888" }}>
+                    <td
+                      colSpan={5}
+                      style={{
+                        textAlign: "center",
+                        padding: "2rem",
+                        color: "#888",
+                      }}
+                    >
                       No jewellers found.
                     </td>
                   </tr>
                 ) : (
                   filteredRequests.map((req) => {
-                    const status      = (req.verification_status || "pending").toLowerCase();
-                    const displayName = req.business_name || req.name || "Unknown";
+                    const status = (
+                      req.verification_status || "pending"
+                    ).toLowerCase();
+                    const displayName =
+                      req.business_name || req.name || "Unknown";
                     return (
                       <tr key={req.id}>
                         <td>
@@ -537,16 +630,26 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
                         </td>
                         <td>
                           <span className="brn-label">BRN:</span>{" "}
-                          <span className="brn-value">{req.business_registration_number || "—"}</span>
+                          <span className="brn-value">
+                            {req.business_registration_number || "—"}
+                          </span>
                         </td>
                         <td>{formatDate(req.created_at)}</td>
                         <td>
-                          <span className={statusClassMap[status] || "status-pill status-pending"}>
+                          <span
+                            className={
+                              statusClassMap[status] ||
+                              "status-pill status-pending"
+                            }
+                          >
                             {status.charAt(0).toUpperCase() + status.slice(1)}
                           </span>
                         </td>
                         <td>
-                          <button className="btn-dark" onClick={() => setSelectedJeweler(req)}>
+                          <button
+                            className="btn-dark"
+                            onClick={() => setSelectedJeweler(req)}
+                          >
                             {status === "approved" ? "View" : "Review"}
                           </button>
                         </td>
@@ -574,7 +677,6 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
         onReject={handleReject}
         actionLoading={actionLoading}
       />
-
     </div>
   );
 };
