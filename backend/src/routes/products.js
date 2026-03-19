@@ -21,8 +21,8 @@ router.get('/:id', getProductById);
 // Jeweller routes
 router.post('/', requireAuth, requireRole('jeweller'), addProduct);
 router.get('/jeweller/:jeweller_id', requireAuth, requireRole('jeweller', 'admin'), getJewellerProducts);
-router.put('/:id', requireAuth, requireRole('jeweller', 'admin'), updateProduct);
-router.patch('/:id/toggle-visibility', requireAuth, requireRole('jeweller', 'admin'), toggleProductVisibility);
-router.delete('/:id', requireAuth, requireRole('jeweller', 'admin'), deleteProduct);
+router.put('/:id', requireAuth, requireRole('jeweller'), updateProduct);
+router.patch('/:id/toggle-visibility', requireAuth, requireRole('jeweller'), toggleProductVisibility);
+router.delete('/:id', requireAuth, requireRole('jeweller'), deleteProduct);
 
 export default router;

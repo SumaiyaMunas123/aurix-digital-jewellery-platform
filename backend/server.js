@@ -47,6 +47,28 @@ app.use('/api/chat', chatRoutes);
 
 app.use('/api/ai', aiRoutes);
 
+// ============ GOLD RATE GATEWAY ============
+
+app.get('/gold-rate', async (req, res) => {
+  try {
+    const baseUrl = process.env.GOLD_RATE_SERVICE_URL || 'http://localhost:5100';
+    const upstream = `${baseUrl.replace(/\/$/, '')}/api/gold-rate`;
+    const response = await fetch(upstream, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const payload = await response.json();
+    return res.status(response.status).json(payload);
+  } catch (error) {
+    return res.status(502).json({
+      success: false,
+      message: 'Unable to reach gold-rate service',
+      error: error.message
+    });
+  }
+});
+
 
 // ============ BASIC ROUTES ============
 
