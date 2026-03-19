@@ -2,7 +2,10 @@ import { supabase } from '../config/supabaseClient.js';
 
 const MAX_MESSAGE_LENGTH = 2000;
 
-// Single, consistent participant check used throughout the file
+const isThreadMember = (thread, userId) => {
+  return userId === thread.customer_id || userId === thread.jeweller_id;
+};
+
 const isThreadParticipant = (thread, userId) => {
   return userId === thread.customer_id || userId === thread.jeweller_id;
 };
@@ -48,8 +51,7 @@ const syncThreadUnreadCounts = async (thread) => {
 // ==================== START/GET CHAT THREAD ====================
 export const startChat = async (req, res) => {
   try {
-    const customer_id = req.user?.id;
-    const { jeweller_id, product_id } = req.body;
+    const { customer_id, jeweller_id, product_id } = req.body;
 
     console.log('💬 Start chat request');
     console.log('Customer:', customer_id);
@@ -59,7 +61,7 @@ export const startChat = async (req, res) => {
     if (!customer_id || !jeweller_id) {
       return res.status(400).json({
         success: false,
-        message: 'Authenticated customer and jeweller_id are required'
+        message: 'customer_id and jeweller_id are required'
       });
     }
 
@@ -139,9 +141,9 @@ export const startChat = async (req, res) => {
 export const sendMessage = async (req, res) => {
   try {
     const sender_id = req.user?.id;
-    const {
-      thread_id,
-      message,
+    const { 
+      thread_id, 
+      message, 
       message_type = 'text',
       file_url = null,
       quotation_id = null,
@@ -156,14 +158,7 @@ export const sendMessage = async (req, res) => {
     if (!thread_id || !sender_id) {
       return res.status(400).json({
         success: false,
-        message: 'thread_id is required'
-      });
-    }
-
-    if (message && message.length > MAX_MESSAGE_LENGTH) {
-      return res.status(400).json({
-        success: false,
-        message: `Message exceeds max length of ${MAX_MESSAGE_LENGTH} characters`
+        message: 'thread_id and sender_id are required'
       });
     }
 
@@ -187,7 +182,8 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // FIX: removed duplicate/unclosed if block (isThreadMember + isThreadParticipant)
+    // Verify sender is part of this thread
+    if (!isThreadMember(thread, sender_id)) {
     if (!isThreadParticipant(thread, sender_id)) {
       return res.status(403).json({
         success: false,
@@ -257,13 +253,6 @@ export const getChatThreads = async (req, res) => {
     const { user_id } = req.params;
     const { status = 'active' } = req.query;
 
-    if (req.user?.id !== user_id) {
-      return res.status(403).json({
-        success: false,
-        message: 'You can only access your own chat threads'
-      });
-    }
-
     console.log('📋 Get chat threads for user:', user_id);
 
     let query = supabase
@@ -317,12 +306,11 @@ export const getChatThreads = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { thread_id } = req.params;
-    // FIX: removed duplicate variable declarations — parse limit/offset once, correctly
     const parsedLimit = Number.parseInt(req.query.limit, 10);
     const parsedOffset = Number.parseInt(req.query.offset, 10);
     const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 100) : 50;
     const offset = Number.isFinite(parsedOffset) ? Math.max(parsedOffset, 0) : 0;
-    const user_id = req.query.user_id;
+    const { limit = 100, user_id } = req.query;
 
     console.log('💬 Get messages for thread:', thread_id);
 
@@ -339,8 +327,8 @@ export const getMessages = async (req, res) => {
       });
     }
 
-    // FIX: removed duplicate/unclosed if block — use req.user.id as the authoritative check
-    if (!isThreadParticipant(thread, req.user?.id)) {
+    if (!isThreadMember(thread, req.user?.id)) {
+    if (user_id && !isThreadParticipant(thread, user_id)) {
       return res.status(403).json({
         success: false,
         message: 'You are not part of this chat'
@@ -355,7 +343,7 @@ export const getMessages = async (req, res) => {
       `)
       .eq('thread_id', thread_id)
       .order('created_at', { ascending: true })
-      .range(offset, offset + limit - 1);
+      .limit(parseInt(limit));
 
     if (error) throw error;
 
@@ -368,7 +356,7 @@ export const getMessages = async (req, res) => {
         limit,
         offset
       },
-      // FIX: removed duplicate messages key in object literal
+      messages: messages
       messages: messages || []
     });
 
@@ -385,8 +373,7 @@ export const getMessages = async (req, res) => {
 // ==================== MARK MESSAGES AS READ ====================
 export const markAsRead = async (req, res) => {
   try {
-    const { thread_id } = req.body;
-    const user_id = req.user?.id;
+    const { thread_id, user_id } = req.body;
 
     console.log('👁️ Mark messages as read');
     console.log('Thread:', thread_id);
@@ -395,7 +382,7 @@ export const markAsRead = async (req, res) => {
     if (!thread_id || !user_id) {
       return res.status(400).json({
         success: false,
-        message: 'thread_id is required'
+        message: 'thread_id and user_id are required'
       });
     }
 
@@ -412,7 +399,7 @@ export const markAsRead = async (req, res) => {
       });
     }
 
-    // FIX: removed duplicate/unclosed if block (isThreadMember + isThreadParticipant)
+    if (!isThreadMember(thread, user_id)) {
     if (!isThreadParticipant(thread, user_id)) {
       return res.status(403).json({
         success: false,
@@ -420,6 +407,9 @@ export const markAsRead = async (req, res) => {
       });
     }
 
+    const isCustomer = thread.customer_id === user_id;
+
+    // Mark all unread messages as read (where sender is NOT the current user)
     const now = new Date().toISOString();
 
     const { error: updateError } = await supabase
@@ -457,8 +447,8 @@ export const markAsRead = async (req, res) => {
 export const sendQuotation = async (req, res) => {
   try {
     const jeweller_id = req.user?.id;
-    const {
-      thread_id,
+    const { 
+      thread_id, 
       quotation_id
     } = req.body;
 
@@ -469,7 +459,7 @@ export const sendQuotation = async (req, res) => {
     if (!thread_id || !jeweller_id || !quotation_id) {
       return res.status(400).json({
         success: false,
-        message: 'thread_id and quotation_id are required'
+        message: 'thread_id, jeweller_id, and quotation_id are required'
       });
     }
 
@@ -548,8 +538,8 @@ export const sendQuotation = async (req, res) => {
 export const shareAIDesign = async (req, res) => {
   try {
     const sender_id = req.user?.id;
-    const {
-      thread_id,
+    const { 
+      thread_id, 
       ai_design_id
     } = req.body;
 
@@ -577,7 +567,8 @@ export const shareAIDesign = async (req, res) => {
       });
     }
 
-    // FIX: removed duplicate/unclosed if block (isThreadMember + isThreadParticipant)
+    // Verify sender is part of this thread
+    if (!isThreadMember(thread, sender_id)) {
     if (!isThreadParticipant(thread, sender_id)) {
       return res.status(403).json({
         success: false,
