@@ -250,9 +250,9 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           color: selected
-              ? AppColors.gold.withOpacity(0.95)
+              ? AppColors.gold.withValues(alpha: 0.95)
               : (isDark ? Colors.white : Colors.black)
-                  .withOpacity(isDark ? 0.05 : 0.04),
+                  .withValues(alpha: isDark ? 0.05 : 0.04),
         ),
         child: Center(
           child: Text(
@@ -286,7 +286,7 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: AppColors.gold.withOpacity(0.25),
+                  color: AppColors.gold.withValues(alpha: 0.25),
                 ),
               ),
               child: _sketchFile == null

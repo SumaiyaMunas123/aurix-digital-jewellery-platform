@@ -125,9 +125,9 @@ class _QuotationJewellerSelectScreenState
                               height: 46,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.gold.withOpacity(0.15),
+                                color: AppColors.gold.withValues(alpha: 0.15),
                                 border: Border.all(
-                                  color: AppColors.gold.withOpacity(0.25),
+                                  color: AppColors.gold.withValues(alpha: 0.25),
                                 ),
                               ),
                               child: const Icon(
@@ -170,7 +170,7 @@ class _QuotationJewellerSelectScreenState
                                 border: Border.all(
                                   color: selected
                                       ? AppColors.gold
-                                      : AppColors.gold.withOpacity(0.25),
+                                      : AppColors.gold.withValues(alpha: 0.25),
                                 ),
                               ),
                               child: selected

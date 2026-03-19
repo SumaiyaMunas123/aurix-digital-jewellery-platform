@@ -5,13 +5,21 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/aurix_background.dart';
 import '../../../../core/widgets/aurix_glass_card.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   final dynamic product;
 
   const ProductDetailScreen({
     super.key,
     required this.product,
   });
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  int quantity = 1;
+  bool isInWishlist = false;
 
   String _readString(dynamic source, String field, String fallback) {
     try {
@@ -48,26 +56,17 @@ class ProductDetailScreen extends StatelessWidget {
     return false;
   }
 
-  String _priceLabel(dynamic source) {
-    if (_isAskPrice(source)) return 'Ask Price';
-
-    final rawPrice = _readString(source, 'price', '0');
-    if (rawPrice.toLowerCase().contains('lkr')) return rawPrice;
-
-    return 'LKR $rawPrice';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final title = _readString(product, 'name', 'Jewellery Product');
-    final jeweller = _readString(product, 'jeweller', 'Aurix Jeweller');
+    final title = _readString(widget.product, 'name', 'Jewellery Product');
+    final jeweller = _readString(widget.product, 'jeweller', 'Aurix Jeweller');
     final description = _readString(
-      product,
+      widget.product,
       'description',
-      'Beautiful jewellery product from a verified jeweller.',
+      'Beautiful jewellery piece',
     );
-    final priceText = _priceLabel(product);
-    final askPrice = _isAskPrice(product);
+    final priceText = _priceLabel(widget.product);
+    final askPrice = _isAskPrice(widget.product);
 
     return Scaffold(
       body: AurixBackground(
@@ -102,7 +101,7 @@ class ProductDetailScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: AppColors.gold.withOpacity(0.20),
+                      color: AppColors.gold.withValues(alpha: 0.20),
                     ),
                   ),
                   child: const Icon(
@@ -141,10 +140,10 @@ class ProductDetailScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(999),
                         color: askPrice
-                            ? AppColors.gold.withOpacity(0.16)
-                            : AppColors.gold.withOpacity(0.12),
+                            ? AppColors.gold.withValues(alpha: 0.16)
+                            : AppColors.gold.withValues(alpha: 0.12),
                         border: Border.all(
-                          color: AppColors.gold.withOpacity(0.22),
+                          color: AppColors.gold.withValues(alpha: 0.22),
                         ),
                       ),
                       child: Text(
@@ -168,19 +167,137 @@ class ProductDetailScreen extends StatelessWidget {
                       description,
                       style: const TextStyle(height: 1.5),
                     ),
+                    const SizedBox(height: 24),
+                    // Product Specifications
+                    const Text(
+                      'Specifications',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSpecRow('Metal Type', _readString(widget.product, 'metal_type', 'Gold')),
+                    _buildSpecRow('Karat', _readString(widget.product, 'karat', '18K')),
+                    _buildSpecRow('Weight', '${_readString(widget.product, 'weight_grams', '0')} grams'),
+                    _buildSpecRow('Category', _readString(widget.product, 'category', 'Jewellery')),
+                    _buildSpecRow('Making Charge', '₹${_readString(widget.product, 'making_charge', '0')}')
                   ],
                 ),
               ),
               const SizedBox(height: 18),
+              // Quantity Selector
+              AurixGlassCard(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Quantity',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: quantity > 1
+                              ? () {
+                                  setState(() => quantity--);
+                                }
+                              : null,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.gold.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: const Icon(Icons.remove, size: 20),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            quantity.toString(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => quantity++);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.gold.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: const Icon(Icons.add, size: 20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              // Action Buttons
               Row(
                 children: [
+                  // Wishlist Button
+                  GestureDetector(
+                    onTap: () {
+                      setState(() => isInWishlist = !isInWishlist);
+                      HapticFeedback.selectionClick();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isInWishlist
+                                ? 'Added to wishlist'
+                                : 'Removed from wishlist',
+                          ),
+                          duration: const Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: isInWishlist
+                              ? AppColors.gold
+                              : AppColors.gold.withValues(alpha: 0.28),
+                        ),
+                        color: isInWishlist
+                            ? AppColors.gold.withValues(alpha: 0.12)
+                            : null,
+                      ),
+                      child: Icon(
+                        isInWishlist ? Icons.favorite : Icons.favorite_border,
+                        color: isInWishlist ? AppColors.gold : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Add to Cart Button
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Added to cart.'),
+                          SnackBar(
+                            content: Text('Added $quantity item(s) to cart'),
                           ),
                         );
                       },
@@ -189,7 +306,7 @@ class ProductDetailScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: AppColors.gold.withOpacity(0.28),
+                            color: AppColors.gold.withValues(alpha: 0.28),
                           ),
                         ),
                         child: const Center(
@@ -202,13 +319,14 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
+                  // Get Quotation Button
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Quotation request flow next.'),
+                            content: Text('Quotation request initiated'),
                           ),
                         );
                       },
@@ -220,7 +338,7 @@ class ProductDetailScreen extends StatelessWidget {
                         ),
                         child: const Center(
                           child: Text(
-                            'Get Quotation',
+                            'Quotation',
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               color: Colors.black,
@@ -237,5 +355,37 @@ class ProductDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildSpecRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).hintColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _priceLabel(dynamic source) {
+    if (_isAskPrice(source)) {
+      return 'Ask Price';
+    }
+    final price = _readString(source, 'price', '0');
+    return '₹$price';
   }
 }

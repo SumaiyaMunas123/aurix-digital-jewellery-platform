@@ -56,7 +56,7 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
               child: Container(
-                color: Colors.black.withOpacity(0.15),
+                color: Colors.black.withValues(alpha: 0.15),
               ),
             ),
             Center(

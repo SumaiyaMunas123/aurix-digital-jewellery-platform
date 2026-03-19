@@ -309,7 +309,7 @@ class _JewellerAddProductScreenState extends State<JewellerAddProductScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: AppColors.gold.withOpacity(0.25),
+                  color: AppColors.gold.withValues(alpha: 0.25),
                 ),
               ),
               child: _image == null

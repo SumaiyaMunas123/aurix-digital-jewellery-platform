@@ -26,9 +26,9 @@ class AurixGlassCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius),
             color: (isDark ? Colors.white : Colors.black)
-                .withOpacity(isDark ? 0.06 : 0.04),
+                .withValues(alpha: isDark ? 0.06 : 0.04),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.10),
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
             ),
           ),
           child: child,

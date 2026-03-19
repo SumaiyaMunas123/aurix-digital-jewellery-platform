@@ -69,7 +69,7 @@ class NotificationsScreen extends StatelessWidget {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundColor:
-                              const Color(0xFFD4AF37).withOpacity(0.15),
+                              const Color(0xFFD4AF37).withValues(alpha: 0.15),
                           child: Icon(
                             item["icon"] as IconData,
                             color: const Color(0xFFD4AF37),

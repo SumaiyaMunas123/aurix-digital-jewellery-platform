@@ -22,8 +22,8 @@ class VerifiedJewellersSection extends StatelessWidget {
                   height: 42,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.gold.withOpacity(0.18),
-                    border: Border.all(color: AppColors.gold.withOpacity(0.35)),
+                    color: AppColors.gold.withValues(alpha: 0.18),
+                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
                   ),
                   child: const Icon(Icons.verified_rounded, color: AppColors.gold),
                 ),

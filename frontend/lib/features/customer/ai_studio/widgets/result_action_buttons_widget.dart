@@ -208,10 +208,10 @@ class _ResultActionButtonsWidgetState
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: AppColors.gold.withOpacity(0.25),
+            color: AppColors.gold.withValues(alpha: 0.25),
           ),
           color: (isDark ? Colors.white : Colors.black)
-              .withOpacity(isDark ? 0.05 : 0.04),
+              .withValues(alpha: isDark ? 0.05 : 0.04),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

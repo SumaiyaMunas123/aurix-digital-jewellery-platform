@@ -54,7 +54,7 @@ class JewellerPendingApprovalScreen extends StatelessWidget {
               child: _blob(
                 size: 300,
                 color:
-                    const Color(0xFFD4AF37).withOpacity(isDark ? 0.18 : 0.14),
+                    const Color(0xFFD4AF37).withValues(alpha: isDark ? 0.18 : 0.14),
               ),
             ),
             Positioned(
@@ -63,7 +63,7 @@ class JewellerPendingApprovalScreen extends StatelessWidget {
               child: _blob(
                 size: 320,
                 color:
-                    const Color(0xFFD4AF37).withOpacity(isDark ? 0.14 : 0.10),
+                    const Color(0xFFD4AF37).withValues(alpha: isDark ? 0.14 : 0.10),
               ),
             ),
             Center(
@@ -81,10 +81,10 @@ class JewellerPendingApprovalScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(26),
                           border: Border.all(
                             color: (isDark ? Colors.white : Colors.black)
-                                .withOpacity(0.10),
+                                .withValues(alpha: 0.10),
                           ),
                           color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(isDark ? 0.06 : 0.045),
+                              .withValues(alpha: isDark ? 0.06 : 0.045),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,

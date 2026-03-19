@@ -81,7 +81,7 @@ class QuotationRequestsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
-                              color: AppColors.gold.withOpacity(0.25),
+                              color: AppColors.gold.withValues(alpha: 0.25),
                             ),
                           ),
                           child: Text(
@@ -161,7 +161,7 @@ class QuotationRequestsScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: AppColors.gold.withOpacity(0.25),
+                                  color: AppColors.gold.withValues(alpha: 0.25),
                                 ),
                               ),
                               child: const Center(

@@ -23,7 +23,7 @@ class _NoisePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rand = math.Random(7);
-    final paint = Paint()..color = Colors.white.withOpacity(opacity);
+    final paint = Paint()..color = Colors.white.withValues(alpha: opacity);
 
     for (int i = 0; i < 900; i++) {
       final x = rand.nextDouble() * size.width;

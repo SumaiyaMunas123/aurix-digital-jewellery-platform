@@ -47,9 +47,9 @@ class AurixAppBar extends StatelessWidget implements PreferredSizeWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             color: (isDark ? Colors.white : Colors.black)
-                .withOpacity(isDark ? 0.06 : 0.04),
+                .withValues(alpha: isDark ? 0.06 : 0.04),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.10),
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
             ),
           ),
           child: Text(
@@ -71,7 +71,7 @@ class AurixAppBar extends StatelessWidget implements PreferredSizeWidget {
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Material(
           color: (isDark ? Colors.white : Colors.black)
-              .withOpacity(isDark ? 0.06 : 0.04),
+              .withValues(alpha: isDark ? 0.06 : 0.04),
           child: InkWell(
             onTap: onTap,
             splashColor: Colors.transparent,
@@ -84,7 +84,7 @@ class AurixAppBar extends StatelessWidget implements PreferredSizeWidget {
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
                   color:
-                      (isDark ? Colors.white : Colors.black).withOpacity(0.10),
+                      (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
                 ),
               ),
               child: Icon(icon),

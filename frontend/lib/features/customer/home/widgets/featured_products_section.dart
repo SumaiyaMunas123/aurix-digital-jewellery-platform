@@ -63,7 +63,7 @@ class FeaturedProductsSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.25)),
+        border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.25)),
       ),
       child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
     );

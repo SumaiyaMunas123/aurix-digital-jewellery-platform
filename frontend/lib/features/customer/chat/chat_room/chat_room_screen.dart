@@ -127,8 +127,8 @@ class _Bubble extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bubbleColor = isMe
-        ? AppColors.gold.withOpacity(0.95)
-        : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06));
+        ? AppColors.gold.withValues(alpha: 0.95)
+        : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06));
 
     final textColor = isMe ? Colors.black : (isDark ? Colors.white : Colors.black);
 
@@ -143,7 +143,7 @@ class _Bubble extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           border: isMe
               ? null
-              : Border.all(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+              : Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +187,7 @@ class _InputBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       decoration: BoxDecoration(
         color: isDark ? Colors.black : Colors.white,
-        border: Border(top: BorderSide(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08))),
+        border: Border(top: BorderSide(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08))),
       ),
       child: Row(
         children: [
@@ -204,15 +204,15 @@ class _InputBar extends StatelessWidget {
                 hintText: "Message…",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withOpacity(0.10)),
+                  borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withOpacity(0.10)),
+                  borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(color: AppColors.gold.withOpacity(0.6)),
+                  borderSide: BorderSide(color: AppColors.gold.withValues(alpha: 0.6)),
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               ),

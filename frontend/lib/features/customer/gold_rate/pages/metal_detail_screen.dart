@@ -227,10 +227,10 @@ class _MetalDetailScreenState extends State<MetalDetailScreen> {
                       },
                       style: SegmentedButton.styleFrom(
                         selectedBackgroundColor:
-                            AppColors.gold.withOpacity(0.18),
+                            AppColors.gold.withValues(alpha: 0.18),
                         selectedForegroundColor: AppColors.gold,
                         side: BorderSide(
-                          color: AppColors.gold.withOpacity(0.25),
+                          color: AppColors.gold.withValues(alpha: 0.25),
                         ),
                         textStyle: const TextStyle(
                           fontWeight: FontWeight.w800,
@@ -271,10 +271,10 @@ class _MetalDetailScreenState extends State<MetalDetailScreen> {
                       },
                       style: SegmentedButton.styleFrom(
                         selectedBackgroundColor:
-                            AppColors.gold.withOpacity(0.18),
+                            AppColors.gold.withValues(alpha: 0.18),
                         selectedForegroundColor: AppColors.gold,
                         side: BorderSide(
-                          color: AppColors.gold.withOpacity(0.25),
+                          color: AppColors.gold.withValues(alpha: 0.25),
                         ),
                         textStyle: const TextStyle(
                           fontWeight: FontWeight.w800,
@@ -398,7 +398,7 @@ class _MetalDetailScreenState extends State<MetalDetailScreen> {
         drawVerticalLine: false,
         horizontalInterval: (maxY - minY) / 4,
         getDrawingHorizontalLine: (_) => FlLine(
-          color: AppColors.gold.withOpacity(0.08),
+          color: AppColors.gold.withValues(alpha: 0.08),
           strokeWidth: 1,
         ),
       ),
@@ -420,7 +420,7 @@ class _MetalDetailScreenState extends State<MetalDetailScreen> {
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: AppColors.gold.withOpacity(0.10),
+            color: AppColors.gold.withValues(alpha: 0.10),
           ),
         ),
       ],

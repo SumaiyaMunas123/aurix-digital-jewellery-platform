@@ -87,7 +87,7 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
                         children: [
                           CircleAvatar(
                             radius: 22,
-                            backgroundColor: AppColors.gold.withOpacity(0.16),
+                            backgroundColor: AppColors.gold.withValues(alpha: 0.16),
                             child: Text(
                               metal.symbol,
                               style: const TextStyle(
@@ -163,7 +163,7 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
                               borderRadius: BorderRadius.circular(999),
                               color: _pageIndex == i
                                   ? AppColors.gold
-                                  : AppColors.gold.withOpacity(0.25),
+                                  : AppColors.gold.withValues(alpha: 0.25),
                             ),
                           ),
                         ),
@@ -187,7 +187,7 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: AppColors.gold.withOpacity(0.25),
+          color: AppColors.gold.withValues(alpha: 0.25),
         ),
       ),
       child: Row(
@@ -241,12 +241,12 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color: positive
-            ? Colors.green.withOpacity(0.12)
-            : Colors.red.withOpacity(0.12),
+            ? Colors.green.withValues(alpha: 0.12)
+            : Colors.red.withValues(alpha: 0.12),
         border: Border.all(
           color: positive
-              ? Colors.green.withOpacity(0.25)
-              : Colors.red.withOpacity(0.25),
+              ? Colors.green.withValues(alpha: 0.25)
+              : Colors.red.withValues(alpha: 0.25),
         ),
       ),
       child: Text(
@@ -295,7 +295,7 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
             belowBarData: BarAreaData(
               show: true,
               color: (isPositive ? AppColors.gold : Colors.redAccent)
-                  .withOpacity(0.12),
+                  .withValues(alpha: 0.12),
             ),
           ),
         ],

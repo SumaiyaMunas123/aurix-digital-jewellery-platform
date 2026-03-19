@@ -28,10 +28,10 @@ class AurixBottomNav extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
                 color: (isDark ? Colors.white : Colors.black)
-                    .withOpacity(isDark ? 0.07 : 0.05),
+                    .withValues(alpha: isDark ? 0.07 : 0.05),
                 border: Border.all(
                   color:
-                      (isDark ? Colors.white : Colors.black).withOpacity(0.10),
+                      (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
                 ),
               ),
               child: Row(
@@ -72,8 +72,8 @@ class AurixBottomNav extends StatelessWidget {
             shape: BoxShape.circle,
             color: selected
                 ? (isDark
-                    ? AppColors.gold.withOpacity(0.20)
-                    : AppColors.gold.withOpacity(0.18))
+                    ? AppColors.gold.withValues(alpha: 0.20)
+                    : AppColors.gold.withValues(alpha: 0.18))
                 : Colors.transparent,
           ),
           child: Icon(

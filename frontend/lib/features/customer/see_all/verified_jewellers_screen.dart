@@ -23,7 +23,7 @@ class VerifiedJewellersScreen extends StatelessWidget {
             child: AurixGlassCard(
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: AppColors.gold.withOpacity(0.18),
+                  backgroundColor: AppColors.gold.withValues(alpha: 0.18),
                   child: const Icon(Icons.verified_rounded, color: AppColors.gold),
                 ),
                 title: Text(j["name"]!, style: const TextStyle(fontWeight: FontWeight.w900)),

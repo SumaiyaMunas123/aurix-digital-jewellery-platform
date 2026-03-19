@@ -217,9 +217,9 @@ class _MetalRateCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(999),
-                      color: AppColors.gold.withOpacity(0.18),
+                      color: AppColors.gold.withValues(alpha: 0.18),
                       border: Border.all(
-                        color: AppColors.gold.withOpacity(0.25),
+                        color: AppColors.gold.withValues(alpha: 0.25),
                       ),
                     ),
                     child: Text(
@@ -250,7 +250,7 @@ class _MetalRateCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                     color: active
                         ? AppColors.gold
-                        : AppColors.gold.withOpacity(0.25),
+                        : AppColors.gold.withValues(alpha: 0.25),
                   ),
                 );
               }),
@@ -285,7 +285,7 @@ class _MetalRateCard extends StatelessWidget {
           dotData: const FlDotData(show: false),
           belowBarData: BarAreaData(
             show: true,
-            color: AppColors.gold.withOpacity(0.10),
+            color: AppColors.gold.withValues(alpha: 0.10),
           ),
         ),
       ],

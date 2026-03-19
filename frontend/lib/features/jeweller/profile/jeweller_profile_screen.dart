@@ -87,7 +87,7 @@ class JewellerProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gold.withOpacity(0.25)),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [

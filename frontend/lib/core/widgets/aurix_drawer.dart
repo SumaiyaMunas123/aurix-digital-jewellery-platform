@@ -120,9 +120,9 @@ class AurixDrawer extends StatelessWidget {
         height: 42,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: const Color(0xFFD4AF37).withOpacity(0.9),
+          color: const Color(0xFFD4AF37).withValues(alpha: 0.9),
           border: Border.all(
-            color: const Color(0xFFD4AF37).withOpacity(0.35),
+            color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
           ),
         ),
         child: Icon(

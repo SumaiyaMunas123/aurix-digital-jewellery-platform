@@ -21,7 +21,7 @@ class AurixBackground extends StatelessWidget {
           left: -120,
           child: _blob(
             size: 320,
-            color: AppColors.gold.withOpacity(isDark ? 0.18 : 0.10),
+            color: AppColors.gold.withValues(alpha: isDark ? 0.18 : 0.10),
           ),
         ),
         Positioned(
@@ -29,7 +29,7 @@ class AurixBackground extends StatelessWidget {
           right: -140,
           child: _blob(
             size: 360,
-            color: AppColors.royalBlue.withOpacity(isDark ? 0.12 : 0.10),
+            color: AppColors.royalBlue.withValues(alpha: isDark ? 0.12 : 0.10),
           ),
         ),
         Positioned(
@@ -37,7 +37,7 @@ class AurixBackground extends StatelessWidget {
           right: -100,
           child: _blob(
             size: 240,
-            color: Colors.white.withOpacity(isDark ? 0.06 : 0.25),
+            color: Colors.white.withValues(alpha: isDark ? 0.06 : 0.25),
           ),
         ),
         AurixNoiseOverlay(opacity: isDark ? 0.05 : 0.03),
