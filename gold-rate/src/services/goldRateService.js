@@ -148,15 +148,19 @@ async function getUsdToLkr() {
 async function fetchDeviGoldRate() {
   // For MVP demo, return dummy local rates since the website is not accessible
   // In production, replace with actual scraping logic
+  const rates = {
+    '24k': 50000, // Dummy values in LKR per gram
+    '22k': 46000,
+    '20k': 42000,
+  };
+  
   return {
     source: 'demo',
     timestamp: new Date().toISOString(),
     raw_text: 'Demo data for MVP',
-    rates: {
-      '24k': 50000, // Dummy values in LKR per gram
-      '22k': 46000,
-      '20k': 42000,
-    },
+    lkr24k: rates['24k'],
+    lkr22k: rates['22k'],
+    lkr20k: rates['20k'],
   };
 }
 
