@@ -1,4 +1,5 @@
 ﻿import express from 'express';
+import { requireAuth } from '../middleware/auth.js';
 import {
   startChat,
   sendMessage,
@@ -10,6 +11,8 @@ import {
 } from '../controllers/chatController.js';
 
 const router = express.Router();
+
+router.use(requireAuth);
 
 // Start or get existing chat thread
 router.post('/start', startChat);

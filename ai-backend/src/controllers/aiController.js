@@ -45,30 +45,20 @@ export const generateImage = async (req, res) => {
 
     const modeInt = parseInt(mode);
 
-    // Additional validation (middleware should catch most)
+    // Validate based on mode
     if (modeInt === 0) {
+      // Text to Image mode
       if (!prompt || !prompt.trim()) {
-        return res.status(400).json({
-          success: false,
-          error: 'prompt is required for text-to-image mode',
-          timestamp: new Date().toISOString(),
-        });
+        return res.status(400).json({ success: false, error: 'prompt is required for text-to-image mode' });
       }
     } else if (modeInt === 1) {
+      // Sketch to Image mode
       if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          error: 'sketch file is required for sketch-to-image mode',
-          timestamp: new Date().toISOString(),
-        });
+        return res.status(400).json({ success: false, error: 'sketch file is required for sketch-to-image mode' });
       }
       sketchFilePath = req.file.path;
     } else {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid mode. Use 0 for text-to-image or 1 for sketch-to-image',
-        timestamp: new Date().toISOString(),
-      });
+      return res.status(400).json({ success: false, error: 'Invalid mode. Use 0 for text-to-image or 1 for sketch-to-image' });
     }
 
     // Build style context for better generation
@@ -131,53 +121,22 @@ export const generateImage = async (req, res) => {
     });
 
     console.log('✅ Design generation completed successfully');
-    
-    // Ensure consistent contract with frontend
-    const responseData = {
+    return res.status(200).json({
       success: true,
       data: {
+        image_base64: imageBase64,
         image_url: uploaded.publicUrl,
-        image_base64: imageBase64 || null,
-        sketch_url: sketchUrl || null,
-        design: {
-          id: design.id,
-          user_id: design.user_id,
-          user_type: design.user_type,
-          prompt: design.prompt,
-          style_params: design.style_params,
-          image_url: design.image_url,
-          sketch_url: design.sketch_url,
-          generation_mode: design.generation_mode,
-          status: design.status,
-          created_at: design.created_at,
-        },
+        sketch_url: sketchUrl,
+        design,
         mode: modeInt,
-        timestamp: new Date().toISOString(),
       },
-    };
-    
-    return res.status(200).json(responseData);
+    });
   } catch (error) {
     console.error('❌ AI generation error:', error.message);
-    
-    // Consistent error response format
-    const errorResponse = {
+    return res.status(error.statusCode || 500).json({
       success: false,
-      error: error.message || 'An error occurred during image generation',
-      timestamp: new Date().toISOString(),
-    };
-    
-    // Map specific error status codes
-    let statusCode = error.statusCode || 500;
-    if (error.message?.includes('Rate limit') || error.message?.includes('Too many')) {
-      statusCode = 429;
-    } else if (error.message?.includes('timeout')) {
-      statusCode = 503;
-    } else if (error.message?.includes('unauthorized') || error.message?.includes('permission')) {
-      statusCode = 403;
-    }
-    
-    return res.status(statusCode).json(errorResponse);
+      error: error.message,
+    });
   } finally {
     // Clean up temp file
     if (sketchFilePath && fs.existsSync(sketchFilePath)) {
@@ -193,18 +152,9 @@ export const healthCheck = async (req, res) => {
     success: true,
     data: {
       service: 'Aurix AI Backend',
-      status: 'operational',
-      endpoints: {
-        generate: 'POST /api/ai/generate',
-        chat: 'POST /api/ai/chat',
-        suggestions: 'POST /api/ai/suggestions',
-      },
-      features: {
-        hf_token_configured: !!process.env.HF_TOKEN,
-        supabase_configured: !!process.env.SUPABASE_URL,
-        groq_key_configured: !!process.env.GROQ_API_KEY,
-      },
-      timestamp: new Date().toISOString(),
+      model: 'stabilityai/stable-diffusion-xl-base-1.0',
+      hf_token_set: !!process.env.HF_TOKEN,
+      groq_key_set: !!process.env.GROQ_API_KEY,
     },
   });
 };
