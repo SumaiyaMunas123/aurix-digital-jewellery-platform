@@ -1,5 +1,31 @@
 import { supabase } from '../config/supabaseClient.js';
 
+const ensureVerifiedJeweller = async (userId) => {
+  const { data: jeweller, error } = await supabase
+    .from('users')
+    .select('id, role, verified, verification_status')
+    .eq('id', userId)
+    .single();
+
+  if (error || !jeweller) {
+    return { ok: false, status: 404, message: 'Jeweller not found' };
+  }
+
+  if (jeweller.role !== 'jeweller') {
+    return { ok: false, status: 403, message: 'Only jewellers can perform this action' };
+  }
+
+  if (!jeweller.verified || jeweller.verification_status !== 'approved') {
+    return {
+      ok: false,
+      status: 403,
+      message: 'Your account must be verified before performing this action'
+    };
+  }
+
+  return { ok: true, jeweller };
+};
+
 // ==================== ADD PRODUCT ====================
 export const addProduct = async (req, res) => {
   try {
@@ -31,32 +57,11 @@ export const addProduct = async (req, res) => {
       });
     }
 
-    // Check jeweller exists and is verified
-    const { data: jeweller, error: jewellerError } = await supabase
-      .from('users')
-      .select('id, role, verified, verification_status')
-      .eq('id', jeweller_id)
-      .single();
-
-    if (jewellerError || !jeweller) {
-      console.log('❌ Jeweller not found');
-      return res.status(404).json({
+    const verification = await ensureVerifiedJeweller(jeweller_id);
+    if (!verification.ok) {
+      return res.status(verification.status).json({
         success: false,
-        message: 'Jeweller not found'
-      });
-    }
-
-    if (jeweller.role !== 'jeweller') {
-      return res.status(403).json({
-        success: false,
-        message: 'Only jewellers can add products'
-      });
-    }
-
-    if (!jeweller.verified || jeweller.verification_status !== 'approved') {
-      return res.status(403).json({
-        success: false,
-        message: 'Your account must be verified before adding products'
+        message: verification.message
       });
     }
 
@@ -154,10 +159,27 @@ export const getAllProducts = async (req, res) => {
 
     console.log(`✅ Found ${products.length} products`);
 
+    const mappedProducts = (products || []).map((product) => ({
+      id: product.id,
+      name: product.name,
+      jeweller: product.jeweller?.business_name || product.jeweller?.name || 'Unknown Jeweller',
+      karat: product.karat,
+      weight: product.weight,
+      priceLkr: product.price,
+      category: product.category,
+      isDeal: Boolean(product.is_deal ?? false),
+      isNew: Boolean(product.is_new ?? false),
+      isFeatured: Boolean(product.is_featured ?? false),
+      isTrending: Boolean(product.is_trending ?? false),
+      imageUrl: product.primary_image_url || product.image_url || null,
+      description: product.description || '',
+      metalType: product.metal_type || null,
+      jewellerId: product.jeweller_id || null
+    }));
+
     return res.status(200).json({
       success: true,
-      count: products.length,
-      products: products
+      data: mappedProducts
     });
 
   } catch (error) {
@@ -289,6 +311,14 @@ export const updateProduct = async (req, res) => {
       });
     }
 
+    const verification = await ensureVerifiedJeweller(req.user?.id);
+    if (!verification.ok) {
+      return res.status(verification.status).json({
+        success: false,
+        message: verification.message
+      });
+    }
+
     const updateData = { updated_at: new Date().toISOString() };
     
     Object.keys(req.body).forEach(key => {
@@ -354,6 +384,14 @@ export const toggleProductVisibility = async (req, res) => {
       });
     }
 
+    const verification = await ensureVerifiedJeweller(req.user?.id);
+    if (!verification.ok) {
+      return res.status(verification.status).json({
+        success: false,
+        message: verification.message
+      });
+    }
+
     const newStatus = !product.is_active;
 
     const { data: updated, error } = await supabase
@@ -409,6 +447,14 @@ export const deleteProduct = async (req, res) => {
       return res.status(403).json({
         success: false,
         message: 'You can only delete your own products'
+      });
+    }
+
+    const verification = await ensureVerifiedJeweller(req.user?.id);
+    if (!verification.ok) {
+      return res.status(verification.status).json({
+        success: false,
+        message: verification.message
       });
     }
 
