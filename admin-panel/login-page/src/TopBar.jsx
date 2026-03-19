@@ -14,9 +14,9 @@ const TopBar = ({ Icons, handleProfileClick, onLogout, onNavigate }) => {
         <button className="icon-btn" title="Notifications">
           <Icons.Bell />
         </button>
-        <button className="icon-btn" title="Settings" onClick={() => onNavigate && onNavigate("settings")}>
-          <Icons.Settings />
-        </button>
+        {/* <button className="icon-btn" title="Settings" onClick={() => onNavigate && onNavigate("settings")}>
+          <Icons.Settings /> */}
+        {/* </button> */}
         <div className="user-profile">
           <span className="avatar">SJ</span>
           <div className="user-info" onClick={handleProfileClick}>
