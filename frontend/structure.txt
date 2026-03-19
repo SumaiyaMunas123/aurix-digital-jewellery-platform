@@ -1,0 +1,144 @@
+lib
+├── app.dart
+├── config
+├── core
+│   ├── config
+│   │   └── environment.dart
+│   ├── navigation
+│   │   └── nav.dart
+│   ├── network
+│   │   └── api_client.dart
+│   ├── theme
+│   │   ├── app_colors.dart
+│   │   ├── app_theme.dart
+│   │   └── theme_controller.dart
+│   └── widgets
+│       ├── aurix_app_bar.dart
+│       ├── aurix_background.dart
+│       ├── aurix_bottom_nav.dart
+│       ├── aurix_drawer.dart
+│       ├── aurix_glass_card.dart
+│       ├── aurix_noise_overlay.dart
+│       └── aurix_page_scaffold.dart
+├── data
+├── dev
+│   └── dummy_data
+│       ├── dummy_gold_history.dart
+│       ├── dummy_gold_rates.dart
+│       ├── dummy_jewellers.dart
+│       ├── dummy_metal_rates.dart
+│       └── dummy_products.dart
+├── features
+│   ├── auth
+│   │   ├── data
+│   │   │   ├── auth_repo_api.dart
+│   │   │   ├── auth_repo_dummy.dart
+│   │   │   ├── auth_repository.dart
+│   │   │   └── google_auth_service.dart
+│   │   ├── models
+│   │   │   └── user.dart
+│   │   └── presentation
+│   │       ├── create_account_screen.dart
+│   │       ├── email_verification_screen.dart
+│   │       ├── forgot_password_screen.dart
+│   │       ├── jeweller_pending_approval_screen.dart
+│   │       ├── login_screen.dart
+│   │       ├── otp_verification_screen.dart
+│   │       └── splash_screen.dart
+│   ├── common
+│   │   ├── about_screen.dart
+│   │   ├── profile_screen.dart
+│   │   ├── settings_screen.dart
+│   │   └── terms_screen.dart
+│   ├── customer
+│   │   ├── ai_studio
+│   │   │   ├── ai_studio_screen.dart
+│   │   │   ├── models
+│   │   │   │   └── ai_generation_request.dart
+│   │   │   ├── pages
+│   │   │   │   ├── ai_generating_screen.dart
+│   │   │   │   ├── ai_result_screen.dart
+│   │   │   │   └── quotation_jeweller_select_screen.dart
+│   │   │   └── widgets
+│   │   │       ├── generated_image_widget.dart
+│   │   │       └── result_action_buttons_widget.dart
+│   │   ├── cart
+│   │   │   └── data
+│   │   │       └── cart_store.dart
+│   │   ├── chat
+│   │   │   ├── chat_list_screen.dart
+│   │   │   ├── chat_room
+│   │   │   │   └── chat_room_screen.dart
+│   │   │   └── models
+│   │   │       └── chat_message.dart
+│   │   ├── customer_shell
+│   │   │   └── customer_shell_screen.dart
+│   │   ├── gold_rate
+│   │   │   ├── data
+│   │   │   │   ├── gold_rate_repo_api.dart
+│   │   │   │   ├── gold_rate_repo_dummy.dart
+│   │   │   │   └── gold_rate_repository.dart
+│   │   │   ├── models
+│   │   │   │   └── gold_rate.dart
+│   │   │   └── pages
+│   │   │       └── metal_detail_screen.dart
+│   │   ├── home
+│   │   │   ├── customer_home_screen.dart
+│   │   │   └── widgets
+│   │   │       ├── categories_row.dart
+│   │   │       ├── deals_section.dart
+│   │   │       ├── dummy_metal_rates.dart
+│   │   │       ├── featured_products_section.dart
+│   │   │       ├── live_gold_rate_card.dart
+│   │   │       ├── metals_rates_carousel.dart
+│   │   │       ├── new_arrivals_section.dart
+│   │   │       ├── section_header.dart
+│   │   │       ├── trending_designs_section.dart
+│   │   │       └── verified_jewellers_section.dart
+│   │   ├── notifications
+│   │   │   └── notifications_screen.dart
+│   │   ├── products
+│   │   │   ├── data
+│   │   │   │   ├── product_repo_api.dart
+│   │   │   │   ├── product_repo_dummy.dart
+│   │   │   │   └── product_repository.dart
+│   │   │   ├── models
+│   │   │   │   └── product.dart
+│   │   │   ├── presentation
+│   │   │   └── product_detail
+│   │   │       ├── product_detail_screen.dart
+│   │   │       └── quotation_request_screen.dart
+│   │   ├── quotations
+│   │   │   └── data
+│   │   │       └── quotation_store.dart
+│   │   ├── search
+│   │   │   └── customer_search_screen.dart
+│   │   ├── see_all
+│   │   │   ├── categories_screen.dart
+│   │   │   ├── deals_screen.dart
+│   │   │   ├── new_arrivals_screen.dart
+│   │   │   ├── trending_screen.dart
+│   │   │   └── verified_jewellers_screen.dart
+│   │   └── wishlist
+│   │       ├── data
+│   │       │   └── wishlist_store.dart
+│   │       └── wishlist_screen.dart
+│   └── jeweller
+│       ├── dashboard
+│       │   └── jeweller_dashboard_screen.dart
+│       ├── products
+│       │   ├── jeweller_add_product_screen.dart
+│       │   └── jeweller_products_screen.dart
+│       ├── profile
+│       │   └── jeweller_profile_screen.dart
+│       ├── quotations
+│       │   ├── quotation_reply_screen.dart
+│       │   └── quotation_requests_screen.dart
+│       ├── shell
+│       │   └── jeweller_app_shell.dart
+│       └── widgets
+│           └── jeweller_bottom_nav.dart
+├── main.dart
+└── state
+
+54 directories, 88 files
