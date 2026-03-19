@@ -1,7 +1,7 @@
 import React from "react";
 import "./TopBar.css";
 
-const TopBar = ({ Icons, handleProfileClick, onLogout }) => {
+const TopBar = ({ Icons, handleProfileClick, onLogout, onNavigate }) => {
   return (
     <div className="top-bar">
       <div className="search-bar">
@@ -14,7 +14,7 @@ const TopBar = ({ Icons, handleProfileClick, onLogout }) => {
         <button className="icon-btn" title="Notifications">
           <Icons.Bell />
         </button>
-        <button className="icon-btn" title="Settings">
+        <button className="icon-btn" title="Settings" onClick={() => onNavigate && onNavigate("settings")}>
           <Icons.Settings />
         </button>
         <div className="user-profile">
@@ -34,4 +34,3 @@ const TopBar = ({ Icons, handleProfileClick, onLogout }) => {
 };
 
 export default TopBar;
-
