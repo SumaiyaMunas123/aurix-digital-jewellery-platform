@@ -5,26 +5,28 @@ import AdminLogin from './AdminLogin'
 import AdminDashboard from './AdminDashboard'
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState(null)
 
   const handleLogout = () => {
-    setIsLoggedIn(false)
+    localStorage.removeItem('adminToken')
+    setUser(null)
   }
 
-  const handleLogin = () => {
-    setIsLoggedIn(true)
+  const handleLogin = (userData, token) => {
+    if (token) {
+      localStorage.setItem('adminToken', token)
+    }
+    setUser(userData)
   }
 
   return (
     <StrictMode>
       <>
-        {isLoggedIn ? (
-          <AdminDashboard onLogout={handleLogout} />
+        {user ? (
+          <AdminDashboard onLogout={handleLogout} user={user} />
         ) : (
           <AdminLogin onLogin={handleLogin} />
         )}
-
-        {/* <Footer /> */}
       </>
     </StrictMode>
   )

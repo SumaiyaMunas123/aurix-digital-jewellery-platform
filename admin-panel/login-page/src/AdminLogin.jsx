@@ -31,14 +31,14 @@ const AdminLogin = ({ onLogin }) => {
             const data = await response.json();
 
             if (data.success) {
-                if (onLogin) onLogin(data.user);
+                // Pass both the user and token to the parent
+                if (onLogin) onLogin(data.user, data.token);
             } else {
                 setError(data.message || "Invalid credentials.");
             }
         } catch (err) {
-            // No live backend — allow any non-empty credentials through in dev
-            console.warn("No backend available, using dev bypass:", err.message);
-            if (onLogin) onLogin({ email, name: "Admin", role: "Senior Admin" });
+            setError("Unable to connect to server. Please try again.");
+            console.error("Login error:", err.message);
         } finally {
             setLoading(false);
         }

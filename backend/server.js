@@ -1,7 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { supabase } from './src/config/supabaseClient.js';
 
 // Import routes
 import authRoutes from './src/routes/auth.js';
@@ -9,8 +8,6 @@ import productRoutes from './src/routes/products.js';
 import adminRoutes from './src/routes/admin.js';
 import chatRoutes from './src/routes/chat.js';
 import aiRoutes from './src/routes/ai.js';
-
-dotenv.config();
 
 const app = express();
 
@@ -107,22 +104,12 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-// Handle uncaught exceptions
+// Handle uncaught exceptions — registered once each
 process.on('uncaughtException', (err) => {
-  console.error('❌ Uncaught Exception:', err);
+  console.error('Uncaught Exception:', err);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-// Error handling
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
-  process.exit(1);
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
