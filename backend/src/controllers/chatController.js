@@ -6,6 +6,48 @@ const isThreadMember = (thread, userId) => {
   return userId === thread.customer_id || userId === thread.jeweller_id;
 };
 
+const isThreadParticipant = (thread, userId) => {
+  return userId === thread.customer_id || userId === thread.jeweller_id;
+};
+
+const syncThreadUnreadCounts = async (thread) => {
+  const { data: unreadMessages, error: unreadError } = await supabase
+    .from('chat_messages')
+    .select('sender_id')
+    .eq('thread_id', thread.id)
+    .eq('is_read', false);
+
+  if (unreadError) throw unreadError;
+
+  let unreadByCustomer = 0;
+  let unreadByJeweller = 0;
+
+  for (const unreadMessage of unreadMessages || []) {
+    if (unreadMessage.sender_id === thread.jeweller_id) {
+      unreadByCustomer += 1;
+    }
+    if (unreadMessage.sender_id === thread.customer_id) {
+      unreadByJeweller += 1;
+    }
+  }
+
+  const { error: syncError } = await supabase
+    .from('chat_threads')
+    .update({
+      unread_by_customer: unreadByCustomer,
+      unread_by_jeweller: unreadByJeweller,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', thread.id);
+
+  if (syncError) throw syncError;
+
+  return {
+    unread_by_customer: unreadByCustomer,
+    unread_by_jeweller: unreadByJeweller
+  };
+};
+
 // ==================== START/GET CHAT THREAD ====================
 export const startChat = async (req, res) => {
   try {
@@ -155,14 +197,12 @@ export const sendMessage = async (req, res) => {
 
     // Verify sender is part of this thread
     if (!isThreadMember(thread, sender_id)) {
+    if (!isThreadParticipant(thread, sender_id)) {
       return res.status(403).json({
         success: false,
         message: 'You are not part of this chat'
       });
     }
-
-    // Determine who the sender is
-    const isCustomer = sender_id === thread.customer_id;
 
     // Save message
     const { data: newMessage, error: messageError } = await supabase
@@ -187,7 +227,7 @@ export const sendMessage = async (req, res) => {
 
     if (messageError) throw messageError;
 
-    // Update thread's last message and unread counts
+    // Update thread's last message, then sync unread counters from source-of-truth messages.
     const updateData = {
       last_message: message ? message.trim().substring(0, 100) : `[${message_type}]`,
       last_message_at: new Date().toISOString(),
@@ -195,19 +235,14 @@ export const sendMessage = async (req, res) => {
       updated_at: new Date().toISOString()
     };
 
-    // Increment unread count for the recipient
-    if (isCustomer) {
-      // Customer sent, increment jeweller's unread
-      updateData.unread_by_jeweller = (thread.unread_by_jeweller || 0) + 1;
-    } else {
-      // Jeweller sent, increment customer's unread
-      updateData.unread_by_customer = (thread.unread_by_customer || 0) + 1;
-    }
-
-    await supabase
+    const { error: threadUpdateError } = await supabase
       .from('chat_threads')
       .update(updateData)
       .eq('id', thread_id);
+
+    if (threadUpdateError) throw threadUpdateError;
+
+    await syncThreadUnreadCounts(thread);
 
     console.log('✅ Message sent:', newMessage.id);
 
@@ -268,7 +303,8 @@ export const getChatThreads = async (req, res) => {
 
       return {
         ...thread,
-        unread_count: unreadCount || 0
+        unread_count: unreadCount || 0,
+        unreadCount: unreadCount || 0
       };
     });
 
@@ -276,7 +312,6 @@ export const getChatThreads = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      count: threads.length,
       threads: threadsWithUnread
     });
 
@@ -298,6 +333,7 @@ export const getMessages = async (req, res) => {
     const parsedOffset = Number.parseInt(req.query.offset, 10);
     const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 100) : 50;
     const offset = Number.isFinite(parsedOffset) ? Math.max(parsedOffset, 0) : 0;
+    const { limit = 100, user_id } = req.query;
 
     console.log('💬 Get messages for thread:', thread_id);
 
@@ -315,6 +351,7 @@ export const getMessages = async (req, res) => {
     }
 
     if (!isThreadMember(thread, req.user?.id)) {
+    if (user_id && !isThreadParticipant(thread, user_id)) {
       return res.status(403).json({
         success: false,
         message: 'You are not part of this chat'
@@ -343,6 +380,7 @@ export const getMessages = async (req, res) => {
         offset
       },
       messages: messages
+      messages: messages || []
     });
 
   } catch (error) {
@@ -387,6 +425,7 @@ export const markAsRead = async (req, res) => {
     }
 
     if (!isThreadMember(thread, user_id)) {
+    if (!isThreadParticipant(thread, user_id)) {
       return res.status(403).json({
         success: false,
         message: 'You are not part of this chat'
@@ -410,15 +449,7 @@ export const markAsRead = async (req, res) => {
 
     if (updateError) throw updateError;
 
-    // Reset unread count in thread
-    const resetData = isCustomer 
-      ? { unread_by_customer: 0 }
-      : { unread_by_jeweller: 0 };
-
-    await supabase
-      .from('chat_threads')
-      .update(resetData)
-      .eq('id', thread_id);
+    await syncThreadUnreadCounts({ id: thread_id, ...thread });
 
     console.log('✅ Messages marked as read');
 
@@ -473,7 +504,7 @@ export const sendQuotation = async (req, res) => {
     }
 
     // Verify sender is the jeweller in this thread
-    if (jeweller_id !== thread.jeweller_id) {
+    if (!isThreadParticipant(thread, jeweller_id) || jeweller_id !== thread.jeweller_id) {
       return res.status(403).json({
         success: false,
         message: 'Only the jeweller can send quotations in this thread'
@@ -500,17 +531,20 @@ export const sendQuotation = async (req, res) => {
 
     if (error) throw error;
 
-    // Update thread
-    await supabase
+    // Update thread metadata and synchronize unread counters from messages.
+    const { error: threadUpdateError } = await supabase
       .from('chat_threads')
       .update({
         last_message: 'Quotation sent',
         last_message_at: new Date().toISOString(),
         last_message_by: jeweller_id,
-        unread_by_customer: (thread.unread_by_customer || 0) + 1,
         updated_at: new Date().toISOString()
       })
       .eq('id', thread_id);
+
+    if (threadUpdateError) throw threadUpdateError;
+
+    await syncThreadUnreadCounts(thread);
 
     console.log('✅ Quotation sent:', quotationMessage.id);
 
@@ -567,13 +601,12 @@ export const shareAIDesign = async (req, res) => {
 
     // Verify sender is part of this thread
     if (!isThreadMember(thread, sender_id)) {
+    if (!isThreadParticipant(thread, sender_id)) {
       return res.status(403).json({
         success: false,
         message: 'You are not part of this chat'
       });
     }
-
-    const isCustomer = sender_id === thread.customer_id;
 
     // Send AI design message
     const { data: designMessage, error } = await supabase
@@ -595,7 +628,7 @@ export const shareAIDesign = async (req, res) => {
 
     if (error) throw error;
 
-    // Update thread
+    // Update thread metadata and synchronize unread counters from messages.
     const updateData = {
       last_message: 'AI design shared',
       last_message_at: new Date().toISOString(),
@@ -603,16 +636,14 @@ export const shareAIDesign = async (req, res) => {
       updated_at: new Date().toISOString()
     };
 
-    if (isCustomer) {
-      updateData.unread_by_jeweller = (thread.unread_by_jeweller || 0) + 1;
-    } else {
-      updateData.unread_by_customer = (thread.unread_by_customer || 0) + 1;
-    }
-
-    await supabase
+    const { error: threadUpdateError } = await supabase
       .from('chat_threads')
       .update(updateData)
       .eq('id', thread_id);
+
+    if (threadUpdateError) throw threadUpdateError;
+
+    await syncThreadUnreadCounts(thread);
 
     console.log('✅ AI design shared:', designMessage.id);
 

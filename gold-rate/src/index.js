@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // API routes
-app.use('/api/gold-rate', goldRateRoutes);
+app.use('/gold-rate', goldRateRoutes);
 
 app.get('/', (req, res) => {
   res.json({
@@ -20,7 +20,10 @@ app.get('/', (req, res) => {
     message: 'Aurix gold rate service is running',
     timestamp: new Date().toISOString(),
     endpoints: {
-      goldRate: '/api/gold-rate',
+      allRates: '/gold-rate',
+      gold: '/gold-rate/gold',
+      silver: '/gold-rate/silver',
+      platinum: '/gold-rate/platinum',
     },
   });
 });
