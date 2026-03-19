@@ -271,13 +271,6 @@
     text-transform: uppercase;
 }
 
-.od-dot{
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: currentColor;
-}
-
 .od-pending{
     background: transparent;
     color: #d97706;

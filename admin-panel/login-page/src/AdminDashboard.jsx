@@ -136,6 +136,7 @@ const AdminDashboard = ({ onLogout }) => {
     { id: "escrow",    label: "Escrow/Finance", icon: Icons.Finance  },
     { id: "disputes",  label: "Disputes",     icon: Icons.Disputes  },
     { id: "admins",    label: "Admins",       icon: Icons.Admins    },
+    { id: "settings",  label: "Settings",     icon: Icons.Settings  },
   ];
 
   const stats = [

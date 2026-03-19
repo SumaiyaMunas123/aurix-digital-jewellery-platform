@@ -18,25 +18,26 @@
 }
 
 .ef-report-btn {
-  display: flex; 
-  align-items: center; 
-  gap: 8px;
-  background: linear-gradient(135deg, #D4AF37, #C9A227); 
+  background: linear-gradient(135deg, #D4AF37 0%, #C9A227 100%);
   color: white;
-  border: none; 
-  border-radius: 10px; 
-  padding: 10px 18px;
-  font-size: 13px; 
-  font-weight: 600; 
-  cursor: pointer; 
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(212,175,55,0.3);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+  transition: all 0.3s ease;
 }
 
 .ef-report-btn:hover { 
-    transform: translateY(-2px); 
-    box-shadow: 0 6px 18px rgba(212,175,55,0.4); 
-    border-color: transparent; 
+    background: linear-gradient(135deg, #E5C158 0%, #D4AF37 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.4);
+    border-color: transparent;
 }
 
 .ef-summary-grid { 
@@ -123,12 +124,40 @@
 .ef-amount { font-weight: 700; color: #111827; }
 .ef-date { font-size: 12px; color: #6b7280; white-space: nowrap; }
 
-.ef-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-.ef-dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
-.ef-held     { background: #dbeafe; color: #2563eb; }
-.ef-released { background: #d1fae5; color: #059669; }
-.ef-disputed { background: #fee2e2; color: #dc2626; }
-.ef-refunded { background: #f3f4f6; color: #6b7280; }
+.ef-pill { 
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ef-held     {
+    background: transparent;
+    border: 1.5px solid #2563eb;
+    color: #2563eb; 
+}
+
+.ef-released {
+    background: transparent;
+    color: #059669;
+    border: 1.5px solid #059669; 
+}
+
+.ef-disputed { 
+    background: transparent;
+    color: #dc2626; 
+    border: 1.5px solid #dc2626;
+}
+
+.ef-refunded { 
+    background: #f3f4f6; 
+    color: #6b7280; 
+    border: 1.5px solid #6b7280;
+}
 
 .ef-action-row { display: flex; gap: 6px; }
 .ef-release-btn {
