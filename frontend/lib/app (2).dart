@@ -1,0 +1,45 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
+
+import 'features/auth/data/auth_repo_api.dart';
+import 'features/auth/data/auth_repository.dart';
+import 'features/customer/gold_rate/data/gold_rate_repo_api.dart';
+import 'features/customer/gold_rate/data/gold_rate_repository.dart';
+import 'features/customer/products/data/product_repo_api.dart';
+import 'features/customer/products/data/product_repository.dart';
+import 'features/customer/wishlist/data/wishlist_store.dart';
+import 'features/auth/presentation/splash_screen.dart';
+
+class AurixApp extends StatelessWidget {
+  const AurixApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        Provider<AuthRepository>(create: (_) => AuthRepoApi()),
+        Provider<GoldRateRepository>(create: (_) => GoldRateRepoApi()),
+        Provider<ProductRepository>(create: (_) => ProductRepoApi()),
+        ChangeNotifierProvider<WishlistStore>(create: (_) => WishlistStore()),
+        ChangeNotifierProvider<ThemeController>(
+          create: (_) => ThemeController(),
+        ),
+      ],
+      child: Consumer<ThemeController>(
+        builder: (context, themeController, _) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Aurix',
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeController.themeMode,
+            home: const SplashScreen(),
+          );
+        },
+      ),
+    );
+  }
+}
