@@ -4,14 +4,16 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 
-import 'features/auth/data/auth_repo_api.dart';
+import 'features/auth/data/auth_repo_dummy.dart';
 import 'features/auth/data/auth_repository.dart';
-import 'features/customer/gold_rate/data/gold_rate_repo_api.dart';
-import 'features/customer/gold_rate/data/gold_rate_repository.dart';
-import 'features/customer/products/data/product_repo_api.dart';
-import 'features/customer/products/data/product_repository.dart';
-import 'features/customer/wishlist/data/wishlist_store.dart';
 import 'features/auth/presentation/splash_screen.dart';
+import 'features/customer/cart/data/cart_store.dart';
+import 'features/customer/gold_rate/data/gold_rate_repo_dummy.dart';
+import 'features/customer/gold_rate/data/gold_rate_repository.dart';
+import 'features/customer/products/data/product_repo_dummy.dart';
+import 'features/customer/products/data/product_repository.dart';
+import 'features/customer/quotations/data/quotation_store.dart';
+import 'features/customer/wishlist/data/wishlist_store.dart';
 
 class AurixApp extends StatelessWidget {
   const AurixApp({super.key});
@@ -20,10 +22,12 @@ class AurixApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<AuthRepository>(create: (_) => AuthRepoApi()),
-        Provider<GoldRateRepository>(create: (_) => GoldRateRepoApi()),
-        Provider<ProductRepository>(create: (_) => ProductRepoApi()),
+        Provider<AuthRepository>(create: (_) => AuthRepoDummy()),
+        Provider<GoldRateRepository>(create: (_) => GoldRateRepoDummy()),
+        Provider<ProductRepository>(create: (_) => ProductRepoDummy()),
         ChangeNotifierProvider<WishlistStore>(create: (_) => WishlistStore()),
+        ChangeNotifierProvider<CartStore>(create: (_) => CartStore()),
+        ChangeNotifierProvider<QuotationStore>(create: (_) => QuotationStore()),
         ChangeNotifierProvider<ThemeController>(
           create: (_) => ThemeController(),
         ),
