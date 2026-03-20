@@ -99,16 +99,34 @@
 
 .verification-search {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 9px 16px;
+  color: #9ca3af;
 }
 
-.verification-search input {
+/* .verification-search input {
   width: 100%;
   border-radius: 999px;
   border: 1px solid #e5e7eb;
   padding: 10px 16px;
   font-size: 14px;
   background: #f9fafb;
+} */
+
+.verification-search input {
+ border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #111827;
+  outline: none;
+  flex: 1;
 }
+ 
 
 .verification-search input:focus {
   outline: none;

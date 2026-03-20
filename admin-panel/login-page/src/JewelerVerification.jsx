@@ -542,7 +542,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
       {/* ── Search / Filter ── */}
       <div className="verification-filters-row">
         <div className="verification-search">
-           <svg
+          <svg
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -550,9 +550,10 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             stroke="currentColor"
             strokeWidth="2"
           >
-            <circle cx="11" cy="5" r="8" />
+            <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
+
           <input
             type="text"
             placeholder="Search by jeweler name, BRN number or email..."
