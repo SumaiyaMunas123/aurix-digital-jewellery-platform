@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./JewelerVerification.css";
-import { getAllJewellers, approveJeweller, rejectJeweller } from "./api/client";
+// ── CHANGED: added apiCall ──
+import { getAllJewellers, approveJeweller, rejectJeweller, apiCall } from "./api/client";
 
 const tabs = ["All Requests", "Pending", "Approved", "Rejected"];
 
@@ -75,8 +76,8 @@ const FileViewerModal = ({ file, label, onClose }) => {
   if (!file) return null;
 
   const isImage =
-    typeof file === "string" && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file);
-  const isPdf = typeof file === "string" && /\.pdf$/i.test(file);
+    typeof file === "string" && /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/i.test(file);
+  const isPdf = typeof file === "string" && /\.pdf(\?.*)?$/i.test(file);
   const fileUrl = typeof file === "string" ? file : URL.createObjectURL(file);
 
   return (
@@ -135,12 +136,40 @@ const JewelerDetailPanel = ({
 }) => {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
-  const [viewingFile, setViewingFile] = useState(null); // { file, label }
+  const [viewingFile, setViewingFile] = useState(null);
+
+  // ── NEW: documents from DB, per-doc feedback, audit logs ──
+  const [documents, setDocuments] = useState({});
+  const [docFeedback, setDocFeedback] = useState({});
+  const [feedbackInputs, setFeedbackInputs] = useState({});
+  const [savingFeedback, setSavingFeedback] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useEffect(() => {
-    // Reset reject state when jeweler changes
+    // Reset state when jeweler changes
     setShowRejectInput(false);
     setRejectReason("");
+    // ── NEW: reset new state too ──
+    setDocuments({});
+    setDocFeedback({});
+    setFeedbackInputs({});
+    setAuditLogs([]);
+
+    if (!jeweler) return;
+
+    // ── NEW: fetch documents from jeweller_documents table ──
+    apiCall(`/documents/${jeweler.id}`)
+      .then((d) => {
+        const docs = d.documents || {};
+        setDocuments(docs);
+        setDocFeedback(docs.feedback || {});
+      })
+      .catch(() => {});
+
+    // ── NEW: fetch admin action logs ──
+    apiCall(`/documents/${jeweler.id}/logs`)
+      .then((d) => setAuditLogs(d.logs || []))
+      .catch(() => {});
   }, [jeweler?.id]);
 
   if (!jeweler) return null;
@@ -156,14 +185,36 @@ const JewelerDetailPanel = ({
     setShowRejectInput(false);
   };
 
-  /* For approved jewellers treat every doc as submitted */
+  // ── UPDATED: check fetched documents first, fall back to jeweler object ──
   const getDocStatus = (doc) => {
     if (isApproved) return true;
-    return !!(jeweler[doc.key] || jeweler.documents?.[doc.key]);
+    return !!(documents[doc.key] || jeweler[doc.key] || jeweler.documents?.[doc.key]);
   };
 
   const getDocFile = (doc) =>
-    jeweler[doc.key] || jeweler.documents?.[doc.key] || null;
+    documents[doc.key] || jeweler[doc.key] || jeweler.documents?.[doc.key] || null;
+
+  // ── NEW: save per-document admin feedback ──
+  const handleSaveFeedback = async (docKey) => {
+    const text = (feedbackInputs[docKey] || "").trim();
+    if (!text) return;
+    setSavingFeedback(docKey);
+    try {
+      await apiCall(`/documents/${jeweler.id}/feedback`, {
+        method: "POST",
+        body: JSON.stringify({ document_key: docKey, feedback: text }),
+      });
+      setDocFeedback((prev) => ({
+        ...prev,
+        [docKey]: { message: text, created_at: new Date().toISOString() },
+      }));
+      setFeedbackInputs((prev) => ({ ...prev, [docKey]: "" }));
+    } catch (err) {
+      alert("Failed to save feedback: " + err.message);
+    } finally {
+      setSavingFeedback(null);
+    }
+  };
 
   return (
     <>
@@ -277,6 +328,8 @@ const JewelerDetailPanel = ({
             {REQUIRED_DOCUMENTS.map((doc) => {
               const submitted = getDocStatus(doc);
               const file = getDocFile(doc);
+              // ── NEW: per-doc saved feedback ──
+              const feedback = docFeedback[doc.key];
 
               return (
                 <div
@@ -288,6 +341,37 @@ const JewelerDetailPanel = ({
                   <div className="doc-info">
                     <p className="doc-label">{doc.label}</p>
                     <p className="doc-desc">{doc.description}</p>
+                    {/* ── NEW: show saved feedback below description ── */}
+                    {feedback && (
+                      <p className="doc-feedback-saved">💬 {feedback.message}</p>
+                    )}
+                    {/* ── NEW: feedback input row (pending/rejected, submitted docs only) ── */}
+                    {submitted && !isApproved && (
+                      <div className="doc-feedback-row">
+                        <input
+                          className="doc-feedback-input"
+                          type="text"
+                          placeholder="Add feedback for this document…"
+                          value={feedbackInputs[doc.key] || ""}
+                          onChange={(e) =>
+                            setFeedbackInputs((prev) => ({
+                              ...prev,
+                              [doc.key]: e.target.value,
+                            }))
+                          }
+                        />
+                        <button
+                          className="doc-feedback-btn"
+                          onClick={() => handleSaveFeedback(doc.key)}
+                          disabled={
+                            savingFeedback === doc.key ||
+                            !(feedbackInputs[doc.key] || "").trim()
+                          }
+                        >
+                          {savingFeedback === doc.key ? "…" : "Send"}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="doc-right">
@@ -324,6 +408,42 @@ const JewelerDetailPanel = ({
             <div className="rejection-reason-box">
               {jeweler.rejection_reason}
             </div>
+          </div>
+        )}
+
+        {/* ── NEW: Action history — only shown when logs exist ── */}
+        {auditLogs.length > 0 && (
+          <div className="panel-section">
+            <h3 className="panel-section-title">Action History</h3>
+            <ul className="audit-log-list">
+              {auditLogs.map((log) => (
+                <li key={log.id} className="audit-log-item">
+                  <span className={`audit-log-action audit-log-${log.action}`}>
+                    {log.action === "approved" && "✓ Approved"}
+                    {log.action === "rejected" && "✕ Rejected"}
+                    {log.action === "document_feedback" && "💬 Feedback sent"}
+                    {!["approved", "rejected", "document_feedback"].includes(log.action) && log.action}
+                  </span>
+                  {log.details?.reason && (
+                    <span className="audit-log-detail"> — {log.details.reason}</span>
+                  )}
+                  {log.details?.document_key && (
+                    <span className="audit-log-detail">
+                      {" "}— {log.details.document_key.replace(/_/g, " ")}
+                    </span>
+                  )}
+                  <span className="audit-log-time">
+                    {new Date(log.performed_at).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
@@ -516,6 +636,11 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
     return matchesTab && matchesSearch;
   });
 
+  // ── NEW: pending count for badge ──
+  const pendingCount = requests.filter(
+    (r) => r.verification_status === "pending"
+  ).length;
+
   return (
     <div className="verification-page">
       {/* ── Header ── */}
@@ -534,6 +659,10 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
               onClick={() => setActiveTab(tab)}
             >
               {tab}
+              {/* ── NEW: badge only on Pending tab ── */}
+              {tab === "Pending" && pendingCount > 0 && (
+                <span className="tab-pending-badge">{pendingCount}</span>
+              )}
             </button>
           ))}
         </div>
