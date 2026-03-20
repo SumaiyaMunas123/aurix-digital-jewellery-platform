@@ -1,4 +1,6 @@
 import { supabase } from '../config/supabaseClient.js';
+import { sendSuccess, sendError, sendValidationError } from '../utils/responseFormatter.js';
+import { validateRequiredFields } from '../utils/validation.js';
 
 // ==================== GET PENDING JEWELLERS ====================
 export const getPendingJewellers = async (req, res) => {
