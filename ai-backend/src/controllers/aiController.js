@@ -1,6 +1,7 @@
 import { ensureSupabaseConfigured, supabase } from '../config/supabaseClient.js';
 import { buildBaseJewelryPrompt, generateImageWithHuggingFace, generateImageFromSketch } from '../utils/hfClient.js';
 import { toSafeFileSegment, uploadBufferToDesigns } from '../utils/storage.js';
+import { sendSuccess, sendError } from '../utils/response.js';
 import fs from 'fs';
 
 const createDesignRecord = async ({ userId, userType, prompt, imageUrl, styleParams = {}, sketchUrl = null, mode = 0 }) => {
@@ -48,27 +49,15 @@ export const generateImage = async (req, res) => {
     // Additional validation (middleware should catch most)
     if (modeInt === 0) {
       if (!prompt || !prompt.trim()) {
-        return res.status(400).json({
-          success: false,
-          error: 'prompt is required for text-to-image mode',
-          timestamp: new Date().toISOString(),
-        });
+        return sendError(res, 'Prompt is required for text-to-image mode', 400);
       }
     } else if (modeInt === 1) {
       if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          error: 'sketch file is required for sketch-to-image mode',
-          timestamp: new Date().toISOString(),
-        });
+        return sendError(res, 'Sketch file is required for sketch-to-image mode', 400);
       }
       sketchFilePath = req.file.path;
     } else {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid mode. Use 0 for text-to-image or 1 for sketch-to-image',
-        timestamp: new Date().toISOString(),
-      });
+      return sendError(res, 'Invalid mode. Use 0 for text-to-image or 1 for sketch-to-image', 400);
     }
 
     // Build style context for better generation
@@ -132,40 +121,29 @@ export const generateImage = async (req, res) => {
 
     console.log('✅ Design generation completed successfully');
     
-    // Ensure consistent contract with frontend
+    // Return success using response utility
     const responseData = {
-      success: true,
-      data: {
-        image_url: uploaded.publicUrl,
-        image_base64: imageBase64 || null,
-        sketch_url: sketchUrl || null,
-        design: {
-          id: design.id,
-          user_id: design.user_id,
-          user_type: design.user_type,
-          prompt: design.prompt,
-          style_params: design.style_params,
-          image_url: design.image_url,
-          sketch_url: design.sketch_url,
-          generation_mode: design.generation_mode,
-          status: design.status,
-          created_at: design.created_at,
-        },
-        mode: modeInt,
-        timestamp: new Date().toISOString(),
+      image_url: uploaded.publicUrl,
+      image_base64: imageBase64 || null,
+      sketch_url: sketchUrl || null,
+      design: {
+        id: design.id,
+        user_id: design.user_id,
+        user_type: design.user_type,
+        prompt: design.prompt,
+        style_params: design.style_params,
+        image_url: design.image_url,
+        sketch_url: design.sketch_url,
+        generation_mode: design.generation_mode,
+        status: design.status,
+        created_at: design.created_at,
       },
+      mode: modeInt,
     };
     
-    return res.status(200).json(responseData);
+    return sendSuccess(res, responseData, { message: 'Image generated successfully' });
   } catch (error) {
     console.error('❌ AI generation error:', error.message);
-    
-    // Consistent error response format
-    const errorResponse = {
-      success: false,
-      error: error.message || 'An error occurred during image generation',
-      timestamp: new Date().toISOString(),
-    };
     
     // Map specific error status codes
     let statusCode = error.statusCode || 500;
@@ -177,7 +155,10 @@ export const generateImage = async (req, res) => {
       statusCode = 403;
     }
     
-    return res.status(statusCode).json(errorResponse);
+    // Pass error with appropriate retry metadata for client guidance
+    return sendError(res, error.message || 'An error occurred during image generation', statusCode, {
+      retryGuidance: statusCode === 503 ? 'Generation timeout. Try a simpler prompt or lower quality settings.' : undefined,
+    });
   } finally {
     // Clean up temp file
     if (sketchFilePath && fs.existsSync(sketchFilePath)) {
@@ -189,22 +170,17 @@ export const generateImage = async (req, res) => {
 };
 
 export const healthCheck = async (req, res) => {
-  return res.status(200).json({
-    success: true,
-    data: {
-      service: 'Aurix AI Backend',
-      status: 'operational',
-      endpoints: {
-        generate: 'POST /api/ai/generate',
-        chat: 'POST /api/ai/chat',
-        suggestions: 'POST /api/ai/suggestions',
-      },
-      features: {
-        hf_token_configured: !!process.env.HF_TOKEN,
-        supabase_configured: !!process.env.SUPABASE_URL,
-        groq_key_configured: !!process.env.GROQ_API_KEY,
-      },
-      timestamp: new Date().toISOString(),
+  return sendSuccess(res, {
+    service: 'Aurix AI Backend',
+    status: 'operational',
+    endpoints: {
+      generate: 'POST /api/ai/generate',
+      health: 'GET /api/ai/health',
     },
-  });
+    features: {
+      hf_token_configured: !!process.env.HF_TOKEN,
+      supabase_configured: !!process.env.SUPABASE_URL,
+      groq_key_configured: !!process.env.GROQ_API_KEY,
+    },
+  }, { message: 'Service health check passed' });
 };
