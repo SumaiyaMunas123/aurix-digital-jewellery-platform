@@ -3,13 +3,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/aurix_background.dart';
 import '../../../core/widgets/aurix_glass_card.dart';
+import 'data/jeweller_product_store.dart';
 
 class JewellerAddProductScreen extends StatefulWidget {
-  const JewellerAddProductScreen({super.key});
+  final JewellerProduct? product;
+
+  const JewellerAddProductScreen({
+    super.key,
+    this.product,
+  });
 
   @override
   State<JewellerAddProductScreen> createState() =>
@@ -74,6 +81,22 @@ class _JewellerAddProductScreenState extends State<JewellerAddProductScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    final product = widget.product;
+    if (product == null) return;
+
+    _nameController.text = product.name;
+    _priceController.text = product.price;
+    _descriptionController.text = product.description;
+    _category = product.category;
+    _material = product.material;
+    _karat = product.karat;
+    _weight = product.weight;
+    _status = product.status;
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
@@ -101,7 +124,7 @@ class _JewellerAddProductScreenState extends State<JewellerAddProductScreen> {
   Future<void> _saveProduct() async {
     HapticFeedback.mediumImpact();
 
-    if (_image == null) {
+    if (_image == null && widget.product == null) {
       _showSnack('Please upload a product image.');
       return;
     }
@@ -128,7 +151,31 @@ class _JewellerAddProductScreenState extends State<JewellerAddProductScreen> {
     if (!mounted) return;
     setState(() => _saving = false);
 
-    _showSnack('Product added successfully.');
+    final store = context.read<JewellerProductStore>();
+    final editing = widget.product != null;
+    final model = JewellerProduct(
+      id: widget.product?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
+      name: _nameController.text.trim(),
+      price: _priceController.text.trim(),
+      description: _descriptionController.text.trim(),
+      category: _category,
+      material: _material,
+      karat: _karat,
+      weight: _weight,
+      status: _status,
+      imagePath: _image?.path ?? widget.product?.imagePath ?? '',
+    );
+
+    if (editing) {
+      store.updateProduct(model);
+    } else {
+      store.addProduct(model);
+    }
+
+    _showSnack(editing
+        ? 'Product updated successfully.'
+        : 'Product added successfully.');
     Navigator.pop(context);
   }
 
@@ -152,9 +199,9 @@ class _JewellerAddProductScreenState extends State<JewellerAddProductScreen> {
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.arrow_back_ios_new_rounded),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Add Product',
+                      widget.product == null ? 'Add Product' : 'Edit Product',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,
