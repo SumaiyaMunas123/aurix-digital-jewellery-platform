@@ -41,6 +41,10 @@ dependencies:
   # Google login
   google_sign_in: ^7.2.0
 
+  # Secure token storage
+  shared_preferences: ^2.3.0
+  flutter_secure_storage: ^9.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

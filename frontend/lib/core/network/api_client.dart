@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../config/environment.dart';
+import '../services/token_service.dart';
 
 class ApiClient {
   ApiClient._internal() {
@@ -16,14 +17,24 @@ class ApiClient {
       ),
     );
 
+    // Auth interceptor - adds token to all requests
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final token = _token;
+        onRequest: (options, handler) async {
+          final token = await TokenService.getToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
           handler.next(options);
+        },
+        onError: (error, handler) async {
+          // Handle 401 - token might be expired
+          if (error.response?.statusCode == 401) {
+            print('Received 401 Unauthorized - token may be expired');
+            // Clear token on 401 - frontend will redirect to login
+            await TokenService.clearToken();
+          }
+          handler.next(error);
         },
       ),
     );
@@ -41,10 +52,6 @@ class ApiClient {
   static final ApiClient instance = ApiClient._internal();
 
   late final Dio _dio;
-  String? _token;
 
   Dio get dio => _dio;
-
-  void setToken(String token) => _token = token;
-  void clearToken() => _token = null;
 }
