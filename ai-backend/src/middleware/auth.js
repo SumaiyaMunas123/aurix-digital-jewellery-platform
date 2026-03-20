@@ -1,40 +1,63 @@
 /**
  * Authentication middleware for AI routes
- * Validates user identity via JWT or anonymous token
+ * Validates JWT tokens from main backend
  */
+
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
 export const validateUserAuth = (req, res, next) => {
   try {
-    // For now, allow requests with optional user_id in body
-    // In production, validate JWT from Authorization header
-    const { user_id, user_type } = req.body;
-
-    // Optional: If JWT is provided, validate it
     const authHeader = req.headers.authorization;
+
+    // Check for JWT in Authorization header
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      // TODO: Verify JWT signature here
-      // For now, just allow it through
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = {
+          id: decoded.sub,
+          email: decoded.email,
+          name: decoded.name,
+          role: decoded.role,
+          isAuthenticated: true,
+        };
+        return next();
+      } catch (tokenError) {
+        console.error('❌ Token verification failed:', tokenError.message);
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired token',
+          error: tokenError.message,
+        });
+      }
     }
 
-    // Allow anonymous requests (user_id optional)
+    // Allow anonymous requests with optional user_id (for development)
+    const { user_id } = req.body;
     req.user = {
       id: user_id || null,
-      type: user_type || 'customer',
       isAuthenticated: !!user_id,
     };
 
     next();
   } catch (error) {
-    console.error('❌ Auth error:', error.message);
-    return res.status(401).json({ success: false, error: 'Authentication failed' });
+    console.error('❌ Auth middleware error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Authentication failed',
+      error: error.message,
+    });
   }
 };
 
 export const requireAuth = (req, res, next) => {
-  // If you want to enforce authentication later, uncomment:
-  // if (!req.user?.isAuthenticated) {
-  //   return res.status(401).json({ success: false, error: 'User authentication required' });
-  // }
+  if (!req.user?.isAuthenticated) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required',
+    });
+  }
   next();
 };

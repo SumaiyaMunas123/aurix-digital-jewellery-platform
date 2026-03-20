@@ -1,4 +1,7 @@
 class Environment {
-  // Change later when backend is ready
-  static const String baseUrl = "https://example.com/api";
+  // Main backend running on port 5000
+  static const String baseUrl = "http://localhost:5000/api";
+  
+  // Alternative for production (update before deploying)
+  // static const String baseUrl = "https://api.aurix.com/api";
 }
