@@ -39,7 +39,7 @@ export const apiCall = async (endpoint, options = {}) => {
   }
 };
 
-// ============ AUTH ENDPOINTS ============
+// Auth Endpoints
 
 export const signup = (email, password, user_type, metadata = {}) => {
   return apiCall('/auth/signup', {
@@ -55,7 +55,7 @@ export const login = (email, password) => {
   });
 };
 
-// ============ PRODUCT ENDPOINTS ============
+// Product Endpoints
 
 export const createProduct = (productData) => {
   return apiCall('/products', {
@@ -83,7 +83,7 @@ export const deleteProduct = (productId) => {
   return apiCall(`/products/${productId}`, { method: 'DELETE' });
 };
 
-// ============ ADMIN ENDPOINTS ============
+// Admin Endpoints
 
 export const getPendingJewellers = () => {
   return apiCall('/admin/jewellers/pending', { method: 'GET' });
@@ -115,7 +115,40 @@ export const getJewellerStatus = (jewellerId) => {
   return apiCall(`/admin/jewellers/${jewellerId}/status`, { method: 'GET' });
 };
 
-// ============ UTILITY ============
+//  Document Endpoints
+
+// Jeweller: save uploaded document URLs
+export const saveDocumentUrls = (documents) => {
+  return apiCall('/documents/my/save', {
+    method: 'POST',
+    body: JSON.stringify({ documents }),
+  });
+};
+
+// Jeweller: get own documents
+export const getMyDocuments = () => {
+  return apiCall('/documents/my', { method: 'GET' });
+};
+
+// Admin: get a specific jeweller's documents
+export const getJewellerDocuments = (jewellerId) => {
+  return apiCall(`/documents/${jewellerId}`, { method: 'GET' });
+};
+
+// Admin: add per-document feedback
+export const addDocumentFeedback = (jewellerId, documentKey, feedback) => {
+  return apiCall(`/documents/${jewellerId}/feedback`, {
+    method: 'POST',
+    body: JSON.stringify({ document_key: documentKey, feedback }),
+  });
+};
+
+// Admin: get admin action logs for a jeweller
+export const getAdminActionLogs = (jewellerId) => {
+  return apiCall(`/documents/${jewellerId}/logs`, { method: 'GET' });
+};
+
+// Utility 
 
 export const getServerInfo = () => {
   return fetch('/').then((res) => res.json());
