@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:aurix/core/navigation/nav.dart';
 import 'package:aurix/core/widgets/aurix_page_scaffold.dart';
 import 'package:aurix/core/widgets/aurix_glass_card.dart';
+import 'category_products_screen.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
@@ -26,7 +28,12 @@ class CategoriesScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: AurixGlassCard(
               child: ListTile(
-                title: Text(cats[i], style: const TextStyle(fontWeight: FontWeight.w900)),
+                onTap: () => Nav.push(
+                  context,
+                  CategoryProductsScreen(category: cats[i]),
+                ),
+                title: Text(cats[i],
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
                 trailing: const Icon(Icons.chevron_right_rounded),
               ),
             ),

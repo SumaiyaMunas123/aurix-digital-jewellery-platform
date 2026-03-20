@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:aurix/core/navigation/nav.dart';
 import 'package:aurix/core/widgets/aurix_glass_card.dart';
+import 'package:aurix/features/customer/see_all/category_products_screen.dart';
 
 class CategoriesRow extends StatelessWidget {
   const CategoriesRow({super.key});
@@ -22,10 +24,17 @@ class CategoriesRow extends StatelessWidget {
         itemCount: _cats.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (context, i) {
-          return AurixGlassCard(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            radius: 999,
-            child: Text(_cats[i], style: const TextStyle(fontWeight: FontWeight.w900)),
+          return GestureDetector(
+            onTap: () => Nav.push(
+              context,
+              CategoryProductsScreen(category: _cats[i]),
+            ),
+            child: AurixGlassCard(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              radius: 999,
+              child: Text(_cats[i],
+                  style: const TextStyle(fontWeight: FontWeight.w900)),
+            ),
           );
         },
       ),
