@@ -1,4 +1,5 @@
 import { verifyAuthToken } from '../utils/jwt.js';
+import { sendAuthError } from '../utils/responseFormatter.js';
 
 const getBearerToken = (authorizationHeader) => {
   if (!authorizationHeader || typeof authorizationHeader !== 'string') {
@@ -18,10 +19,7 @@ export const requireAuth = (req, res, next) => {
     const token = getBearerToken(req.headers.authorization);
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Missing or invalid authorization header',
-      });
+      return sendAuthError(res, 'Missing or invalid authorization header', 401);
     }
 
     const decoded = verifyAuthToken(token);
@@ -34,27 +32,18 @@ export const requireAuth = (req, res, next) => {
 
     return next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid or expired token',
-    });
+    return sendAuthError(res, 'Invalid or expired token', 401);
   }
 };
 
 export const requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendAuthError(res, 'Authentication required', 401);
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: 'You do not have permission to perform this action',
-      });
+      return sendAuthError(res, 'You do not have permission to perform this action', 403);
     }
 
     return next();
@@ -63,17 +52,11 @@ export const requireRole = (...roles) => {
 
 export const requireAdmin = (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication required',
-    });
+    return sendAuthError(res, 'Authentication required', 401);
   }
 
   if (req.user.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Admin access only',
-    });
+    return sendAuthError(res, 'Admin access only', 403);
   }
 
   return next();
