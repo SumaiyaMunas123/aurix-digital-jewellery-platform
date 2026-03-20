@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:aurix/core/widgets/aurix_background.dart';
 import 'package:aurix/core/theme/app_colors.dart';
+import 'package:aurix/core/network/api_client.dart';
 
 import '../data/ai_repository.dart';
 import '../models/ai_generation_request.dart';
@@ -52,10 +54,40 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
       // Update request with generated image
       widget.request.generatedImageUrl = result['imageUrl'];
       widget.request.generatedImageBase64 = result['imageBase64'];
+    _callGenerateApi();
+  }
+
+  void _callGenerateApi() async {
+    try {
+      final response = await ApiClient.instance.dio.post(
+        '/ai/generate',
+        data: {
+          'mode': widget.request.mode,
+          'prompt': widget.request.prompt,
+          'category': widget.request.category,
+          'material': widget.request.material,
+          'karat': widget.request.karat,
+          'style': widget.request.style,
+          'occasion': widget.request.occasion,
+          'budget': widget.request.budget,
+          'user_type': 'customer',
+        },
+        options: Options(sendTimeout: const Duration(seconds: 120), receiveTimeout: const Duration(seconds: 120)),
+      );
+
+      if (!mounted) return;
+
+      final imageUrl = response.data['data']['image_url'] ?? '';
+      final imageBase64 = response.data['data']['image_base64'] ?? '';
+
+      final updatedRequest = widget.request.copyWith(
+        imageUrl: imageUrl,
+        imageBase64: imageBase64,
+      );
 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => AiResultScreen(request: widget.request),
+          builder: (_) => AiResultScreen(request: updatedRequest),
         ),
       );
     } catch (e) {
@@ -67,6 +99,11 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted) Navigator.pop(context);
       });
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error generating design: $e')),
+      );
     }
   }
 

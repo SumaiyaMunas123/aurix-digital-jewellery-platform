@@ -1,6 +1,8 @@
 import { ensureSupabaseConfigured, supabase } from '../config/supabaseClient.js';
 import { generateImageWithHuggingFace } from '../utils/hfClient.js';
 import { parseBase64Image, removeDesignObjects, toSafeFileSegment, uploadBufferToDesigns } from '../utils/storage.js';
+import { sendSuccess, sendError } from '../utils/response.js';
+import { validateUserScoping, validateBase64Image } from '../utils/validators.js';
 
 const getPagination = (query) => {
   const limit = Math.max(1, Math.min(parseInt(query.limit || '20', 10), 100));
@@ -49,7 +51,12 @@ export const getUserDesigns = async (req, res) => {
     const { limit, offset } = getPagination(req.query);
 
     if (!userId) {
-      return res.status(400).json({ success: false, error: 'user_id query param is required' });
+      return sendError(res, 'user_id query parameter is required', 400);
+    }
+
+    // User scoping: Only allow access to own designs or admin access
+    if (req.user?.id && req.user.id !== userId && req.user.type !== 'admin') {
+      return sendError(res, 'Cannot access designs for other users', 403);
     }
 
     let query = supabase
@@ -66,16 +73,13 @@ export const getUserDesigns = async (req, res) => {
     const { data, error, count } = await query;
     if (error) throw new Error(error.message);
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        items: data || [],
-        pagination: { limit, offset, total: count || 0 },
-      },
-    });
+    return sendSuccess(res, {
+      items: data || [],
+      pagination: { limit, offset, total: count || 0 },
+    }, { message: 'Designs retrieved successfully' });
   } catch (error) {
     console.error('❌ getUserDesigns error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return sendError(res, error.message || 'Failed to retrieve designs', 500);
   }
 };
 
@@ -89,15 +93,20 @@ export const getDesignById = async (req, res) => {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return res.status(404).json({ success: false, error: 'Design not found' });
+        return sendError(res, 'Design not found', 404);
       }
       throw new Error(error.message);
     }
 
-    return res.status(200).json({ success: true, data });
+    // User scoping: Only allow access to own designs or admin access
+    if (req.user?.id && req.user.id !== data.user_id && req.user.type !== 'admin') {
+      return sendError(res, 'Cannot access this design', 403);
+    }
+
+    return sendSuccess(res, data, { message: 'Design retrieved successfully' });
   } catch (error) {
     console.error('❌ getDesignById error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return sendError(res, error.message || 'Failed to retrieve design', 500);
   }
 };
 
@@ -115,9 +124,14 @@ export const deleteDesign = async (req, res) => {
 
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
-        return res.status(404).json({ success: false, error: 'Design not found' });
+        return sendError(res, 'Design not found', 404);
       }
       throw new Error(fetchError.message);
+    }
+
+    // User scoping: Only allow user to delete their own designs
+    if (req.user?.id && req.user.id !== design.user_id && req.user.type !== 'admin') {
+      return sendError(res, 'Cannot delete designs created by other users', 403);
     }
 
     await removeDesignObjects([design.image_url, design.sketch_url]);
@@ -125,10 +139,10 @@ export const deleteDesign = async (req, res) => {
     const { error: deleteError } = await supabase.from('designs').delete().eq('id', id);
     if (deleteError) throw new Error(deleteError.message);
 
-    return res.status(200).json({ success: true, data: { id, deleted: true } });
+    return sendSuccess(res, { id, deleted: true }, { message: 'Design deleted successfully' });
   } catch (error) {
     console.error('❌ deleteDesign error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return sendError(res, error.message || 'Failed to delete design', 500);
   }
 };
 
@@ -140,15 +154,20 @@ export const toggleFavorite = async (req, res) => {
 
     const { data: design, error: fetchError } = await supabase
       .from('designs')
-      .select('id, is_favorite')
+      .select('id, user_id, is_favorite')
       .eq('id', id)
       .single();
 
     if (fetchError) {
       if (fetchError.code === 'PGRST116') {
-        return res.status(404).json({ success: false, error: 'Design not found' });
+        return sendError(res, 'Design not found', 404);
       }
       throw new Error(fetchError.message);
+    }
+
+    // User scoping: Only allow user to update their own designs
+    if (req.user?.id && req.user.id !== design.user_id && req.user.type !== 'admin') {
+      return sendError(res, 'Cannot toggle favorite for designs created by other users', 403);
     }
 
     const { data, error } = await supabase
@@ -160,10 +179,10 @@ export const toggleFavorite = async (req, res) => {
 
     if (error) throw new Error(error.message);
 
-    return res.status(200).json({ success: true, data });
+    return sendSuccess(res, data, { message: 'Design favorite status updated' });
   } catch (error) {
     console.error('❌ toggleFavorite error:', error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return sendError(res, error.message || 'Failed to update favorite status', 500);
   }
 };
 
@@ -174,7 +193,7 @@ export const generateWithStyle = async (req, res) => {
     const { prompt, user_id: userId, user_type: userType = 'customer', style = {} } = req.body;
 
     if (!prompt || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: 'prompt is required' });
+      return sendError(res, 'Prompt is required', 400);
     }
 
     const cleanPrompt = prompt.trim();
@@ -194,17 +213,17 @@ export const generateWithStyle = async (req, res) => {
       imageUrl: uploaded.publicUrl,
     });
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        image_base64: imageBase64,
-        image_url: uploaded.publicUrl,
-        design,
-      },
-    });
+    return sendSuccess(res, {
+      image_base64: imageBase64,
+      image_url: uploaded.publicUrl,
+      design,
+    }, { message: 'Styled image generated successfully' });
   } catch (error) {
     console.error('❌ generateWithStyle error:', error.message);
-    return res.status(error.statusCode || 500).json({ success: false, error: error.message });
+    const statusCode = error.statusCode === 429 ? 429 : (error.statusCode === 503 ? 503 : 500);
+    return sendError(res, error.message || 'Failed to generate styled image', statusCode, {
+      retryGuidance: statusCode === 503 ? 'Generation timeout. Please try a simpler prompt.' : undefined,
+    });
   }
 };
 
@@ -220,16 +239,22 @@ export const uploadSketch = async (req, res) => {
     } = req.body;
 
     if (!prompt || !prompt.trim()) {
-      return res.status(400).json({ success: false, error: 'prompt is required' });
+      return sendError(res, 'Prompt is required', 400);
     }
 
     if (!sketchBase64) {
-      return res.status(400).json({ success: false, error: 'sketch_base64 is required' });
+      return sendError(res, 'sketch_base64 is required', 400);
+    }
+
+    // Validate base64 format
+    const base64ValidationResult = validateBase64Image(sketchBase64);
+    if (!base64ValidationResult.valid) {
+      return sendError(res, base64ValidationResult.error, 400);
     }
 
     const sketchBuffer = parseBase64Image(sketchBase64);
     if (!sketchBuffer) {
-      return res.status(400).json({ success: false, error: 'Invalid sketch_base64 value' });
+      return sendError(res, 'Invalid or corrupted base64 image data', 400);
     }
 
     const now = Date.now();
@@ -253,17 +278,17 @@ export const uploadSketch = async (req, res) => {
       sketchUrl: sketchUpload.publicUrl,
     });
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        image_base64: imageBase64,
-        image_url: generatedUpload.publicUrl,
-        sketch_url: sketchUpload.publicUrl,
-        design,
-      },
-    });
+    return sendSuccess(res, {
+      image_base64: imageBase64,
+      image_url: generatedUpload.publicUrl,
+      sketch_url: sketchUpload.publicUrl,
+      design,
+    }, { message: 'Sketch processed and design generated successfully' });
   } catch (error) {
     console.error('❌ uploadSketch error:', error.message);
-    return res.status(error.statusCode || 500).json({ success: false, error: error.message });
+    const statusCode = error.statusCode === 429 ? 429 : (error.statusCode === 503 ? 503 : 500);
+    return sendError(res, error.message || 'Failed to process sketch', statusCode, {
+      retryGuidance: statusCode === 503 ? 'Generation timeout. Please try a simpler prompt.' : undefined,
+    });
   }
 };

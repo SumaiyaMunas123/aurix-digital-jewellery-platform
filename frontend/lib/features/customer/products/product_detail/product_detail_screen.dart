@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/aurix_background.dart';
 import '../../../../core/widgets/aurix_glass_card.dart';
+import '../../cart/cart_screen.dart';
+import '../../cart/data/cart_store.dart';
+import '../../wishlist/data/wishlist_store.dart';
+import '../models/product.dart';
+import 'quotation_request_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final dynamic product;
@@ -20,53 +26,85 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int quantity = 1;
   bool isInWishlist = false;
+  bool _wishlistSynced = false;
 
-  String _readString(dynamic source, String field, String fallback) {
-    try {
-      final value = source
-          .toJson()[field];
-      if (value == null) return fallback;
-      return value.toString();
-    } catch (_) {
-      try {
-        final value = source.toMap()[field];
-        if (value == null) return fallback;
-        return value.toString();
-      } catch (_) {
-        try {
-          final value = source[field];
-          if (value == null) return fallback;
-          return value.toString();
-        } catch (_) {
-          return fallback;
-        }
-      }
+  Map<String, dynamic> _asMap(dynamic source) {
+    if (source is Product) {
+      return {
+        'id': source.id,
+        'name': source.name,
+        'jeweller': source.jeweller,
+        'karat': source.karat,
+        'weight': source.weight,
+        'category': source.category,
+        'priceLkr': source.priceLkr,
+      };
     }
+
+    if (source is Map<String, dynamic>) return source;
+
+    if (source is Map) {
+      return source.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+    }
+
+    return {};
   }
 
-  bool _isAskPrice(dynamic source) {
-    final rawPrice = _readString(source, 'price', '');
-    final rawAsk = _readString(source, 'isAskPrice', 'false').toLowerCase();
+  String _readString(
+      Map<String, dynamic> source, String field, String fallback) {
+    final value = source[field];
+    if (value == null) return fallback;
+    final text = value.toString();
+    return text.isEmpty ? fallback : text;
+  }
 
-    if (rawAsk == 'true') return true;
-    if (rawPrice.isEmpty) return true;
-    if (rawPrice == '0') return true;
-    if (rawPrice.toLowerCase() == 'ask price') return true;
+  int? _readInt(Map<String, dynamic> source, String field) {
+    final value = source[field];
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
 
-    return false;
+  String _productId(Map<String, dynamic> p) =>
+      _readString(p, 'id', DateTime.now().millisecondsSinceEpoch.toString());
+
+  bool _isAskPrice(Map<String, dynamic> p) {
+    final priceLkr = _readInt(p, 'priceLkr');
+    return priceLkr == null || priceLkr <= 0;
+  }
+
+  String _priceLabel(Map<String, dynamic> p) {
+    final priceLkr = _readInt(p, 'priceLkr');
+    return priceLkr == null || priceLkr <= 0 ? 'Ask Price' : 'LKR $priceLkr';
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_wishlistSynced) return;
+
+    final productMap = _asMap(widget.product);
+    final productId = _productId(productMap);
+    isInWishlist = context.read<WishlistStore>().contains(productId);
+    _wishlistSynced = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = _readString(widget.product, 'name', 'Jewellery Product');
-    final jeweller = _readString(widget.product, 'jeweller', 'Aurix Jeweller');
+    final productMap = _asMap(widget.product);
+    final title = _readString(productMap, 'name', 'Jewellery Product');
+    final jeweller = _readString(productMap, 'jeweller', 'Aurix Jeweller');
     final description = _readString(
-      widget.product,
+      productMap,
       'description',
       'Beautiful jewellery piece',
     );
-    final priceText = _priceLabel(widget.product);
-    final askPrice = _isAskPrice(widget.product);
+    final priceText = _priceLabel(productMap);
+    final askPrice = _isAskPrice(productMap);
+    final productId = _productId(productMap);
 
     return Scaffold(
       body: AurixBackground(
@@ -90,7 +128,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 40),
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CartScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.shopping_cart_outlined),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -168,7 +214,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       style: const TextStyle(height: 1.5),
                     ),
                     const SizedBox(height: 24),
-                    // Product Specifications
                     const Text(
                       'Specifications',
                       style: TextStyle(
@@ -177,16 +222,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildSpecRow('Metal Type', _readString(widget.product, 'metal_type', 'Gold')),
-                    _buildSpecRow('Karat', _readString(widget.product, 'karat', '18K')),
-                    _buildSpecRow('Weight', '${_readString(widget.product, 'weight_grams', '0')} grams'),
-                    _buildSpecRow('Category', _readString(widget.product, 'category', 'Jewellery')),
-                    _buildSpecRow('Making Charge', '₹${_readString(widget.product, 'making_charge', '0')}')
+                    _buildSpecRow('Metal Type',
+                        _readString(productMap, 'metal_type', 'Gold')),
+                    _buildSpecRow(
+                        'Karat', _readString(productMap, 'karat', '-')),
+                    _buildSpecRow(
+                        'Weight', _readString(productMap, 'weight', '-')),
+                    _buildSpecRow('Category',
+                        _readString(productMap, 'category', 'Jewellery')),
+                    _buildSpecRow('Making Charge',
+                        'LKR ${_readString(productMap, 'making_charge', '0')}'),
                   ],
                 ),
               ),
               const SizedBox(height: 18),
-              // Quantity Selector
               AurixGlassCard(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -248,18 +297,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
               const SizedBox(height: 18),
-              // Action Buttons
               Row(
                 children: [
-                  // Wishlist Button
                   GestureDetector(
                     onTap: () {
-                      setState(() => isInWishlist = !isInWishlist);
+                      context.read<WishlistStore>().toggle(productId);
+                      final current =
+                          context.read<WishlistStore>().contains(productId);
+                      setState(() => isInWishlist = current);
                       HapticFeedback.selectionClick();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            isInWishlist
+                            current
                                 ? 'Added to wishlist'
                                 : 'Removed from wishlist',
                           ),
@@ -290,43 +340,56 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Add to Cart Button
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Added $quantity item(s) to cart'),
+                  if (!askPrice)
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          final price = _readInt(productMap, 'priceLkr');
+                          for (var i = 0; i < quantity; i++) {
+                            context.read<CartStore>().addItem(
+                                  id: productId,
+                                  name: title,
+                                  jeweller: jeweller,
+                                  priceLabel: priceText,
+                                  unitPriceLkr: price,
+                                );
+                          }
+                          HapticFeedback.selectionClick();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Added $quantity item(s) to cart'),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: AppColors.gold.withValues(alpha: 0.28),
+                            ),
                           ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: AppColors.gold.withValues(alpha: 0.28),
-                          ),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Add to Cart',
-                            style: TextStyle(fontWeight: FontWeight.w900),
+                          child: const Center(
+                            child: Text(
+                              'Add to Cart',
+                              style: TextStyle(fontWeight: FontWeight.w900),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Get Quotation Button
+                  if (!askPrice) const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Quotation request initiated'),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => QuotationRequestScreen(
+                              productName: title,
+                              jewellerName: jeweller,
+                            ),
                           ),
                         );
                       },
@@ -379,13 +442,5 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
     );
-  }
-
-  String _priceLabel(dynamic source) {
-    if (_isAskPrice(source)) {
-      return 'Ask Price';
-    }
-    final price = _readString(source, 'price', '0');
-    return '₹$price';
   }
 }

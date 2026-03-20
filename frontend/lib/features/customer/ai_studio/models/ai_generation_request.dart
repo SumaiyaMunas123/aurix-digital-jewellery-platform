@@ -11,6 +11,8 @@ class AiGenerationRequest {
   final String? sketchPath;
   String? generatedImageUrl;
   String? generatedImageBase64;
+  final String? imageUrl;
+  final String? imageBase64;
 
   AiGenerationRequest({
     required this.mode,
@@ -25,7 +27,29 @@ class AiGenerationRequest {
     this.sketchPath,
     this.generatedImageUrl,
     this.generatedImageBase64,
+    this.imageUrl,
+    this.imageBase64,
   });
 
   bool get isSketchMode => mode == 1;
+
+  AiGenerationRequest copyWith({
+    String? imageUrl,
+    String? imageBase64,
+  }) {
+    return AiGenerationRequest(
+      mode: mode,
+      prompt: prompt,
+      category: category,
+      weight: weight,
+      material: material,
+      karat: karat,
+      style: style,
+      occasion: occasion,
+      budget: budget,
+      sketchPath: sketchPath,
+      imageUrl: imageUrl ?? this.imageUrl,
+      imageBase64: imageBase64 ?? this.imageBase64,
+    );
+  }
 }
