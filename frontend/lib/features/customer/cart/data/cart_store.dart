@@ -5,6 +5,7 @@ class CartItem {
   final String name;
   final String jeweller;
   final String priceLabel;
+  final int? unitPriceLkr;
   final int quantity;
 
   const CartItem({
@@ -12,6 +13,7 @@ class CartItem {
     required this.name,
     required this.jeweller,
     required this.priceLabel,
+    this.unitPriceLkr,
     this.quantity = 1,
   });
 
@@ -20,6 +22,7 @@ class CartItem {
     String? name,
     String? jeweller,
     String? priceLabel,
+    int? unitPriceLkr,
     int? quantity,
   }) {
     return CartItem(
@@ -27,6 +30,7 @@ class CartItem {
       name: name ?? this.name,
       jeweller: jeweller ?? this.jeweller,
       priceLabel: priceLabel ?? this.priceLabel,
+      unitPriceLkr: unitPriceLkr ?? this.unitPriceLkr,
       quantity: quantity ?? this.quantity,
     );
   }
@@ -37,8 +41,15 @@ class CartStore extends ChangeNotifier {
 
   List<CartItem> get items => List.unmodifiable(_items);
 
-  int get itemCount =>
-      _items.fold<int>(0, (sum, item) => sum + item.quantity);
+  int get itemCount => _items.fold<int>(0, (sum, item) => sum + item.quantity);
+
+  int get subtotalLkr => _items.fold<int>(
+        0,
+        (sum, item) => sum + ((item.unitPriceLkr ?? 0) * item.quantity),
+      );
+
+  String get subtotalLabel =>
+      subtotalLkr <= 0 ? 'Ask Price' : 'LKR $subtotalLkr';
 
   bool contains(String id) {
     return _items.any((e) => e.id == id);
@@ -49,6 +60,7 @@ class CartStore extends ChangeNotifier {
     required String name,
     required String jeweller,
     required String priceLabel,
+    int? unitPriceLkr,
   }) {
     final index = _items.indexWhere((e) => e.id == id);
 
@@ -63,10 +75,21 @@ class CartStore extends ChangeNotifier {
           name: name,
           jeweller: jeweller,
           priceLabel: priceLabel,
+          unitPriceLkr: unitPriceLkr,
         ),
       );
     }
 
+    notifyListeners();
+  }
+
+  void increaseQuantity(String id) {
+    final index = _items.indexWhere((e) => e.id == id);
+    if (index < 0) return;
+
+    _items[index] = _items[index].copyWith(
+      quantity: _items[index].quantity + 1,
+    );
     notifyListeners();
   }
 
