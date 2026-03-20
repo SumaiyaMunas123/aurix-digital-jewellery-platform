@@ -42,7 +42,11 @@ class AiResultScreen extends StatelessWidget {
               AurixGlassCard(
                 child: SizedBox(
                   height: 220,
-                  child: GeneratedImageWidget(request: request),
+                  child: GeneratedImageWidget(
+                    imageUrl: request.imageUrl,
+                    imageBase64: request.imageBase64,
+                    sketchPath: request.sketchPath,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
