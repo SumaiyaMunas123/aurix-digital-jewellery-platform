@@ -8,7 +8,7 @@ import 'features/auth/data/auth_repo_dummy.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/splash_screen.dart';
 import 'features/customer/cart/data/cart_store.dart';
-import 'features/customer/gold_rate/data/gold_rate_repo_dummy.dart';
+import 'features/customer/gold_rate/data/gold_rate_repo_api.dart';
 import 'features/customer/gold_rate/data/gold_rate_repository.dart';
 import 'features/customer/products/data/product_repo_dummy.dart';
 import 'features/customer/products/data/product_repository.dart';
@@ -24,7 +24,7 @@ class AurixApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<AuthRepository>(create: (_) => AuthRepoDummy()),
-        Provider<GoldRateRepository>(create: (_) => GoldRateRepoDummy()),
+        Provider<GoldRateRepository>(create: (_) => GoldRateRepoApi()),
         Provider<ProductRepository>(create: (_) => ProductRepoDummy()),
         ChangeNotifierProvider<WishlistStore>(create: (_) => WishlistStore()),
         ChangeNotifierProvider<CartStore>(create: (_) => CartStore()),
