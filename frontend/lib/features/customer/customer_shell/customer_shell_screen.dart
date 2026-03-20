@@ -28,8 +28,8 @@ class _CustomerShellScreenState extends State<CustomerShellScreen> {
     CustomerHomeScreen(),
     CustomerSearchScreen(),
     AiStudioScreen(),
-    WishlistScreen(),
     ChatListScreen(),
+    WishlistScreen(),
   ];
 
   void _setIndex(int i) {
