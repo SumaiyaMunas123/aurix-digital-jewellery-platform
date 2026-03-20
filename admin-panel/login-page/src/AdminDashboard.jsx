@@ -13,7 +13,9 @@ import { apiCall } from "./api/client";
 
 const AdminDashboard = ({ onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [activeMenu, setActiveMenu] = useState(
+    () => localStorage.getItem('activeMenu') || 'dashboard'
+  );
   const [navProps, setNavProps] = useState({});
   const [liveStats, setLiveStats] = useState(null);
 
@@ -26,6 +28,7 @@ const AdminDashboard = ({ onLogout }) => {
   }, []);
 
   const navigateTo = (menu, props = {}) => {
+    localStorage.setItem('activeMenu', menu);
     setActiveMenu(menu);
     setNavProps(props);
   };
@@ -93,7 +96,7 @@ const AdminDashboard = ({ onLogout }) => {
     ),
     Settings: () => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96a7.01 7.01 0 00-1.62-.94l-.36-2.54A.484.484 0 0014 2h-4a.484.484 0 00-.48.41l-.36 2.54a7.38 7.38 0 00-1.62.94l-2.39-.96a.476.476 0 00-.59.22L2.74 8.47a.47.47 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.27.41.49.41h4c.22 0 .44-.17.48-.41l.36-2.54a7.38 7.38 0 001.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 00-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 110-7.2 3.6 3.6 0 010 7.2z" />
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96a7.01 7.01 0 00-1.62-.94l-.36-2.54A.484.484 0 0014 2h-4a.484.484 0 00-.48.41l-.36 2.54a7.38 7.38 0 00-1.62.94l-2.39-.96a.476.476 0 00-.59.22L2.74 8.47a.47.47 0 00.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.27.41.49.41h4c.22 0 .44-.17.48-.41l.36-2.54a7.38 7.38 0 001.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 00-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 110-7.2 3.6 3.6 0 010 7.2z"/>
       </svg>
     ),
     Help: () => (
@@ -129,62 +132,35 @@ const AdminDashboard = ({ onLogout }) => {
   };
 
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: Icons.Dashboard },
-    { id: "jewelers", label: "Jewelers", icon: Icons.People },
-    { id: "products", label: "Products", icon: Icons.Products },
-    { id: "orders", label: "Orders", icon: Icons.Orders },
-    { id: "escrow", label: "Escrow/Finance", icon: Icons.Finance },
-    { id: "disputes", label: "Disputes", icon: Icons.Disputes },
-    { id: "admins", label: "Admins", icon: Icons.Admins },
-    { id: "settings", label: "Settings", icon: Icons.Settings },
+    { id: "dashboard", label: "Dashboard",      icon: Icons.Dashboard },
+    { id: "jewelers",  label: "Jewelers",       icon: Icons.People    },
+    { id: "products",  label: "Products",       icon: Icons.Products  },
+    { id: "orders",    label: "Orders",         icon: Icons.Orders    },
+    { id: "escrow",    label: "Escrow/Finance", icon: Icons.Finance   },
+    { id: "disputes",  label: "Disputes",       icon: Icons.Disputes  },
+    { id: "admins",    label: "Admins",         icon: Icons.Admins    },
+    { id: "settings",  label: "Settings",       icon: Icons.Settings  },
   ];
 
   const stats = [
-    {
-      label: "Jeweler Verifications",
-      value: liveStats ? String(liveStats.pendingJewellers) : "…",
-      icon: "People",
-    },
-    {
-      label: "Total Products",
-      value: liveStats ? String(liveStats.totalProducts) : "…",
-      icon: "Products",
-    },
-    { label: "Active Orders", value: "—", icon: "Orders" },
-    { label: "Escrow Balance", value: "—", icon: "Finance" },
-    {
-      label: "Total Jewellers",
-      value: liveStats ? String(liveStats.totalJewellers) : "…",
-      icon: "People",
-    },
+    { label: "Jeweler Verifications", value: liveStats ? String(liveStats.pendingJewellers) : "…", icon: "People"   },
+    { label: "Total Products",        value: liveStats ? String(liveStats.totalProducts)    : "…", icon: "Products" },
+    { label: "Active Orders",         value: "—",                                                  icon: "Orders"   },
+    { label: "Escrow Balance",        value: "—",                                                  icon: "Finance"  },
+    { label: "Total Jewellers",       value: liveStats ? String(liveStats.totalJewellers)   : "…", icon: "People"   },
   ];
 
   const recentActivity = [
-    {
-      title: "New Jeweler Registered",
-      subtitle: "Golden Artisan Crafts • 2 mins ago",
-      icon: "People",
-    },
-    {
-      title: "Order #8492 Processed",
-      subtitle: "Diamond Ring 2ct • 15 mins ago",
-      icon: "Orders",
-    },
-    {
-      title: "Verification Approved",
-      subtitle: "Elegance Jewelers • 1hr ago",
-      icon: "Dashboard",
-    },
-    {
-      title: "Dispute Opened",
-      subtitle: "Order #8410 • 3 hrs ago",
-      icon: "Disputes",
-    },
+    { title: "New Jeweler Registered", subtitle: "Golden Artisan Crafts • 2 mins ago", icon: "People"   },
+    { title: "Order #8492 Processed",  subtitle: "Diamond Ring 2ct • 15 mins ago",     icon: "Orders"   },
+    { title: "Verification Approved",  subtitle: "Elegance Jewelers • 1hr ago",         icon: "Dashboard" },
+    { title: "Dispute Opened",         subtitle: "Order #8410 • 3 hrs ago",             icon: "Disputes" },
   ];
 
   const renderDashboardOverview = () => (
     <>
       <div className="page-header">
+        <title>Admin Dashboard</title>
         <h1>Dashboard Overview</h1>
       </div>
 
@@ -193,9 +169,7 @@ const AdminDashboard = ({ onLogout }) => {
           const StatIcon = Icons[stat.icon];
           return (
             <div key={index} className="stat-card">
-              <div className="stat-icon">
-                <StatIcon />
-              </div>
+              <div className="stat-icon"><StatIcon /></div>
               <div className="stat-info">
                 <p className="stat-label">{stat.label}</p>
                 <p className="stat-value">{stat.value}</p>
@@ -208,16 +182,10 @@ const AdminDashboard = ({ onLogout }) => {
       <div className="quick-actions-section">
         <h2>Quick Actions</h2>
         <div className="quick-actions">
-          <button
-            className="action-btn primary"
-            onClick={() => navigateTo("jewelers", { defaultTab: "Pending" })}
-          >
+          <button className="action-btn primary" onClick={() => navigateTo("jewelers", { defaultTab: "Pending" })}>
             <span>Verify Jeweler</span>
           </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => navigateTo("products", { defaultFilter: "Pending" })}
-          >
+          <button className="action-btn secondary" onClick={() => navigateTo("products", { defaultFilter: "Pending" })}>
             <span>Moderate Products</span>
           </button>
           <button className="action-btn" onClick={() => navigateTo("escrow")}>
@@ -248,9 +216,7 @@ const AdminDashboard = ({ onLogout }) => {
               const ActivityIcon = Icons[activity.icon];
               return (
                 <div key={index} className="activity-item">
-                  <div className="activity-icon">
-                    <ActivityIcon />
-                  </div>
+                  <div className="activity-icon"><ActivityIcon /></div>
                   <div className="activity-info">
                     <p className="activity-title">{activity.title}</p>
                     <p className="activity-subtitle">{activity.subtitle}</p>
@@ -267,27 +233,14 @@ const AdminDashboard = ({ onLogout }) => {
 
   const renderPage = () => {
     switch (activeMenu) {
-      case "jewelers":
-        return <JewelerVerification defaultTab={navProps.defaultTab} />;
-      case "products":
-        return <ProductDashboard defaultFilter={navProps.defaultFilter} />;
-      case "orders":
-        return <OrdersDashboard />;
-      case "escrow":
-        return <EscrowFinance />;
-      case "admins":
-        return <AdminManagement />;
-      case "disputes":
-        return (
-          <div style={{ padding: "2rem" }}>
-            <h2>Disputes</h2>
-            <p>Coming soon.</p>
-          </div>
-        );
-      case "settings":
-        return <SettingsPage />;
-      default:
-        return renderDashboardOverview();
+      case "jewelers": return <JewelerVerification defaultTab={navProps.defaultTab} />;
+      case "products": return <ProductDashboard defaultFilter={navProps.defaultFilter} />;
+      case "orders":   return <OrdersDashboard />;
+      case "escrow":   return <EscrowFinance />;
+      case "admins":   return <AdminManagement />;
+      case "disputes": return <div style={{ padding: "2rem" }}><h2>Disputes</h2><p>Coming soon.</p></div>;
+      case "settings": return <SettingsPage />;
+      default:         return renderDashboardOverview();
     }
   };
 
@@ -303,12 +256,7 @@ const AdminDashboard = ({ onLogout }) => {
       />
 
       <main className="main-content">
-        <TopBar
-          Icons={Icons}
-          handleProfileClick={handleProfileClick}
-          onLogout={onLogout}
-          onNavigate={navigateTo}
-        />
+        <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} />
         <div className="dashboard-content">
           {renderPage()}
           <Footer />

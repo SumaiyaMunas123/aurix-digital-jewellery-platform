@@ -45,6 +45,7 @@ const AdminLogin = ({ onLogin }) => {
   };
 
   return (
+    <title>Admin Login - Aurix</title>,
     <div className="login-wrapper">
       <div className="login-container">
         <div className="login-header">

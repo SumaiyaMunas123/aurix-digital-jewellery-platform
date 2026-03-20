@@ -15,6 +15,14 @@ const router = express.Router();
 // ============ AUTH ============
 router.post('/login', adminLogin);
 
+// Verify existing token and return the user — used on page reload
+router.get('/verify', requireAuth, requireAdmin, (req, res) => {
+  return res.status(200).json({
+    success: true,
+    user: req.user,
+  });
+});
+
 // ============ JEWELLERS ============
 router.get('/jewellers', requireAuth, requireAdmin, getAllJewellers);
 router.get('/jewellers/pending', requireAuth, requireAdmin, getPendingJewellers);

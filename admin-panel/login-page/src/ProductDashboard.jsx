@@ -106,9 +106,9 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
     <div className="pd-container">
       <div className="pd-header">
         <h1>Product Management</h1>
-        <button className="pd-add-btn">
+        {/* <button className="pd-add-btn">
           <span>+</span> Add Product
-        </button>
+        </button> */}
       </div>
 
       <div className="pd-stats-grid">

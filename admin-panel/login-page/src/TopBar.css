@@ -4,7 +4,7 @@
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -75,20 +75,14 @@
 }
 
 .icon-btn svg {
-  width: 38px;
-  height: 38px;
-  /* transition: all 0.3s ease; */
+  width: 35px;
+  height: 35px;
 }
 
 .icon-btn:hover {
-  /* background: linear-gradient(135deg, #fff9f0 0%, #fffbf5 100%); */
   color: #d4af37;
-  /* transform: scale(1.0); */
 }
 
-/* .icon-btn:hover svg {
-    transform: scale(1.2);
-} */
 .icon-btn:focus,
 .icon-btn:focus-visible {
   outline: none;

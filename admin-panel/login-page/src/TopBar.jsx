@@ -4,12 +4,12 @@ import "./TopBar.css";
 const TopBar = ({ Icons, handleProfileClick, onLogout, onNavigate }) => {
   return (
     <div className="top-bar">
-      <div className="search-bar">
+      {/* <div className="search-bar">
         <input type="text" placeholder="Search orders, jewelers..." />
         <span className="search-icon">
           <Icons.Search />
         </span>
-      </div>
+      </div> */}
       <div className="top-actions">
         <button className="icon-btn" title="Notifications">
           <Icons.Bell />

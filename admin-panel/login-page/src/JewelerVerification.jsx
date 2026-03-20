@@ -521,7 +521,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
       {/* ── Header ── */}
       <div className="verification-header">
         <h1>Jeweler Verification</h1>
-        <button className="btn-register">Register Jeweler</button>
+        {/* <button className="btn-register">Register Jeweler</button> */}
       </div>
 
       {/* ── Tabs ── */}
