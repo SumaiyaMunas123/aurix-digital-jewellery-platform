@@ -1,4 +1,3 @@
 class Environment {
-  // Change later when backend is ready
-  static const String baseUrl = "https://example.com/api";
+  static const String baseUrl = "http://localhost:7000/api";
 }

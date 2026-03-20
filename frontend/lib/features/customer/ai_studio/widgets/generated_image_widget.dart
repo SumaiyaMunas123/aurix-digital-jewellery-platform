@@ -3,12 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:aurix/core/theme/app_colors.dart';
 
-import '../models/ai_generation_request.dart';
-
 class GeneratedImageWidget extends StatelessWidget {
-  final AiGenerationRequest request;
+  final String? imageUrl;
+  final String? imageBase64;
+  final String? sketchPath;
 
-  const GeneratedImageWidget({super.key, required this.request});
+  const GeneratedImageWidget({
+    super.key,
+    this.imageUrl,
+    this.imageBase64,
+    this.sketchPath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +22,11 @@ class GeneratedImageWidget extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => _ImagePreview(request: request),
+            builder: (_) => _ImagePreview(
+              imageUrl: imageUrl,
+              imageBase64: imageBase64,
+              sketchPath: sketchPath,
+            ),
           ),
         );
       },
@@ -33,9 +42,25 @@ class GeneratedImageWidget extends StatelessWidget {
   }
 
   Widget _buildPreview() {
-    if (request.isSketchMode && request.sketchPath != null) {
+    // Show generated image from backend
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return Image.network(
+        imageUrl!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Center(
+          child: Icon(
+            Icons.error_outline,
+            size: 60,
+            color: AppColors.gold,
+          ),
+        ),
+      );
+    }
+
+    // Show local sketch if in sketch mode
+    if (sketchPath != null && sketchPath!.isNotEmpty) {
       return Image.file(
-        File(request.sketchPath!),
+        File(sketchPath!),
         fit: BoxFit.cover,
       );
     }
@@ -51,9 +76,15 @@ class GeneratedImageWidget extends StatelessWidget {
 }
 
 class _ImagePreview extends StatelessWidget {
-  final AiGenerationRequest request;
+  final String? imageUrl;
+  final String? imageBase64;
+  final String? sketchPath;
 
-  const _ImagePreview({required this.request});
+  const _ImagePreview({
+    this.imageUrl,
+    this.imageBase64,
+    this.sketchPath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +97,7 @@ class _ImagePreview extends StatelessWidget {
               child: InteractiveViewer(
                 minScale: 1,
                 maxScale: 4,
-                child: request.isSketchMode && request.sketchPath != null
-                    ? Image.file(File(request.sketchPath!))
-                    : const Icon(
-                        Icons.auto_awesome_rounded,
-                        size: 200,
-                        color: AppColors.gold,
-                      ),
+                child: _buildImage(),
               ),
             ),
             Positioned(
@@ -86,6 +111,29 @@ class _ImagePreview extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return Image.network(
+        imageUrl!,
+        errorBuilder: (_, __, ___) => const Icon(
+          Icons.error_outline,
+          size: 200,
+          color: AppColors.gold,
+        ),
+      );
+    }
+
+    if (sketchPath != null && sketchPath!.isNotEmpty) {
+      return Image.file(File(sketchPath!));
+    }
+
+    return const Icon(
+      Icons.auto_awesome_rounded,
+      size: 200,
+      color: AppColors.gold,
     );
   }
 }
