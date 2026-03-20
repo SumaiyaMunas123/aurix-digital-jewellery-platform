@@ -3,11 +3,13 @@
  * Validates user identity via JWT or anonymous token
  */
 
+import { sendError } from '../utils/response.js';
+
 export const validateUserAuth = (req, res, next) => {
   try {
-    // For now, allow requests with optional user_id in body
-    // In production, validate JWT from Authorization header
-    const { user_id, user_type } = req.body;
+    // Extract user context from body, query, or headers
+    const user_id = req.body?.user_id || req.query?.user_id || null;
+    const user_type = req.body?.user_type || req.query?.user_type || 'customer';
 
     // Optional: If JWT is provided, validate it
     const authHeader = req.headers.authorization;
@@ -17,7 +19,7 @@ export const validateUserAuth = (req, res, next) => {
       // For now, just allow it through
     }
 
-    // Allow anonymous requests (user_id optional)
+    // Allow anonymous and authenticated requests
     req.user = {
       id: user_id || null,
       type: user_type || 'customer',
@@ -27,7 +29,7 @@ export const validateUserAuth = (req, res, next) => {
     next();
   } catch (error) {
     console.error('❌ Auth error:', error.message);
-    return res.status(401).json({ success: false, error: 'Authentication failed' });
+    return sendError(res, 'Authentication failed', 401);
   }
 };
 
