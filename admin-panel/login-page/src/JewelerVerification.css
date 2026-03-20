@@ -119,14 +119,13 @@
 } */
 
 .verification-search input {
- border: none;
+  border: none;
   background: transparent;
   font-size: 13px;
   color: #111827;
   outline: none;
   flex: 1;
 }
- 
 
 .verification-search input:focus {
   outline: none;
@@ -181,6 +180,10 @@
   padding: 14px 20px;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.verification-table tbody tr:hover {
+  background: #fafafa;
 }
 
 .verification-table th {
@@ -296,7 +299,6 @@
   outline: none;
   box-shadow: none;
 }
-
 
 .panel-backdrop {
   position: fixed;

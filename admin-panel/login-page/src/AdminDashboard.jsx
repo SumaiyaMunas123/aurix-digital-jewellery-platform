@@ -9,6 +9,7 @@ import OrdersDashboard from "./OrdersDashboard";
 import EscrowFinance from "./EscrowFinance";
 import SettingsPage from "./SettingsPage";
 import AdminManagement from "./AdminManagement";
+import UserProfile from "./UserProfile";
 import { apiCall } from "./api/client";
 
 const AdminDashboard = ({ onLogout }) => {
@@ -38,9 +39,9 @@ const AdminDashboard = ({ onLogout }) => {
     setNavProps(props);
   };
 
-  const handleProfileClick = () => {
-    alert("User profile clicked!");
-  };
+  // const handleProfileClick = () => {
+  //   alert("User profile clicked!");
+  // };
 
   // SVG Icons
   const Icons = {
@@ -244,6 +245,7 @@ const AdminDashboard = ({ onLogout }) => {
       case "admins":   return <AdminManagement />;
       case "disputes": return <div style={{ padding: "2rem" }}><h2>Disputes</h2><p>Coming soon.</p></div>;
       case "settings": return <SettingsPage />;
+      case "profile": return <UserProfile onNavigate={navigateTo} />;
       default:         return renderDashboardOverview();
     }
   };
@@ -260,7 +262,8 @@ const AdminDashboard = ({ onLogout }) => {
       />
 
       <main className="main-content">
-        <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} />
+        <TopBar onProfileClick={() => navigateTo("profile")} onLogout={onLogout} onNavigate={navigateTo} />
+        {/* <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} /> */}
         <div className="dashboard-content">
           {renderPage()}
           <Footer />
