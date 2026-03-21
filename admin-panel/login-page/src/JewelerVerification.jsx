@@ -180,11 +180,7 @@ const JewelerDetailPanel = ({
     setShowRejectInput(false);
   };
 
-  // Only use actually fetched document URLs — no fallback to jeweler object
   const getDocFile = (doc) => documents[doc.key] || null;
-
-  // A doc is submitted only if it has a real URL in the documents table
-  // When approved, still check real URLs — don't fake all as submitted
   const getDocStatus = (doc) => !!getDocFile(doc);
 
   const handleSaveFeedback = async (docKey) => {
@@ -321,14 +317,12 @@ const JewelerDetailPanel = ({
                     <p className="doc-label">{doc.label}</p>
                     <p className="doc-desc">{doc.description}</p>
 
-                    {/* Show saved feedback only if it exists */}
                     {feedback && (
                       <p className="doc-feedback-saved">
                         💬 {feedback.message}
                       </p>
                     )}
 
-                    {/* Feedback input only when NOT approved AND file exists */}
                     {!isApproved && file && (
                       <div
                         className="doc-feedback-row"
@@ -616,14 +610,35 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
     return matchesTab && matchesSearch;
   });
 
-  const pendingCount = requests.filter(
-    (r) => r.verification_status === "pending",
-  ).length;
+  const pendingCount  = requests.filter((r) => r.verification_status === "pending").length;
+  const approvedCount = requests.filter((r) => r.verification_status === "approved").length;
+  const rejectedCount = requests.filter((r) => r.verification_status === "rejected").length;
+
+  const statCards = [
+    { label: "TOTAL JEWELLERS", value: requests.length, color: "#111827" },
+    { label: "PENDING",         value: pendingCount,    color: "#111827" },
+    { label: "APPROVED",        value: approvedCount,   color: "#111827" },
+    { label: "REJECTED",        value: rejectedCount,   color: "#111827" },
+  ];
 
   return (
     <div className="verification-page">
       <div className="verification-header">
         <h1>Jeweler Verification</h1>
+      </div>
+
+      {/* ── Stat cards — uses exact pd- classes from ProductDashboard.css ── */}
+      <div className="pd-stats-grid jv-stats-grid">
+        {statCards.map((card) => (
+          <div key={card.label} className="pd-stat-card">
+            <div className="pd-stat-label">{card.label}</div>
+            <div className="pd-stat-value-row">
+              <div className="pd-stat-value" style={{ color: card.color }}>
+                {card.value}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="verification-toolbar">
