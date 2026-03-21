@@ -31,7 +31,16 @@ class NewArrivalsSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: const Color(0xFFD4AF37).withValues(alpha: 0.20)),
                     ),
-                    child: const Icon(Icons.image_outlined),
+                    child: p.imageUrl != null && p.imageUrl!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.network(
+                              p.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.image_outlined),
+                            ),
+                          )
+                        : const Icon(Icons.image_outlined),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

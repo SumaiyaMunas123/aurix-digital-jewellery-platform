@@ -59,7 +59,7 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
 
   void _callGenerateApi() async {
     try {
-      final response = await ApiClient.instance.dio.post(
+      final response = await ApiClient.instance.aiDio.post(
         '/ai/generate',
         data: {
           'mode': widget.request.mode,
@@ -72,7 +72,6 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
           'budget': widget.request.budget,
           'user_type': 'customer',
         },
-        options: Options(sendTimeout: const Duration(seconds: 120), receiveTimeout: const Duration(seconds: 120)),
       );
 
       if (!mounted) return;

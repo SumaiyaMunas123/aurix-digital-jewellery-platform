@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import '../../../core/network/api_client.dart';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
@@ -10,6 +12,8 @@ class AuthRepoApi implements AuthRepository {
 
   @override
   Future<User?> getSavedUser() async {
+    // TODO: integrate real storage
+    return null;
     try {
       // Check if we have a valid token and user info stored
       final token = await TokenService.getToken();
@@ -35,6 +39,12 @@ class AuthRepoApi implements AuthRepository {
   @override
   Future<User> login(String identifier, String password) async {
     try {
+      print('🔐 Attempting login with: $identifier');
+      
+      final response = await _apiClient.dio.post(
+        '/auth/login',
+        data: {
+          'identifier': identifier,
       final response = await _apiClient.dio.post(
         '/auth/login',
         data: {
@@ -44,6 +54,39 @@ class AuthRepoApi implements AuthRepository {
         },
       );
 
+      if (response.statusCode != 200) {
+        throw Exception(response.data['message'] ?? 'Login failed');
+      }
+
+      final data = response.data;
+      if (data['success'] != true || data['user'] == null) {
+        throw Exception(data['message'] ?? 'Invalid login response');
+      }
+
+      final userData = data['user'];
+      final token = data['token'];
+
+      // Store token
+      if (token != null) {
+        _apiClient.setToken(token);
+      }
+
+      print('✅ Login successful: ${userData['email']}');
+
+      return User(
+        id: userData['id'] ?? '',
+        name: userData['name'] ?? 'User',
+        email: userData['email'],
+        role: userData['role'] == 'jeweller' ? UserRole.jeweller : UserRole.customer,
+        verified: userData['verified'] ?? false,
+        verificationStatus: userData['verification_status'],
+      );
+    } on DioException catch (e) {
+      print('❌ Login error: ${e.response?.data['message'] ?? e.message}');
+      throw Exception(e.response?.data['message'] ?? 'Login failed');
+    } catch (e) {
+      print('❌ Login error: $e');
+      rethrow;
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw DioException(
           requestOptions: response.requestOptions,
@@ -101,6 +144,14 @@ class AuthRepoApi implements AuthRepository {
   @override
   Future<void> logout() async {
     try {
+      await _apiClient.dio.post('/auth/logout');
+      _apiClient.clearToken();
+      print('✅ Logout successful');
+    } catch (e) {
+      print('❌ Logout error: $e');
+      rethrow;
+    }
+  }
       final token = await TokenService.getToken();
       if (token != null) {
         try {

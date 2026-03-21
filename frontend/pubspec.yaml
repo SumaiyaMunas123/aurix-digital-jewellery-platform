@@ -40,6 +40,7 @@ dependencies:
 
   # Google login
   google_sign_in: ^7.2.0
+  supabase_flutter: ^2.12.0
 
   # Secure token storage
   shared_preferences: ^2.3.0
