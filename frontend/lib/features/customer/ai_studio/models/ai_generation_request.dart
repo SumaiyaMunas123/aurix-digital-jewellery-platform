@@ -9,10 +9,12 @@ class AiGenerationRequest {
   final String occasion;
   final String budget;
   final String? sketchPath;
+  String? generatedImageUrl;
+  String? generatedImageBase64;
   final String? imageUrl;
   final String? imageBase64;
 
-  const AiGenerationRequest({
+  AiGenerationRequest({
     required this.mode,
     required this.prompt,
     required this.category,
@@ -23,6 +25,8 @@ class AiGenerationRequest {
     required this.occasion,
     required this.budget,
     this.sketchPath,
+    this.generatedImageUrl,
+    this.generatedImageBase64,
     this.imageUrl,
     this.imageBase64,
   });

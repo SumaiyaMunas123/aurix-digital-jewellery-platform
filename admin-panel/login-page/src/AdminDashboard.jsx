@@ -9,6 +9,7 @@ import OrdersDashboard from "./OrdersDashboard";
 import EscrowFinance from "./EscrowFinance";
 import SettingsPage from "./SettingsPage";
 import AdminManagement from "./AdminManagement";
+import UserProfile from "./UserProfile";
 import { apiCall } from "./api/client";
 
 const AdminDashboard = ({ onLogout }) => {
@@ -27,15 +28,20 @@ const AdminDashboard = ({ onLogout }) => {
       .catch((err) => console.error("Failed to load stats:", err));
   }, []);
 
+  useEffect(() => {
+    const current = menuItems.find(item => item.id === activeMenu);
+    document.title = current ? `${current.label }` : "Aurix Admin Dashboard";
+  }, [activeMenu]);
+
   const navigateTo = (menu, props = {}) => {
     localStorage.setItem('activeMenu', menu);
     setActiveMenu(menu);
     setNavProps(props);
   };
 
-  const handleProfileClick = () => {
-    alert("User profile clicked!");
-  };
+  // const handleProfileClick = () => {
+  //   alert("User profile clicked!");
+  // };
 
   // SVG Icons
   const Icons = {
@@ -74,16 +80,16 @@ const AdminDashboard = ({ onLogout }) => {
         <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
       </svg>
     ),
-    Menu: () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-      </svg>
-    ),
-    Close: () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-      </svg>
-    ),
+    // Menu: () => (
+    //   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    //     <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+    //   </svg>
+    // ),
+    // Close: () => (
+    //   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    //     <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+    //   </svg>
+    // ),
     Logout: () => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
         <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
@@ -160,7 +166,6 @@ const AdminDashboard = ({ onLogout }) => {
   const renderDashboardOverview = () => (
     <>
       <div className="page-header">
-        <title>Admin Dashboard</title>
         <h1>Dashboard Overview</h1>
       </div>
 
@@ -240,6 +245,7 @@ const AdminDashboard = ({ onLogout }) => {
       case "admins":   return <AdminManagement />;
       case "disputes": return <div style={{ padding: "2rem" }}><h2>Disputes</h2><p>Coming soon.</p></div>;
       case "settings": return <SettingsPage />;
+      case "profile": return <UserProfile onNavigate={navigateTo} />;
       default:         return renderDashboardOverview();
     }
   };
@@ -256,7 +262,8 @@ const AdminDashboard = ({ onLogout }) => {
       />
 
       <main className="main-content">
-        <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} />
+        <TopBar onProfileClick={() => navigateTo("profile")} onLogout={onLogout} onNavigate={navigateTo} />
+        {/* <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} /> */}
         <div className="dashboard-content">
           {renderPage()}
           <Footer />

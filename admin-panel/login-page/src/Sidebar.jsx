@@ -2,15 +2,13 @@ import React from "react";
 import "./Sidebar.css";
 
 const Sidebar = ({
-  sidebarOpen,
-  toggleSidebar,
   activeMenu,
   setActiveMenu,
   menuItems,
   Icons,
 }) => {
   return (
-    <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
+    <aside className="sidebar">
       <div className="sidebar-header">
         <div className="logo-section">
           <span className="logo-text">Welcome, </span>
@@ -18,9 +16,6 @@ const Sidebar = ({
         <div>
           <span className="logo-text-name">Sanuthmi Jayalath</span>
         </div>
-        <button className="sidebar-toggle" onClick={toggleSidebar}>
-          {sidebarOpen ? <Icons.Close /> : <Icons.Menu />}
-        </button>
       </div>
 
       <nav className="sidebar-nav">
