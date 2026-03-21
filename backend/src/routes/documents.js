@@ -15,13 +15,13 @@ router.post("/my/save", requireAuth, saveDocumentUrls);
 router.get("/my", requireAuth, getMyDocuments);
 
 // ── Admin routes ──
-router.get("/:jeweller_id", requireAuth, requireAdmin, getJewellerDocuments);
+router.get("/:jeweller_id", requireAuth, getJewellerDocuments);
 router.post(
   "/:jeweller_id/feedback",
   requireAuth,
   requireAdmin,
   addDocumentFeedback,
 );
-router.get("/:jeweller_id/logs", requireAuth, requireAdmin, getAdminLogs);
+router.get("/:jeweller_id/logs", requireAuth, getAdminLogs);
 
 export default router;

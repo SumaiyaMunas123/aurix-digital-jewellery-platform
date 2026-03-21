@@ -157,19 +157,19 @@ const JewelerDetailPanel = ({
 
     if (!jeweler) return;
 
-    // ── NEW: fetch documents from jeweller_documents table ──
+    // ── fetch documents from jeweller_documents table ──
     apiCall(`/documents/${jeweler.id}`)
       .then((d) => {
         const docs = d.documents || {};
         setDocuments(docs);
         setDocFeedback(docs.feedback || {});
       })
-      .catch(() => {});
+      .catch((err) => console.error("Failed to load documents:", err.message));
 
-    // ── NEW: fetch admin action logs ──
+    // ── fetch admin action logs ──
     apiCall(`/documents/${jeweler.id}/logs`)
       .then((d) => setAuditLogs(d.logs || []))
-      .catch(() => {});
+      .catch((err) => console.error("Failed to load logs:", err.message));
   }, [jeweler?.id]);
 
   if (!jeweler) return null;
@@ -562,13 +562,18 @@ const JewelerDetailPanel = ({
 
 /* ─── Main component ─── */
 const JewelerVerification = ({ defaultTab = "All Requests" }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState(defaultTab || "All Requests");
   const [search, setSearch] = useState("");
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [selectedJeweler, setSelectedJeweler] = useState(null);
+
+  // Sync activeTab when defaultTab prop changes (e.g. navigating from dashboard)
+  useEffect(() => {
+    if (defaultTab) setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   const fetchJewellers = async () => {
     setLoading(true);
@@ -577,8 +582,8 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
       const data = await getAllJewellers();
       setRequests(data.jewellers || []);
     } catch (err) {
-      setError("Failed to load jewellers. Is the backend running?");
-      console.error(err);
+      setError(err.message || "Failed to load jewellers. Is the backend running?");
+      console.error("fetchJewellers error:", err);
     } finally {
       setLoading(false);
     }
@@ -705,7 +710,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
           <div
             style={{ padding: "2rem", textAlign: "center", color: "#c0392b" }}
           >
-            {error}
+            <strong>Error:</strong> {error}
             <br />
             <button
               className="btn-dark"

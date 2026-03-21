@@ -138,7 +138,6 @@ export const approveJeweller = async (req, res) => {
       .update({
         verified: true,
         verification_status: 'approved',
-        verified_at: new Date().toISOString(),
         rejection_reason: null
       })
       .eq('id', jeweller_id)
@@ -207,8 +206,7 @@ export const rejectJeweller = async (req, res) => {
       .update({
         verified: false,
         verification_status: 'rejected',
-        rejection_reason: reason,
-        rejected_at: new Date().toISOString()
+        rejection_reason: reason
       })
       .eq('id', jeweller_id)
       .select()

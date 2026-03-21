@@ -50,7 +50,7 @@ export const saveDocumentUrls = async (req, res) => {
     // Update verification_status back to 'pending' if they resubmit after rejection
     await supabase
       .from('users')
-      .update({ verification_status: 'pending', rejected_at: null, rejection_reason: null })
+      .update({ verification_status: 'pending', rejection_reason: null })
       .eq('id', jeweller_id)
       .eq('verification_status', 'rejected');
 
