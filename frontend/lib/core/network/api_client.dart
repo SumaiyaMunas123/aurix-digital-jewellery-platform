@@ -16,7 +16,25 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.add(
+    _aiDio = Dio(
+      BaseOptions(
+        baseUrl: Environment.aiBackendUrl,
+        connectTimeout: const Duration(seconds: 20),
+        sendTimeout: const Duration(seconds: 120), // Longer for AI generation
+        receiveTimeout: const Duration(seconds: 120), // Longer for AI generation
+        headers: const {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    _setupInterceptors(_dio);
+    _setupInterceptors(_aiDio);
+  }
+
+  void _setupInterceptors(Dio dioInstance) {
+    dioInstance.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
           final token = _token;
@@ -28,7 +46,7 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.add(
+    dioInstance.interceptors.add(
       LogInterceptor(
         requestBody: true,
         responseBody: false,
@@ -41,10 +59,16 @@ class ApiClient {
   static final ApiClient instance = ApiClient._internal();
 
   late final Dio _dio;
+  late final Dio _aiDio;
   String? _token;
 
   Dio get dio => _dio;
+  Dio get aiDio => _aiDio;
 
-  void setToken(String token) => _token = token;
+  void setToken(String token) {
+    _token = token;
+    // Also update tokens in interceptors if needed
+  }
+  
   void clearToken() => _token = null;
 }

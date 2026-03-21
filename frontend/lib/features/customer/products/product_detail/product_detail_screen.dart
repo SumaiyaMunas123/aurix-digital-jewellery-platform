@@ -150,11 +150,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       color: AppColors.gold.withValues(alpha: 0.20),
                     ),
                   ),
-                  child: const Icon(
-                    Icons.image_outlined,
-                    size: 60,
-                    color: AppColors.gold,
-                  ),
+                  child: _readString(productMap, 'image_url', '').isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.network(
+                            _readString(productMap, 'image_url', ''),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.image_outlined,
+                              size: 60,
+                              color: AppColors.gold,
+                            ),
+                            loadingBuilder: (_, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.gold,
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      : const Icon(
+                          Icons.image_outlined,
+                          size: 60,
+                          color: AppColors.gold,
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -360,6 +385,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               content: Text('Added $quantity item(s) to cart'),
                             ),
                           );
+                          
+                          // Navigate to cart screen
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            if (mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CartScreen(),
+                                ),
+                              );
+                            }
+                          });
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 16),

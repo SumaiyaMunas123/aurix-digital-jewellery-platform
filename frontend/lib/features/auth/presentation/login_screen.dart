@@ -27,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _loading = false;
   bool _googleLoading = false;
+  bool _googleHovered = false;
   bool _obscure = true;
   String? _error;
 
@@ -387,42 +388,52 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                             const SizedBox(height: 14),
-                            GestureDetector(
-                              onTap: _googleLoading ? null : _googleLogin,
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(
-                                    color: const Color(0xFFD4AF37),
+                            MouseRegion(
+                              onEnter: (_) => setState(() => _googleHovered = true),
+                              onExit: (_) => setState(() => _googleHovered = false),
+                              child: GestureDetector(
+                                onTap: _googleLoading ? null : _googleLogin,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: const Color(0xFFD4AF37),
+                                    ),
+                                    color: _googleHovered
+                                        ? const Color(0xFFD4AF37).withValues(alpha: 0.1)
+                                        : Colors.transparent,
                                   ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (_googleLoading)
-                                      const SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                                  transform: Matrix4.identity()
+                                    ..translate(_googleHovered ? 0 : 0, _googleHovered ? -2 : 0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (_googleLoading)
+                                        const SizedBox(
+                                          height: 18,
+                                          width: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      else ...[
+                                        Image.asset(
+                                          "assets/images/google_logo.png",
+                                          width: 20,
                                         ),
-                                      )
-                                    else ...[
-                                      Image.asset(
-                                        "assets/images/google_logo.png",
-                                        width: 20,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      const Text(
-                                        "Continue with Google",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w900,
+                                        const SizedBox(width: 10),
+                                        const Text(
+                                          "Continue with Google",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w900,
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),

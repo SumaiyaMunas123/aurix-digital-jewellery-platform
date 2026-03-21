@@ -5,11 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:aurix/features/customer/chat/models/chat_message.dart';
+import 'package:aurix/features/customer/chat/data/chat_repository.dart';
 import 'package:aurix/core/theme/app_colors.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String title;
-  const ChatRoomScreen({super.key, required this.title});
+  final String? threadId;
+
+  const ChatRoomScreen({
+    super.key,
+    required this.title,
+    this.threadId,
+  });
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -19,11 +26,68 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _picker = ImagePicker();
   final _controller = TextEditingController();
   final _scroll = ScrollController();
+  final _chatRepository = ChatRepository();
 
-  final List<ChatMessage> _messages = [
-    ChatMessage(id: "1", text: "Hi! How can I help you today?", isMe: false, time: DateTime.now()),
-    ChatMessage(id: "2", text: "I want a 22K ring design.", isMe: true, time: DateTime.now()),
-  ];
+  late Future<List<ChatMessage>> _messagesFuture;
+  List<ChatMessage> _messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _messagesFuture = _loadMessages();
+  }
+
+  Future<List<ChatMessage>> _loadMessages() async {
+    // If threadId is provided, try to load from backend
+    if (widget.threadId != null && widget.threadId!.isNotEmpty) {
+      try {
+        final messages = await _chatRepository.getMessages(widget.threadId!);
+        print('✅ Loaded ${messages.length} messages from backend');
+        setState(() {
+          _messages = messages.map((m) {
+            return ChatMessage(
+              id: m['id'] ?? '',
+              text: m['content'] ?? m['message'] ?? '',
+              isMe: m['is_sent_by_me'] ?? false,
+              time: m['created_at'] != null
+                  ? DateTime.parse(m['created_at'])
+                  : DateTime.now(),
+            );
+          }).toList();
+        });
+        return _messages;
+      } catch (e) {
+        print('⚠️ Failed to load messages: $e');
+      }
+    }
+
+    // Return sample messages as fallback
+    final sampleMessages = [
+      ChatMessage(
+        id: "1",
+        text: "Hi! How can I help you today?",
+        isMe: false,
+        time: DateTime.now().subtract(const Duration(minutes: 5)),
+      ),
+      ChatMessage(
+        id: "2",
+        text: "I want a 22K ring design.",
+        isMe: true,
+        time: DateTime.now().subtract(const Duration(minutes: 3)),
+      ),
+      ChatMessage(
+        id: "3",
+        text: "Great! We have some beautiful 22K designs. Would you like me to send you some options?",
+        isMe: false,
+        time: DateTime.now().subtract(const Duration(minutes: 1)),
+      ),
+    ];
+    
+    if (mounted) {
+      setState(() => _messages = sampleMessages);
+    }
+    return sampleMessages;
+  }
 
   @override
   void dispose() {
@@ -43,23 +107,43 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
-  void _sendText() {
+  Future<void> _sendText() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
     HapticFeedback.selectionClick();
 
+    // Add message locally first
+    final newMessage = ChatMessage(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      text: text,
+      isMe: true,
+      time: DateTime.now(),
+    );
+
     setState(() {
-      _messages.add(ChatMessage(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        text: text,
-        isMe: true,
-        time: DateTime.now(),
-      ));
+      _messages.add(newMessage);
       _controller.clear();
     });
 
     _scrollToBottom();
+
+    // Try to send to backend
+    if (widget.threadId != null && widget.threadId!.isNotEmpty) {
+      try {
+        await _chatRepository.sendMessage(
+          threadId: widget.threadId!,
+          content: text,
+        );
+        print('✅ Message sent successfully');
+      } catch (e) {
+        print('⚠️ Failed to send message: $e');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to send: $e")),
+        );
+      }
+    }
   }
 
   Future<void> _pickImage() async {
