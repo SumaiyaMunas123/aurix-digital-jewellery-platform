@@ -41,7 +41,6 @@ a:hover {
   color: #c9a227;
 }
 
-/* Only apply base button styles where no component class overrides */
 button {
   font-family: inherit;
   cursor: pointer;

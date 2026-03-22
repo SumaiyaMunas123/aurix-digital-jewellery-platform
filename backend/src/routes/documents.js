@@ -10,11 +10,11 @@ import {
 
 const router = express.Router();
 
-// ── Jeweller routes (authenticated jeweller) ──
+// Jeweller routes (authenticated jeweller) 
 router.post("/my/save", requireAuth, saveDocumentUrls);
 router.get("/my", requireAuth, getMyDocuments);
 
-// ── Admin routes ──
+// Admin routes 
 router.get("/:jeweller_id", requireAuth, getJewellerDocuments);
 router.post(
   "/:jeweller_id/feedback",

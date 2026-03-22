@@ -245,7 +245,6 @@
   gap: 15px;
   flex: 1;
   min-height: auto;
-  /* overflow: hidden; */
 }
 
 .chart-section,
@@ -427,9 +426,7 @@
 .view-all:hover {
   background: #fff9f0;
   border-color: #d4af37;
-  /* background: white; */
   transform: translateY(-4px);
-  /* box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); */
 }
 
 /* Responsive */
@@ -501,7 +498,7 @@
     }
   }
 }
-/* ── Bar Chart ── */
+/*  Bar Chart  */
 .bar-chart {
   display: flex;
   align-items: flex-end;
@@ -554,7 +551,7 @@
   white-space: nowrap;
 }
 
-/* ── Line Chart ── */
+/* Line Chart */
 .line-chart-wrap {
   flex: 1;
   min-height: 180px;

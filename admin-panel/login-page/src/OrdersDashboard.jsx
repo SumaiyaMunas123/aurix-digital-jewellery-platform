@@ -42,7 +42,6 @@ const formatDate = (dateStr) => {
   });
 };
 
-// ── Order detail modal ──
 const OrderModal = ({ order, onClose, onStatusChange }) => {
   const [newStatus, setNewStatus] = useState(order.status);
   const [note, setNote] = useState("");
@@ -178,7 +177,6 @@ const OrderModal = ({ order, onClose, onStatusChange }) => {
   );
 };
 
-// ── Main component ──
 const OrdersDashboard = () => {
   const [activeTab, setActiveTab] = useState(null);
   const [search, setSearch] = useState("");
@@ -256,7 +254,6 @@ const OrdersDashboard = () => {
           <h1>Orders Management</h1>
         </div>
 
-        {/* Stats */}
         <div className="od-stats-grid">
           {summary.map((s, i) => (
             <div key={i} className="od-stat-card">
@@ -266,7 +263,6 @@ const OrdersDashboard = () => {
           ))}
         </div>
 
-        {/* Tabs */}
         <div className="od-controls-bar">
           <div className="od-tabs">
             {tabs.map((tab) => (
@@ -287,7 +283,6 @@ const OrdersDashboard = () => {
           </div>
         </div>
 
-        {/* Search */}
         <div className="od-search-filter-bar">
           <div className="od-search-wrap">
             <svg
@@ -311,7 +306,6 @@ const OrdersDashboard = () => {
           </div>
         </div>
 
-        {/* Table */}
         <div className="od-card">
           <div className="od-table-wrapper">
             <table className="od-table">
@@ -418,7 +412,6 @@ const OrdersDashboard = () => {
         </div>
       </div>
 
-      {/* Modal — outside blurred wrapper */}
       {viewOrder && (
         <OrderModal
           order={viewOrder}

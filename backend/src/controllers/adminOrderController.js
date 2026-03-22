@@ -1,6 +1,5 @@
 import { supabase } from '../config/supabaseClient.js';
 
-// ==================== GET ALL ORDERS (ADMIN) ====================
 export const adminGetAllOrders = async (req, res) => {
   try {
     const { search, status, page = 1, limit = 20 } = req.query;
@@ -45,7 +44,6 @@ export const adminGetAllOrders = async (req, res) => {
   }
 };
 
-// ==================== GET SINGLE ORDER (ADMIN) ====================
 export const adminGetOrderById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -73,7 +71,6 @@ export const adminGetOrderById = async (req, res) => {
   }
 };
 
-// ==================== GET ORDER STATS (ADMIN) ====================
 export const adminGetOrderStats = async (req, res) => {
   try {
     const [
@@ -116,7 +113,6 @@ export const adminGetOrderStats = async (req, res) => {
   }
 };
 
-// ==================== UPDATE ORDER STATUS (ADMIN) ====================
 export const adminUpdateOrderStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -149,7 +145,6 @@ export const adminUpdateOrderStatus = async (req, res) => {
       updated_at: new Date().toISOString(),
     };
 
-    // Set timestamp fields based on status
     if (status === 'payment_confirmed') updateData.payment_confirmed_at = new Date().toISOString();
     if (status === 'in_production')     updateData.started_production_at = new Date().toISOString();
     if (status === 'ready_for_pickup')  updateData.ready_at = new Date().toISOString();
@@ -181,7 +176,6 @@ export const adminUpdateOrderStatus = async (req, res) => {
   }
 };
 
-// ==================== DELETE ORDER (ADMIN) ====================
 export const adminDeleteOrder = async (req, res) => {
   try {
     const { id } = req.params;

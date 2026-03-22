@@ -208,7 +208,6 @@ const JewelerDetailPanel = ({
     <>
       <div className="panel-backdrop" onClick={onClose} />
       <div className="detail-panel">
-        {/* Header */}
         <div className="panel-header">
           <div style={{ minWidth: 0 }}>
             <h2 className="panel-title">{displayName}</h2>
@@ -219,7 +218,6 @@ const JewelerDetailPanel = ({
           </button>
         </div>
 
-        {/* Status & date */}
         <div className="panel-status-row">
           <span
             className={statusClassMap[status] || "status-pill status-pending"}
@@ -231,7 +229,6 @@ const JewelerDetailPanel = ({
           </span>
         </div>
 
-        {/* Business info */}
         <div className="panel-section">
           <h3 className="panel-section-title">Business Information</h3>
           <div className="panel-info-grid">
@@ -288,7 +285,6 @@ const JewelerDetailPanel = ({
           </div>
         </div>
 
-        {/* Documents */}
         <div className="panel-section">
           <h3 className="panel-section-title">Required Documents</h3>
           <p className="panel-section-note">
@@ -370,7 +366,6 @@ const JewelerDetailPanel = ({
           </div>
         </div>
 
-        {/* Rejection reason */}
         {jeweler.rejection_reason && (
           <div className="panel-section">
             <h3 className="panel-section-title">Rejection Reason</h3>
@@ -380,7 +375,6 @@ const JewelerDetailPanel = ({
           </div>
         )}
 
-        {/* Action history */}
         {auditLogs.length > 0 && (
           <div className="panel-section">
             <h3 className="panel-section-title">Action History</h3>
@@ -422,7 +416,6 @@ const JewelerDetailPanel = ({
           </div>
         )}
 
-        {/* Actions */}
         <div className="panel-actions">
           {isApproved ? (
             !showRejectInput ? (
@@ -610,15 +603,21 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
     return matchesTab && matchesSearch;
   });
 
-  const pendingCount  = requests.filter((r) => r.verification_status === "pending").length;
-  const approvedCount = requests.filter((r) => r.verification_status === "approved").length;
-  const rejectedCount = requests.filter((r) => r.verification_status === "rejected").length;
+  const pendingCount = requests.filter(
+    (r) => r.verification_status === "pending",
+  ).length;
+  const approvedCount = requests.filter(
+    (r) => r.verification_status === "approved",
+  ).length;
+  const rejectedCount = requests.filter(
+    (r) => r.verification_status === "rejected",
+  ).length;
 
   const statCards = [
     { label: "TOTAL JEWELLERS", value: requests.length, color: "#111827" },
-    { label: "PENDING",         value: pendingCount,    color: "#111827" },
-    { label: "APPROVED",        value: approvedCount,   color: "#111827" },
-    { label: "REJECTED",        value: rejectedCount,   color: "#111827" },
+    { label: "PENDING", value: pendingCount, color: "#111827" },
+    { label: "APPROVED", value: approvedCount, color: "#111827" },
+    { label: "REJECTED", value: rejectedCount, color: "#111827" },
   ];
 
   return (
@@ -627,7 +626,6 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
         <h1>Jeweler Verification</h1>
       </div>
 
-      {/* ── Stat cards — uses exact pd- classes from ProductDashboard.css ── */}
       <div className="pd-stats-grid jv-stats-grid">
         {statCards.map((card) => (
           <div key={card.label} className="pd-stat-card">

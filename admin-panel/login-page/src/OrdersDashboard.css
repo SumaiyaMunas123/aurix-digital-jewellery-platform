@@ -546,7 +546,6 @@
   font-size: 16px;
 }
 
-/* Updated: 2 columns instead of 3 (unit price removed) */
 .od-modal-details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

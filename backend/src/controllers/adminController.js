@@ -1,7 +1,6 @@
 import { supabase } from '../config/supabaseClient.js';
 import { logAdminAction } from './documentController.js';
 
-// Get pending jewellers
 
 export const getPendingJewellers = async (req, res) => {
   try {
@@ -34,7 +33,6 @@ export const getPendingJewellers = async (req, res) => {
   }
 };
 
-// Get all jewellers 
 export const getAllJewellers = async (req, res) => {
   try {
     console.log('Get all jewellers');
@@ -73,7 +71,6 @@ export const getAllJewellers = async (req, res) => {
   }
 };
 
-// Get jeweller status
 
 export const getJewellerStatus = async (req, res) => {
   try {
@@ -113,7 +110,6 @@ export const getJewellerStatus = async (req, res) => {
   }
 };
 
-// Approve jeweller
 export const approveJeweller = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
@@ -146,7 +142,6 @@ export const approveJeweller = async (req, res) => {
 
     if (error) throw error;
 
-    // Log the admin action
     await logAdminAction({
       admin_id: req.user?.id,
       jeweller_id,
@@ -172,7 +167,6 @@ export const approveJeweller = async (req, res) => {
   }
 };
 
-// Reject jeweller
 export const rejectJeweller = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
@@ -214,7 +208,6 @@ export const rejectJeweller = async (req, res) => {
 
     if (error) throw error;
 
-    // Log the admin action
     await logAdminAction({
       admin_id: req.user?.id,
       jeweller_id,
@@ -240,7 +233,6 @@ export const rejectJeweller = async (req, res) => {
   }
 };
 
-// Get stats
 export const getPlatformStats = async (req, res) => {
   try {
     console.log('Get stats');
@@ -250,21 +242,24 @@ export const getPlatformStats = async (req, res) => {
       { count: totalJewellers },
       { count: approvedJewellers },
       { count: pendingJewellers },
-      { count: totalProducts }
+      { count: totalProducts },
+      { count: activeOrders }
     ] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller'),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller').eq('verified', true),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller').eq('verification_status', 'pending'),
-      supabase.from('products').select('*', { count: 'exact', head: true })
+      supabase.from('products').select('*', { count: 'exact', head: true }),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).in('status', ['payment_confirmed', 'processing', 'in_production', 'ready_for_pickup'])
     ]);
 
     const stats = {
-      totalCustomers: totalCustomers || 0,
-      totalJewellers: totalJewellers || 0,
+      totalCustomers:   totalCustomers   || 0,
+      totalJewellers:   totalJewellers   || 0,
       approvedJewellers: approvedJewellers || 0,
       pendingJewellers: pendingJewellers || 0,
-      totalProducts: totalProducts || 0
+      totalProducts:    totalProducts    || 0,
+      activeOrders:     activeOrders     || 0,
     };
 
     console.log('Stats:', stats);

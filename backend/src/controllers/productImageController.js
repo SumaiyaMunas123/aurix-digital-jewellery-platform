@@ -2,9 +2,6 @@ import { supabase } from '../config/supabaseClient.js';
 
 const BUCKET = 'product-images';
 
-// ==================== ADD IMAGE ====================
-// Called after the frontend uploads the file directly to Supabase Storage.
-// Body: { url, storage_path, is_primary, sort_order }
 export const addProductImage = async (req, res) => {
   try {
     const { id: product_id } = req.params;
@@ -14,7 +11,6 @@ export const addProductImage = async (req, res) => {
       return res.status(400).json({ success: false, message: 'url and storage_path are required' });
     }
 
-    // Verify product belongs to this jeweller
     const { data: product, error: fetchError } = await supabase
       .from('products')
       .select('id, jeweller_id')
@@ -56,7 +52,6 @@ export const addProductImage = async (req, res) => {
   }
 };
 
-// ==================== GET IMAGES FOR A PRODUCT ====================
 export const getProductImages = async (req, res) => {
   try {
     const { id: product_id } = req.params;
@@ -78,7 +73,6 @@ export const getProductImages = async (req, res) => {
   }
 };
 
-// ==================== SET PRIMARY IMAGE ====================
 export const setPrimaryImage = async (req, res) => {
   try {
     const { id: product_id, image_id } = req.params;
@@ -115,8 +109,6 @@ export const setPrimaryImage = async (req, res) => {
   }
 };
 
-// ==================== DELETE IMAGE ====================
-// Deletes both the DB row and the file from Supabase Storage.
 export const deleteProductImage = async (req, res) => {
   try {
     const { id: product_id, image_id } = req.params;
@@ -136,7 +128,6 @@ export const deleteProductImage = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You can only delete your own images' });
     }
 
-    // Delete DB row first — trigger will update products.primary_image_url
     const { error: dbError } = await supabase
       .from('product_images')
       .delete()
@@ -144,13 +135,11 @@ export const deleteProductImage = async (req, res) => {
 
     if (dbError) throw dbError;
 
-    // Delete the actual file from Storage
     const { error: storageError } = await supabase.storage
       .from(BUCKET)
       .remove([image.storage_path]);
 
     if (storageError) {
-      // Log but don't fail — DB row is already gone
       console.warn('Storage delete warning:', storageError.message);
     }
 

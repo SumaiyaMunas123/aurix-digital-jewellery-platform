@@ -1,6 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap");
 
-/* ─── Base ─── */
 .up-page {
   display: flex;
   flex-direction: column;
@@ -8,7 +7,6 @@
   color: #111827;
 }
 
-/* ─── Page Header ─── */
 .up-page-header {
   display: flex;
   align-items: center;
@@ -28,7 +26,6 @@
   gap: 10px;
 }
 
-/* ─── Saved Toast ─── */
 .up-saved-toast {
   background: #f0fdf4;
   color: #16a34a;
@@ -51,7 +48,6 @@
   }
 }
 
-/* ─── Buttons ─── */
 .up-edit-btn,
 .up-cancel-btn {
   display: inline-flex;
@@ -132,7 +128,6 @@
   outline: none;
 }
 
-/* ─── Profile Card ─── */
 .up-profile-card {
   background: #fff;
   border-radius: 14px;
@@ -151,7 +146,6 @@
   padding: 0 28px 24px;
 }
 
-/* ─── Avatar ─── */
 .up-avatar-wrap {
   position: relative;
   display: inline-block;
@@ -202,7 +196,6 @@
   outline: none;
 }
 
-/* ─── Profile Info ─── */
 .up-profile-info {
   margin-bottom: 18px;
 }
@@ -261,7 +254,6 @@
   flex-shrink: 0;
 }
 
-/* ─── Stats Strip ─── */
 .up-stats-strip {
   display: flex;
   border-top: 1px solid #f0f0f0;
@@ -298,7 +290,6 @@
   margin-top: 2px;
 }
 
-/* ─── Tabs ─── */
 .up-tabs-bar {
   display: flex;
   gap: 0;
@@ -338,7 +329,6 @@
   border-radius: 999px;
 }
 
-/* ─── Layout ─── */
 .up-two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -346,7 +336,6 @@
   align-items: start;
 }
 
-/* ─── Card ─── */
 .up-card {
   background: #fff;
   border-radius: 12px;
@@ -370,7 +359,6 @@
   margin-top: 22px;
 }
 
-/* ─── Form ─── */
 .up-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -430,7 +418,6 @@
   min-height: 72px;
 }
 
-/* ─── Role Section ─── */
 .up-role-header {
   display: flex;
   align-items: center;
@@ -517,7 +504,6 @@
   transform: rotate(45deg);
 }
 
-/* ─── Quick Links ─── */
 .up-quick-links {
   display: flex;
   flex-direction: column;
@@ -556,7 +542,6 @@
   font-weight: 400;
 }
 
-/* ─── Activity ─── */
 .up-activity-list {
   display: flex;
   flex-direction: column;
@@ -603,7 +588,6 @@
   font-weight: 500;
 }
 
-/* ─── Security ─── */
 .up-password-strength {
   display: flex;
   align-items: center;
@@ -687,7 +671,6 @@
   max-width: 300px;
 }
 
-/* ─── Sessions ─── */
 .up-session-row {
   display: flex;
   align-items: center;
@@ -766,7 +749,7 @@
   font-weight: 700;
 }
 
-/* ─── Responsive ─── */
+/*  Responsive  */
 @media (max-width: 900px) {
   .up-two-col {
     grid-template-columns: 1fr;

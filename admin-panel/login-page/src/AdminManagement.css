@@ -8,7 +8,7 @@
   padding: 0;
 }
 
-/* ─── Page ─── */
+/* Page */
 .am-page {
   display: flex;
   flex-direction: column;
@@ -17,7 +17,7 @@
   color: #1a1a1a;
 }
 
-/* ─── Toast ─── */
+/* Toast */
 .am-toast {
   position: fixed;
   top: 24px;
@@ -51,7 +51,7 @@
   border: 1px solid #fca5a5;
 }
 
-/* ─── Header ─── */
+/* Header*/
 .am-header {
   display: flex;
   align-items: flex-start;
@@ -98,7 +98,7 @@
   box-shadow: none;
 }
 
-/* ─── Stats ─── */
+/* Stats */
 .am-stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -132,7 +132,7 @@
   color: #111827;
 }
 
-/* ─── Search ─── */
+/* Search */
 .am-search-wrap {
   display: flex;
   align-items: center;
@@ -156,7 +156,7 @@
   color: #9ca3af;
 }
 
-/* ─── Table ─── */
+/* Table */
 .am-table-wrap {
   background: #fff;
   border: 1px solid #e8e8e8;
@@ -195,7 +195,7 @@
   background: #fafafa;
 }
 
-/* ─── Admin cell ─── */
+/* Admin cell */
 .am-admin-cell {
   display: flex;
   flex-direction: column;
@@ -217,7 +217,7 @@
   color: #999;
 }
 
-/* ─── Role chip ─── */
+/* Role chip */
 .am-role-chip {
   display: inline-flex;
   align-items: center;
@@ -229,7 +229,7 @@
   font-weight: 500;
 }
 
-/* ─── Status ─── */
+/* Status */
 .am-status {
   font-size: 12px;
   font-weight: 500;
@@ -241,7 +241,6 @@
   color: #9ca3af;
 }
 
-/* ─── Meta / You pill ─── */
 .am-meta-text {
   font-size: 12px;
   color: #555;
@@ -260,7 +259,7 @@
   text-transform: uppercase;
 }
 
-/* ─── Last Login ─── */
+/*  Last Login  */
 .am-login-cell {
   display: flex;
   flex-direction: column;
@@ -276,7 +275,7 @@
   color: #aaa;
 }
 
-/* ─── Activity bar ─── */
+/*  Activity bar */
 .am-activity-bar-wrap {
   display: flex;
   align-items: center;
@@ -297,7 +296,7 @@
   white-space: nowrap;
 }
 
-/* ─── Table Actions ─── */
+/* Table Actions */
 .am-actions {
   display: flex;
   align-items: center;
@@ -333,7 +332,6 @@
   box-shadow: none;
 }
 
-/* ─── Empty state ─── */
 .am-empty {
   text-align: center;
   padding: 60px 20px;
@@ -341,7 +339,6 @@
   font-size: 13px;
 }
 
-/* ─── Modal Overlay ─── */
 .am-modal-overlay {
   position: fixed;
   inset: 0;
@@ -468,7 +465,7 @@
   background: #fff5f5 !important;
 }
 
-/* ─── Section titles & dividers ─── */
+/* Section titles & dividers */
 .am-section-title {
   display: block;
   font-size: 10px;
@@ -489,7 +486,7 @@
   margin-top: 2px;
 }
 
-/* ─── Password field ─── */
+/* Password field  */
 .am-pw-wrap {
   position: relative;
 }
@@ -534,7 +531,7 @@
   margin-top: 4px;
 }
 
-/* ─── Phone field ─── */
+/* Phone field */
 .am-phone-wrap {
   display: flex;
   gap: 8px;
@@ -577,7 +574,6 @@
   background: #fff5f5 !important;
 }
 
-/* ─── Permissions ─── */
 .am-modal-perms {
   margin-bottom: 20px;
 }
@@ -617,7 +613,6 @@
   cursor: not-allowed;
 }
 
-/* ─── Modal Footer & Buttons ─── */
 .am-modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -669,7 +664,6 @@
   box-shadow: none;
 }
 
-/* ─── Confirm Modal ─── */
 .am-confirm-modal {
   max-width: 380px;
   padding: 32px;
@@ -729,7 +723,7 @@
   box-shadow: none;
 }
 
-/* ─── Responsive ─── */
+/* Responsive */
 @media (max-width: 768px) {
   .am-stats-row {
     grid-template-columns: repeat(2, 1fr);

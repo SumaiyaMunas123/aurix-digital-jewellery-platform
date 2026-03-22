@@ -1,9 +1,5 @@
 import { supabase } from '../config/supabaseClient.js';
 
-// Upload documents(Jeweller) 
-// Expects multipart/form-data with files keyed by document type
-// This version accepts base64 or URLs (storage upload handled client-side via Supabase JS SDK)
-// and saves the public URLs into the jeweller_documents table.
 export const saveDocumentUrls = async (req, res) => {
   try {
     const jeweller_id = req.user?.id;
@@ -11,12 +7,11 @@ export const saveDocumentUrls = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorised' });
     }
 
-    const documents = req.body?.documents; // { key: publicUrl, ... }
+    const documents = req.body?.documents; 
     if (!documents || typeof documents !== 'object') {
       return res.status(400).json({ success: false, message: 'documents object is required' });
     }
 
-    // Upsert document record for this jeweller
     const { data: existing } = await supabase
       .from('jeweller_documents')
       .select('id')
@@ -47,7 +42,6 @@ export const saveDocumentUrls = async (req, res) => {
 
     if (result.error) throw result.error;
 
-    // Update verification_status back to 'pending' if they resubmit after rejection
     await supabase
       .from('users')
       .update({ verification_status: 'pending', rejection_reason: null })
@@ -65,7 +59,6 @@ export const saveDocumentUrls = async (req, res) => {
   }
 };
 
-// Get documents (Jeweller) 
 export const getMyDocuments = async (req, res) => {
   try {
     const jeweller_id = req.user?.id;
@@ -77,7 +70,7 @@ export const getMyDocuments = async (req, res) => {
       .eq('jeweller_id', jeweller_id)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = not found
+    if (error && error.code !== 'PGRST116') throw error; 
 
     return res.status(200).json({ success: true, documents: data || null });
   } catch (error) {
@@ -86,7 +79,6 @@ export const getMyDocuments = async (req, res) => {
   }
 };
 
-// Get jeweller documents (Admin) 
 export const getJewellerDocuments = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
@@ -106,7 +98,6 @@ export const getJewellerDocuments = async (req, res) => {
   }
 };
 
-// Add document feedback (Admin) 
 export const addDocumentFeedback = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
@@ -117,8 +108,6 @@ export const addDocumentFeedback = async (req, res) => {
       return res.status(400).json({ success: false, message: 'document_key and feedback are required' });
     }
 
-    // Store feedback as JSONB column in jeweller_documents
-    // First fetch existing feedback
     const { data: existing, error: fetchErr } = await supabase
       .from('jeweller_documents')
       .select('feedback')
@@ -146,7 +135,6 @@ export const addDocumentFeedback = async (req, res) => {
 
     if (error) throw error;
 
-    // Log admin action
     await logAdminAction({
       admin_id,
       jeweller_id,
@@ -161,7 +149,6 @@ export const addDocumentFeedback = async (req, res) => {
   }
 };
 
-// Shared: admin action logging utility
 export const logAdminAction = async ({ admin_id, jeweller_id, action, details = {} }) => {
   try {
     await supabase.from('admin_action_logs').insert({
@@ -172,11 +159,10 @@ export const logAdminAction = async ({ admin_id, jeweller_id, action, details = 
       performed_at: new Date().toISOString(),
     });
   } catch (err) {
-    console.error('⚠️ Failed to log admin action:', err.message);
+    console.error('Failed to log admin action:', err.message);
   }
 };
 
-//  Get admin logs for a jeweller (Admin)
 export const getAdminLogs = async (req, res) => {
   try {
     const { jeweller_id } = req.params;

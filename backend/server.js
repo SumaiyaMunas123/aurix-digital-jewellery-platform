@@ -109,7 +109,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('');
 });
 
-// Handle uncaught exceptions — registered once each
+// Handle uncaught exceptions 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   process.exit(1);

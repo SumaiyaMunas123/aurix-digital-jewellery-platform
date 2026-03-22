@@ -15,7 +15,6 @@ const ensureVerifiedJeweller = async (userId) => {
   return { ok: true, jeweller };
 };
 
-// ==================== ADD PRODUCT ====================
 export const addProduct = async (req, res) => {
   try {
     const {
@@ -72,7 +71,6 @@ export const addProduct = async (req, res) => {
   }
 };
 
-// ==================== GET ALL PRODUCTS (public — approved + in stock) ====================
 export const getAllProducts = async (req, res) => {
   try {
     const { category, search, min_price, max_price } = req.query;
@@ -126,7 +124,6 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
-// ==================== GET SINGLE PRODUCT ====================
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -146,7 +143,6 @@ export const getProductById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    // Atomic view increment
     await supabase.rpc('increment_product_views', { product_id: id });
 
     return res.status(200).json({ success: true, product });
@@ -157,7 +153,6 @@ export const getProductById = async (req, res) => {
   }
 };
 
-// ==================== GET JEWELLER'S OWN PRODUCTS ====================
 export const getJewellerProducts = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
@@ -182,7 +177,6 @@ export const getJewellerProducts = async (req, res) => {
   }
 };
 
-// ==================== UPDATE PRODUCT ====================
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -223,11 +217,6 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-// ==================== UPDATE STOCK ====================
-// Called by jeweller to restock a product.
-// - Sets is_available based on new qty (true if qty > 0, false if 0)
-// - If product was flagged only because of out-of-stock (admin_status = 'flagged'),
-//   and new qty > 0, it is automatically restored to 'approved'.
 export const updateStock = async (req, res) => {
   try {
     const { id } = req.params;
@@ -263,13 +252,11 @@ export const updateStock = async (req, res) => {
 
     const isAvailable = qty > 0;
 
-    // Auto-restore: if flagged ONLY because stock ran out, bring back to approved when restocked
     let newAdminStatus = existing.admin_status;
     if (existing.admin_status === 'flagged' && qty > 0) {
       newAdminStatus = 'approved';
       console.log(`Product ${id} restocked — auto-restoring from flagged to approved`);
     }
-    // If stock hits 0 and product is approved, flag it automatically
     if (qty === 0 && existing.admin_status === 'approved') {
       newAdminStatus = 'flagged';
       console.log(`Product ${id} out of stock — auto-flagging`);
@@ -304,7 +291,6 @@ export const updateStock = async (req, res) => {
   }
 };
 
-// ==================== TOGGLE VISIBILITY (jeweller) ====================
 export const toggleProductVisibility = async (req, res) => {
   try {
     const { id } = req.params;
@@ -346,7 +332,6 @@ export const toggleProductVisibility = async (req, res) => {
   }
 };
 
-// ==================== DELETE PRODUCT (jeweller) ====================
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -378,7 +363,6 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// ==================== GET CATEGORIES ====================
 export const getCategories = async (req, res) => {
   try {
     const { data: products, error } = await supabase

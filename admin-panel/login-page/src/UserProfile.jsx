@@ -100,7 +100,6 @@ const UserProfile = ({ onNavigate }) => {
 
   return (
     <div className="up-page">
-      {/* Page header */}
       <div className="up-page-header">
         <h1>My Profile</h1>
         <div className="up-header-actions">
@@ -125,7 +124,6 @@ const UserProfile = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Profile card */}
       <div className="up-profile-card">
         <div className="up-profile-banner" />
         <div className="up-profile-body">
@@ -154,24 +152,9 @@ const UserProfile = ({ onNavigate }) => {
               </span>
             </div>
           </div>
-
-          {/* <div className="up-stats-strip">
-            {[
-              { label: "Actions Today", value: "12" },
-              { label: "This Month", value: "248" },
-              { label: "Disputes Resolved", value: "34" },
-              { label: "Jewelers Verified", value: "87" },
-            ].map((s, i) => (
-              <div key={i} className="up-stat">
-                <span className="up-stat-value">{s.value}</span>
-                <span className="up-stat-label">{s.label}</span>
-              </div>
-            ))}
-          </div> */}
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="up-tabs-bar">
         {tabs.map((t) => (
           <button
@@ -184,7 +167,6 @@ const UserProfile = ({ onNavigate }) => {
         ))}
       </div>
 
-      {/* Overview */}
       {activeTab === "overview" && (
         <div className="up-two-col">
           <div className="up-card">
@@ -249,7 +231,6 @@ const UserProfile = ({ onNavigate }) => {
         </div>
       )}
 
-      {/* Activity */}
       {activeTab === "activity" && (
         <div className="up-card">
           <h3 className="up-card-title">Recent Activity</h3>
@@ -266,7 +247,7 @@ const UserProfile = ({ onNavigate }) => {
           </div>
         </div>
       )}
-      {/* Security */}
+
       {activeTab === "security" && (
         <div className="up-two-col">
           <div className="up-card">

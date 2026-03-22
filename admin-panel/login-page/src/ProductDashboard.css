@@ -98,7 +98,6 @@
   box-shadow: none;
 }
 
-/* Pending count badge on the tab */
 .pd-tab-badge {
   display: inline-flex;
   align-items: center;
@@ -114,7 +113,6 @@
   line-height: 1;
 }
 
-/* Search */
 .pd-search-filter-bar {
   display: flex;
   align-items: center;
@@ -145,7 +143,6 @@
   color: #9ca3af;
 }
 
-/* Table */
 .pd-table-wrapper {
   background: white;
   border-radius: 16px;
@@ -183,13 +180,6 @@
 .pd-table tbody tr:hover {
   background: #fafafa;
 }
-
-/* .pd-row-hidden td {
-  opacity: 0.5;
-}
-.pd-row-hidden:hover td {
-  opacity: 0.7;
-} */
 
 .pd-name-cell {
   display: flex;
@@ -248,7 +238,6 @@
   font-weight: 600;
 }
 
-/* Status badges */
 .pd-status-badge {
   display: inline-flex;
   align-items: center;
@@ -276,7 +265,6 @@
   border: 1.5px solid #6b7280;
 }
 
-/* View button */
 .od-view-btn {
   padding: 6px 16px;
   border: none;
@@ -298,7 +286,6 @@
   box-shadow: none;
 }
 
-/* Empty */
 .pd-empty {
   text-align: center;
   padding: 48px 0 !important;
@@ -307,7 +294,6 @@
   font-weight: 500;
 }
 
-/* Pagination */
 .pd-pagination {
   display: flex;
   align-items: center;
@@ -355,7 +341,6 @@
   box-shadow: none;
 }
 
-/* MODAL  */
 .pd-modal-overlay {
   position: fixed;
   inset: 0;
@@ -445,7 +430,6 @@
   justify-content: center;
 }
 
-/* Visibility toggle */
 .pd-visibility-btn {
   position: absolute;
   bottom: 14px;
@@ -482,7 +466,6 @@
   outline: none;
 }
 
-/* Modal body */
 .pd-modal-body {
   padding: 22px 24px 24px;
   display: flex;
@@ -524,7 +507,6 @@
   letter-spacing: -0.5px;
 }
 
-/* Detail grid */
 .pd-modal-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -562,7 +544,6 @@
   color: #dc2626;
 }
 
-/* Stats row */
 .pd-modal-stats {
   display: flex;
   gap: 16px;
@@ -587,7 +568,6 @@
   color: #9ca3af;
 }
 
-/* Review panels */
 .pd-modal-review {
   border-radius: 12px;
   border: 1.5px solid #fde68a;
@@ -664,7 +644,6 @@
   outline: none;
 }
 
-/* Footer */
 .pd-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -694,7 +673,6 @@
   outline: none;
 }
 
-/* Confirm modal */
 .pd-confirm-modal {
   background: white;
   border-radius: 20px;

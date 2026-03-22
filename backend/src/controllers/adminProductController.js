@@ -1,6 +1,5 @@
 import { supabase } from '../config/supabaseClient.js';
 
-// ==================== GET ALL PRODUCTS (ADMIN VIEW) ====================
 export const adminGetAllProducts = async (req, res) => {
   try {
     const { search, category, admin_status, is_active, page = 1, limit = 20 } = req.query;
@@ -47,7 +46,6 @@ export const adminGetAllProducts = async (req, res) => {
   }
 };
 
-// ==================== GET SINGLE PRODUCT (ADMIN) ====================
 export const adminGetProductById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -76,9 +74,6 @@ export const adminGetProductById = async (req, res) => {
   }
 };
 
-// ==================== APPROVE PRODUCT ====================
-// Pending → Approved  OR  Flagged → Approved
-// Sets is_active: true so the product becomes visible to buyers.
 export const adminApproveProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -97,7 +92,6 @@ export const adminApproveProduct = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Product is already approved' });
     }
 
-    // A product with 0 stock cannot be made live — keep it flagged
     if ((existing.stock_quantity || 0) === 0) {
       return res.status(400).json({
         success: false,
@@ -118,7 +112,6 @@ export const adminApproveProduct = async (req, res) => {
 
     if (error) throw error;
 
-    // Log action
     await supabase.from('admin_product_actions').insert([{
       admin_id: req.user.id,
       product_id: id,
@@ -139,9 +132,6 @@ export const adminApproveProduct = async (req, res) => {
   }
 };
 
-// ==================== REJECT PRODUCT ====================
-// Pending → Rejected  OR  Flagged → Rejected
-// Sets is_active: false so product is hidden from buyers.
 export const adminRejectProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -175,7 +165,6 @@ export const adminRejectProduct = async (req, res) => {
 
     if (error) throw error;
 
-    // Log action
     await supabase.from('admin_product_actions').insert([{
       admin_id: req.user.id,
       product_id: id,
@@ -196,7 +185,6 @@ export const adminRejectProduct = async (req, res) => {
   }
 };
 
-// ==================== DELETE PRODUCT ====================
 export const adminDeleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -227,7 +215,6 @@ export const adminDeleteProduct = async (req, res) => {
   }
 };
 
-// ==================== TOGGLE VISIBILITY ====================
 export const adminToggleProductVisibility = async (req, res) => {
   try {
     const { id } = req.params;
@@ -269,7 +256,6 @@ export const adminToggleProductVisibility = async (req, res) => {
   }
 };
 
-// ==================== STATS ====================
 export const adminGetProductStats = async (req, res) => {
   try {
     const [
@@ -313,7 +299,6 @@ export const adminGetProductStats = async (req, res) => {
   }
 };
 
-// ==================== PRODUCTS BY JEWELLER (ADMIN) ====================
 export const adminGetProductsByJeweller = async (req, res) => {
   try {
     const { jeweller_id } = req.params;

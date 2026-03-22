@@ -18,7 +18,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Rejection feedback state
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
@@ -38,7 +37,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
 
-  // ── Counts ──────────────────────────────────────────────────
   const pendingCount = products.filter(
     (p) => p.admin_status === "pending",
   ).length;
@@ -95,15 +93,14 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
   const jeweller = (p) =>
     p.jeweller?.business_name || p.jeweller?.name || "Unknown Jeweller";
 
-  // ── Sync updated product into local state ─────────────────
+  // ── Sync updated product into local state
   const syncProduct = (updated) => {
     setProducts((prev) => prev.map((p) => p.id === updated.id ? updated : p));
     if (viewProduct?.id === updated.id) setViewProduct(updated);
   };
 
-  // ── Actions ───────────────────────────────────────────────
+  //  Actions 
 
-  // PATCH /api/admin/products/:id/approve
   const handleApprove = async (id) => {
     try {
       setActionLoading(true);
@@ -116,14 +113,12 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
     }
   };
 
-  // Opens rejection modal — does NOT reject immediately
   const openRejectModal = (product) => {
     setRejectTarget(product);
     setRejectReason("");
     setRejectError("");
   };
 
-  // PATCH /api/admin/products/:id/reject  body: { reason }
   const handleConfirmReject = async () => {
     if (!rejectReason.trim()) {
       setRejectError("Please provide a reason before rejecting.");
@@ -143,7 +138,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
     }
   };
 
-  // PATCH /api/admin/products/:id/visibility  body: { is_active }
   const handleToggleVisibility = async (id, currentStatus) => {
     try {
       setActionLoading(true);
@@ -156,7 +150,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
     }
   };
 
-  // DELETE /api/admin/products/:id
   const handleDelete = async (id) => {
     try {
       setActionLoading(true);
@@ -177,7 +170,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
         <h1>Product Management</h1>
       </div>
 
-      {/* Stats */}
       <div className="pd-stats-grid">
         {stats.map((stat, i) => (
           <div key={i} className="pd-stat-card">
@@ -187,7 +179,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
         ))}
       </div>
 
-      {/* Tabs with pending badge */}
       <div className="pd-controls-bar">
         <div className="od-tabs">
           {tabs.map((tab) => (
@@ -205,7 +196,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
         </div>
       </div>
 
-      {/* Search */}
       <div className="pd-search-filter-bar">
         <div className="pd-search-wrap">
           <svg
@@ -229,7 +219,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
         </div>
       </div>
 
-      {/* Table */}
       <div className="pd-table-wrapper">
         <table className="pd-table">
           <thead>
@@ -331,7 +320,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
         </div>
       </div>
 
-      {/*  VIEW MODAL  */}
       {viewProduct && (
         <div className="pd-modal-overlay" onClick={() => setViewProduct(null)}>
           <div className="pd-modal" onClick={(e) => e.stopPropagation()}>
@@ -376,7 +364,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                 </div>
               )}
 
-              {/* Only show visibility toggle for approved products */}
               {viewProduct.admin_status === "approved" && (
                 <button
                   className={`pd-visibility-btn ${viewProduct.is_active ? "visible" : "hidden"}`}
@@ -482,7 +469,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                 </div>
               </div>
 
-              {/* Show rejection reason if product was rejected */}
               {viewProduct.admin_status === "rejected" && viewProduct.rejection_reason && (
                 <div style={{
                   background: "#fff5f5",
@@ -557,7 +543,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                 </div>
               </div>
 
-              {/*  PENDING: Approve / Reject  */}
               {viewProduct.admin_status === "pending" && (
                 <div className="pd-modal-review">
                   <p className="pd-review-label">
@@ -603,7 +588,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                 </div>
               )}
 
-              {/* FLAGGED: out of stock — auto-restores on restock, admin can reject */}
               {viewProduct.admin_status === "flagged" && (
                 <div className="pd-modal-review pd-modal-review--flagged">
                   <p className="pd-review-label">
@@ -663,7 +647,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
         </div>
       )}
 
-      {/* REJECTION REASON MODAL */}
       {rejectTarget && (
         <div className="pd-modal-overlay" onClick={() => setRejectTarget(null)}>
           <div
@@ -721,7 +704,6 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
         </div>
       )}
 
-      {/* DELETE CONFIRM */}
       {deleteTarget && (
         <div className="pd-modal-overlay" onClick={() => setDeleteTarget(null)}>
           <div

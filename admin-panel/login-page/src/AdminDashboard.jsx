@@ -49,10 +49,6 @@ const AdminDashboard = ({ onLogout }) => {
     setNavProps(props);
   };
 
-  // const handleProfileClick = () => {
-  //   alert("User profile clicked!");
-  // };
-
   // SVG Icons
   const Icons = {
     Dashboard: () => (
@@ -90,16 +86,7 @@ const AdminDashboard = ({ onLogout }) => {
         <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
       </svg>
     ),
-    // Menu: () => (
-    //   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-    //     <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-    //   </svg>
-    // ),
-    // Close: () => (
-    //   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-    //     <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-    //   </svg>
-    // ),
+  
     Logout: () => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
         <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
@@ -161,7 +148,7 @@ const AdminDashboard = ({ onLogout }) => {
   const stats = [
     { label: "Jeweler Verifications", value: liveStats ? String(liveStats.pendingJewellers) : "…", icon: "People"   },
     { label: "Total Products",        value: liveStats ? String(liveStats.totalProducts)    : "…", icon: "Products" },
-    { label: "Active Orders",         value: "—",                                                  icon: "Orders"   },
+    { label: "Active Orders",         value: liveStats ? String(liveStats.activeOrders)     : "…", icon: "Orders"   },
     { label: "Escrow Balance",        value: "—",                                                  icon: "Finance"  },
     { label: "Total Jewellers",       value: liveStats ? String(liveStats.totalJewellers)   : "…", icon: "People"   },
   ];
@@ -214,10 +201,6 @@ const AdminDashboard = ({ onLogout }) => {
           <div className="section-header">
             <h2>Orders Overview</h2>
             <div className="time-filter">
-              {/* <button
-                className={chartPeriod === "week" ? "active" : ""}
-                onClick={() => setChartPeriod("week")}
-              >Week</button> */}
               <button
                 className={chartPeriod === "month" ? "active" : ""}
                 onClick={() => setChartPeriod("month")}
@@ -228,7 +211,6 @@ const AdminDashboard = ({ onLogout }) => {
           {/* Line Chart */}
           {chartData.length === 0 ? (
             <div className="chart-placeholder">
-              <span>📊</span>
               <p>No order data yet</p>
             </div>
           ) : (() => {
