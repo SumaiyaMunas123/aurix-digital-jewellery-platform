@@ -24,11 +24,6 @@ class AurixApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<AuthRepository>(create: (_) => AuthRepoApi()),
-        // Use real API repositories instead of dummy repositories
-        Provider<AuthRepository>(create: (_) => AuthRepoApi()),
-        Provider<GoldRateRepository>(create: (_) => GoldRateRepoApi()),
-        Provider<ProductRepository>(create: (_) => ProductRepoApi()),
-        Provider<AuthRepository>(create: (_) => AuthRepoDummy()),
         Provider<GoldRateRepository>(create: (_) => GoldRateRepoApi()),
         Provider<ProductRepository>(create: (_) => ProductRepoApi()),
         ChangeNotifierProvider<WishlistStore>(create: (_) => WishlistStore()),

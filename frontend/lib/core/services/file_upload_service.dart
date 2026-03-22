@@ -50,7 +50,7 @@ class FileUploadService {
       print('📤 Uploading to $bucket/$path...');
 
       // Upload file
-      final response = await supabase.storage.from(bucket).upload(
+      await supabase.storage.from(bucket).upload(
         path,
         fileToUpload,
       );
