@@ -455,7 +455,7 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             isExpanded: true,
             decoration: const InputDecoration(
               border: InputBorder.none,

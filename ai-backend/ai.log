@@ -1,0 +1,13 @@
+
+> aurix-ai-backend@1.0.0 dev
+> node server.js
+
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+
+========================================
+||      AURIX AI BACKEND RUNNING      ||
+========================================
+ Server: http://localhost:7001
+ Endpoints: /api/ai , /api/designs
+========================================
+

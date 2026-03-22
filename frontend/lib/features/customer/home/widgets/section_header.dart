@@ -24,17 +24,17 @@ class SectionHeader extends StatelessWidget {
           ),
         ),
 
-        /// SEE ALL BUTTON
-        GestureDetector(
-          onTap: onSeeAll,
-          child: Text(
-            "See all",
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              color: Theme.of(context).colorScheme.primary,
+        if (onSeeAll != null)
+          GestureDetector(
+            onTap: onSeeAll,
+            child: Text(
+              "See all",
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
-        ),
       ],
     );
   }

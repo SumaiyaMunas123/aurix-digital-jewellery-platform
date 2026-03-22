@@ -7,7 +7,7 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = const [
+    const items = [
       {
         "title": "Quotation reply received",
         "subtitle": "Luxe Jewels replied to your quotation request.",

@@ -128,7 +128,7 @@ class _QuotationRequestScreenState extends State<QuotationRequestScreen> {
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
-                      value: _selectedSize,
+                      initialValue: _selectedSize,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         border: InputBorder.none,
@@ -154,7 +154,7 @@ class _QuotationRequestScreenState extends State<QuotationRequestScreen> {
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
-                      value: _selectedQuantity,
+                      initialValue: _selectedQuantity,
                       isExpanded: true,
                       decoration: const InputDecoration(
                         border: InputBorder.none,

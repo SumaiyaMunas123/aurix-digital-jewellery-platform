@@ -53,7 +53,7 @@ app.use('/api/ai', aiRoutes);
 
 app.get('/gold-rate', async (req, res) => {
   try {
-    const baseUrl = process.env.GOLD_RATE_SERVICE_URL || 'http://localhost:5100';
+    const baseUrl = process.env.GOLD_RATE_SERVICE_URL || 'http://localhost:6001';
     const upstream = `${baseUrl.replace(/\/$/, '')}/api/gold-rate`;
     const response = await fetch(upstream, {
       method: 'GET',

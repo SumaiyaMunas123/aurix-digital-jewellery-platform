@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 6000;
+const PORT = process.env.PORT || 6001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Gold rate service listening on http://localhost:${PORT}`);
 });

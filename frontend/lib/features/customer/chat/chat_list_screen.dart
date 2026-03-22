@@ -8,7 +8,7 @@ class ChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chats = const [
+    const chats = [
       {"name": "Luxe Jewels", "last": "Hi! How can we help?"},
       {"name": "Aurora Gold", "last": "We have 22K rings available."},
       {"name": "Ceylon Gems", "last": "Can you share your budget?"},

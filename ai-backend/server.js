@@ -26,7 +26,7 @@ app.get('/health', (req, res) => {
 app.use('/api/ai', aiRoutes);
 app.use('/api/designs', designRoutes);
 
-const PORT = Number(process.env.PORT || 7000);
+const PORT = Number(process.env.PORT || 7001);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log('');

@@ -203,7 +203,7 @@ class _JewellerAddProductScreenState extends State<JewellerAddProductScreen> {
                     child: Text(
                       widget.product == null ? 'Add Product' : 'Edit Product',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                       ),
@@ -417,7 +417,7 @@ class _JewellerAddProductScreenState extends State<JewellerAddProductScreen> {
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: value,
+            initialValue: value,
             isExpanded: true,
             decoration: const InputDecoration(
               border: InputBorder.none,

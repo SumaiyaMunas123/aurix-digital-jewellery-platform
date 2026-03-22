@@ -409,7 +409,7 @@ class _MetalDetailScreenState extends State<MetalDetailScreen> {
         bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: false),
-      lineTouchData: LineTouchData(enabled: true),
+      lineTouchData: const LineTouchData(enabled: true),
       lineBarsData: [
         LineChartBarData(
           spots: spots,

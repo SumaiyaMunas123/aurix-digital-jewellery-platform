@@ -4,17 +4,13 @@
  */
 
 import jwt from 'jsonwebtoken';
+import { sendError } from '../utils/response.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
 export const validateUserAuth = (req, res, next) => {
   try {
-import { sendError } from '../utils/response.js';
-
-export const validateUserAuth = (req, res, next) => {
-  try {
     // Extract user context from body, query, or headers
-    const user_id = req.body?.user_id || req.query?.user_id || null;
     const user_type = req.body?.user_type || req.query?.user_type || 'customer';
 
     // Optional: If JWT is provided, validate it
@@ -59,8 +55,6 @@ export const validateUserAuth = (req, res, next) => {
       message: 'Authentication failed',
       error: error.message,
     });
-    console.error('❌ Auth error:', error.message);
-    return sendError(res, 'Authentication failed', 401);
   }
 };
 
