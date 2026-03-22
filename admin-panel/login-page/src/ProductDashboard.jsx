@@ -1,158 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./ProductDashboard.css";
+import {
+  adminGetAllProducts,
+  adminApproveProduct,
+  adminRejectProduct,
+  adminDeleteProduct,
+  adminToggleProductVisibility,
+} from "./api/client";
 
 const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
   const [activeTab, setActiveTab] = useState("All Products");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewProduct, setViewProduct] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Diamond Solitaire Ring 1ct",
-      description: "18k White Gold, Round Cut",
-      sku: "SKU-DR-001",
-      category: "RINGS",
-      price: 250000.0,
-      stock_quantity: 15,
-      admin_status: "approved",
-      is_active: true,
-      is_available: true,
-      jeweller: "Silva Gems",
-      metal_type: "White Gold",
-      karat: "18K",
-      weight: "3.2g",
-      total_views: 842,
-      total_sold: 12,
-    },
-    {
-      id: 2,
-      name: "18k Gold Cuban Link",
-      description: "22-Inch, Solid Gold",
-      sku: "SKU-GC-042",
-      category: "NECKLACES",
-      price: 120000.0,
-      stock_quantity: 8,
-      admin_status: "pending",
-      is_active: false,
-      is_available: true,
-      jeweller: "Golden Era Jewels",
-      metal_type: "Gold",
-      karat: "18K",
-      weight: "28.5g",
-      total_views: 310,
-      total_sold: 4,
-    },
-    {
-      id: 3,
-      name: "South Sea Pearl Drop",
-      description: "Tahitian Grade AA, Pair",
-      sku: "SKU-PE-015",
-      category: "EARRINGS",
-      price: 85000.0,
-      stock_quantity: 20,
-      admin_status: "approved",
-      is_active: true,
-      is_available: true,
-      jeweller: "Pearl Coast",
-      metal_type: "Silver",
-      karat: null,
-      weight: "5.1g",
-      total_views: 629,
-      total_sold: 7,
-    },
-    {
-      id: 4,
-      name: "Square Cut Emerald Band",
-      description: "Natural Colombian, Platinum",
-      sku: "SKU-ES-822",
-      category: "RINGS",
-      price: 180000.0,
-      stock_quantity: 0,
-      admin_status: "flagged",
-      is_active: false,
-      is_available: false,
-      jeweller: "Platinum House",
-      metal_type: "Platinum",
-      karat: null,
-      weight: "6.8g",
-      total_views: 91,
-      total_sold: 0,
-    },
-    {
-      id: 5,
-      name: "Rose Gold Bangle Set",
-      description: "14k Rose Gold, Set of 3",
-      sku: "SKU-BG-103",
-      category: "BRACELETS",
-      price: 620000.0,
-      stock_quantity: 5,
-      admin_status: "pending",
-      is_active: false,
-      is_available: true,
-      jeweller: "Lux Bangle Co",
-      metal_type: "Rose Gold",
-      karat: "14K",
-      weight: "42g",
-      total_views: 203,
-      total_sold: 2,
-    },
-    {
-      id: 6,
-      name: "Sapphire Tennis Bracelet",
-      description: "Natural Ceylon, Silver",
-      sku: "SKU-TB-211",
-      category: "BRACELETS",
-      price: 32000.0,
-      stock_quantity: 3,
-      admin_status: "approved",
-      is_active: true,
-      is_available: true,
-      jeweller: "Ceylon Stones",
-      metal_type: "Silver",
-      karat: null,
-      weight: "18g",
-      total_views: 1104,
-      total_sold: 22,
-    },
-    {
-      id: 7,
-      name: "Ruby Stud Earrings",
-      description: "Burmese Ruby, 18k Gold",
-      sku: "SKU-RU-309",
-      category: "EARRINGS",
-      price: 95000.0,
-      stock_quantity: 0,
-      admin_status: "rejected",
-      is_active: false,
-      is_available: false,
-      jeweller: "Ruby Palace",
-      metal_type: "Gold",
-      karat: "18K",
-      weight: "2.4g",
-      total_views: 47,
-      total_sold: 0,
-    },
-    {
-      id: 8,
-      name: "Platinum Wedding Band",
-      description: "950 Platinum, 4mm",
-      sku: "SKU-WB-441",
-      category: "RINGS",
-      price: 75000.0,
-      stock_quantity: 12,
-      admin_status: "rejected",
-      is_active: false,
-      is_available: true,
-      jeweller: "Band & Beyond",
-      metal_type: "Platinum",
-      karat: null,
-      weight: "9.1g",
-      total_views: 388,
-      total_sold: 0,
-    },
-  ]);
+  // Rejection feedback state
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectError, setRejectError] = useState("");
+
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await adminGetAllProducts({ limit: 100 });
+      setProducts(res.products || []);
+    } catch (err) {
+      setError("Failed to load products. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadProducts(); }, [loadProducts]);
 
   // ── Counts ──────────────────────────────────────────────────
   const pendingCount = products.filter(
@@ -171,30 +55,25 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
   const tabs = ["All Products", "Pending", "Approved", "Flagged", "Rejected"];
 
   const stats = [
-    { label: "TOTAL PRODUCTS", value: products.length },
-    { label: "PENDING ", value: pendingCount },
-    { label: "APPROVED", value: approvedCount },
-    { label: "REJECTED", value: rejectedCount },
-    { label: "FLAGGED", value: flaggedCount },
+    { label: "TOTAL PRODUCTS", value: loading ? "—" : products.length },
+    { label: "PENDING ",       value: loading ? "—" : pendingCount },
+    { label: "APPROVED",       value: loading ? "—" : approvedCount },
+    { label: "REJECTED",       value: loading ? "—" : rejectedCount },
+    { label: "FLAGGED",        value: loading ? "—" : flaggedCount },
   ];
 
   const getStatusClass = (status) => {
     switch (status) {
-      case "approved":
-        return "status-approved";
-      case "pending":
-        return "status-pending";
-      case "flagged":
-        return "status-flagged";
-      case "rejected":
-        return "status-rejected";
-      default:
-        return "";
+      case "approved": return "status-approved";
+      case "pending":  return "status-pending";
+      case "flagged":  return "status-flagged";
+      case "rejected": return "status-rejected";
+      default: return "";
     }
   };
 
   const statusLabel = (status) =>
-    status.charAt(0).toUpperCase() + status.slice(1);
+    status ? status.charAt(0).toUpperCase() + status.slice(1) : "";
 
   // Tab filter maps to admin_status values
   const tabKey = activeTab === "All Products" ? null : activeTab.toLowerCase();
@@ -207,52 +86,89 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
       ? tabFiltered
       : tabFiltered.filter(
           (p) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.category.toLowerCase().includes(searchQuery.toLowerCase()),
+            p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.category?.toLowerCase().includes(searchQuery.toLowerCase()),
         );
 
-  //  Actions
-  const handleApprove = (id) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, admin_status: "approved", is_active: true } : p,
-      ),
-    );
-    if (viewProduct?.id === id)
-      setViewProduct((prev) => ({
-        ...prev,
-        admin_status: "approved",
-        is_active: true,
-      }));
+  // Helper: jeweller display name from joined relation
+  const jeweller = (p) =>
+    p.jeweller?.business_name || p.jeweller?.name || "Unknown Jeweller";
+
+  // ── Sync updated product into local state ─────────────────
+  const syncProduct = (updated) => {
+    setProducts((prev) => prev.map((p) => p.id === updated.id ? updated : p));
+    if (viewProduct?.id === updated.id) setViewProduct(updated);
   };
 
-  const handleReject = (id) => {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, admin_status: "rejected", is_active: false } : p,
-      ),
-    );
-    if (viewProduct?.id === id)
-      setViewProduct((prev) => ({
-        ...prev,
-        admin_status: "rejected",
-        is_active: false,
-      }));
+  // ── Actions ───────────────────────────────────────────────
+
+  // PATCH /api/admin/products/:id/approve
+  const handleApprove = async (id) => {
+    try {
+      setActionLoading(true);
+      const res = await adminApproveProduct(id);
+      syncProduct(res.product);
+    } catch (err) {
+      alert(err.message || "Could not approve product.");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleToggleVisibility = (id) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, is_active: !p.is_active } : p)),
-    );
-    if (viewProduct?.id === id)
-      setViewProduct((prev) => ({ ...prev, is_active: !prev.is_active }));
+  // Opens rejection modal — does NOT reject immediately
+  const openRejectModal = (product) => {
+    setRejectTarget(product);
+    setRejectReason("");
+    setRejectError("");
   };
 
-  const handleDelete = (id) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    setDeleteTarget(null);
-    if (viewProduct?.id === id) setViewProduct(null);
+  // PATCH /api/admin/products/:id/reject  body: { reason }
+  const handleConfirmReject = async () => {
+    if (!rejectReason.trim()) {
+      setRejectError("Please provide a reason before rejecting.");
+      return;
+    }
+    try {
+      setActionLoading(true);
+      const res = await adminRejectProduct(rejectTarget.id, rejectReason.trim());
+      syncProduct(res.product);
+      setRejectTarget(null);
+      setRejectReason("");
+      setRejectError("");
+    } catch (err) {
+      setRejectError(err.message || "Could not reject product.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // PATCH /api/admin/products/:id/visibility  body: { is_active }
+  const handleToggleVisibility = async (id, currentStatus) => {
+    try {
+      setActionLoading(true);
+      const res = await adminToggleProductVisibility(id, !currentStatus);
+      syncProduct(res.product);
+    } catch (err) {
+      alert(err.message || "Could not toggle visibility.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // DELETE /api/admin/products/:id
+  const handleDelete = async (id) => {
+    try {
+      setActionLoading(true);
+      await adminDeleteProduct(id);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setDeleteTarget(null);
+      if (viewProduct?.id === id) setViewProduct(null);
+    } catch (err) {
+      alert(err.message || "Could not delete product.");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -328,7 +244,15 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="pd-empty">Loading products...</td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="7" className="pd-empty" style={{ color: "#dc2626" }}>{error}</td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan="7" className="pd-empty">
                   No products found.
@@ -348,20 +272,19 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                           <span className="pd-hidden-tag">Hidden</span>
                         )}
                       </div>
-                      <div className="pd-product-desc">{product.jeweller}</div>
+                      <div className="pd-product-desc">{jeweller(product)}</div>
                     </div>
                   </td>
-                  <td className="pd-sku">{product.sku}</td>
+                  <td className="pd-sku">{product.sku || "—"}</td>
                   <td>
                     <span className="pd-category-badge">
-                      {product.category}
+                      {product.category || "—"}
                     </span>
                   </td>
                   <td className="pd-price">
-                    LKR{" "}
-                    {product.price.toLocaleString("en-LK", {
-                      maximumFractionDigits: 2,
-                    })}
+                    {product.price_mode === "on_request"
+                      ? "On Request"
+                      : `LKR ${(product.price || 0).toLocaleString("en-LK", { maximumFractionDigits: 2 })}`}
                   </td>
                   <td
                     className={`pd-stock ${product.stock_quantity === 0 ? "out-of-stock" : ""}`}
@@ -430,26 +353,35 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
             </button>
 
             <div className="pd-modal-image">
-              <div className="pd-modal-image-placeholder">
-                <svg
-                  width="52"
-                  height="52"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#c9a227"
-                  strokeWidth="1.2"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="3" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <polyline points="21 15 16 10 5 21" />
-                </svg>
-              </div>
+              {viewProduct.primary_image_url || viewProduct.image_url ? (
+                <img
+                  src={viewProduct.primary_image_url || viewProduct.image_url}
+                  alt={viewProduct.name}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "20px 20px 0 0" }}
+                />
+              ) : (
+                <div className="pd-modal-image-placeholder">
+                  <svg
+                    width="52"
+                    height="52"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#c9a227"
+                    strokeWidth="1.2"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="3" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </div>
+              )}
 
               {/* Only show visibility toggle for approved products */}
               {viewProduct.admin_status === "approved" && (
                 <button
                   className={`pd-visibility-btn ${viewProduct.is_active ? "visible" : "hidden"}`}
-                  onClick={() => handleToggleVisibility(viewProduct.id)}
+                  onClick={() => handleToggleVisibility(viewProduct.id, viewProduct.is_active)}
+                  disabled={actionLoading}
                 >
                   {viewProduct.is_active ? (
                     <>
@@ -504,23 +436,20 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
               </div>
 
               <div className="pd-modal-price">
-                LKR{" "}
-                {viewProduct.price.toLocaleString("en-LK", {
-                  maximumFractionDigits: 2,
-                })}
+                {viewProduct.price_mode === "on_request"
+                  ? "Price on Request"
+                  : `LKR ${(viewProduct.price || 0).toLocaleString("en-LK", { maximumFractionDigits: 2 })}`}
               </div>
 
               <div className="pd-modal-details">
                 <div className="pd-detail-item">
                   <span className="pd-detail-label">Jeweller</span>
-                  <span className="pd-detail-value">
-                    {viewProduct.jeweller}
-                  </span>
+                  <span className="pd-detail-value">{jeweller(viewProduct)}</span>
                 </div>
                 <div className="pd-detail-item">
                   <span className="pd-detail-label">SKU</span>
                   <span className="pd-detail-value mono">
-                    {viewProduct.sku}
+                    {viewProduct.sku || "—"}
                   </span>
                 </div>
                 <div className="pd-detail-item">
@@ -538,7 +467,7 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                 <div className="pd-detail-item">
                   <span className="pd-detail-label">Weight</span>
                   <span className="pd-detail-value">
-                    {viewProduct.weight || "—"}
+                    {viewProduct.weight ? `${viewProduct.weight}g` : "—"}
                   </span>
                 </div>
                 <div className="pd-detail-item">
@@ -552,6 +481,24 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                   </span>
                 </div>
               </div>
+
+              {/* Show rejection reason if product was rejected */}
+              {viewProduct.admin_status === "rejected" && viewProduct.rejection_reason && (
+                <div style={{
+                  background: "#fff5f5",
+                  border: "1.5px solid #fca5a5",
+                  borderRadius: "10px",
+                  padding: "12px 14px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}>
+                  <span className="pd-detail-label">Rejection Reason</span>
+                  <p style={{ margin: 0, fontSize: "13px", color: "#991b1b", fontWeight: 500, lineHeight: 1.5 }}>
+                    {viewProduct.rejection_reason}
+                  </p>
+                </div>
+              )}
 
               <div className="pd-modal-stats">
                 <div className="pd-modal-stat">
@@ -620,6 +567,7 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                     <button
                       className="pd-approve-btn"
                       onClick={() => handleApprove(viewProduct.id)}
+                      disabled={actionLoading}
                     >
                       <svg
                         width="14"
@@ -631,11 +579,12 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                       >
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
-                      Approve
+                      {actionLoading ? "Saving..." : "Approve"}
                     </button>
                     <button
                       className="pd-reject-btn"
-                      onClick={() => handleReject(viewProduct.id)}
+                      onClick={() => openRejectModal(viewProduct)}
+                      disabled={actionLoading}
                     >
                       <svg
                         width="14"
@@ -654,7 +603,7 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                 </div>
               )}
 
-              {/* FLAGGED: out of stock — admin can reject; approve blocked until restocked */}
+              {/* FLAGGED: out of stock — auto-restores on restock, admin can reject */}
               {viewProduct.admin_status === "flagged" && (
                 <div className="pd-modal-review pd-modal-review--flagged">
                   <p className="pd-review-label">
@@ -664,7 +613,8 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                   <div className="pd-review-actions">
                     <button
                       className="pd-reject-btn"
-                      onClick={() => handleReject(viewProduct.id)}
+                      onClick={() => openRejectModal(viewProduct)}
+                      disabled={actionLoading}
                     >
                       <svg
                         width="14"
@@ -690,6 +640,7 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                     setViewProduct(null);
                     setDeleteTarget(viewProduct);
                   }}
+                  disabled={actionLoading}
                 >
                   <svg
                     width="13"
@@ -707,6 +658,64 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
                   Delete Product
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECTION REASON MODAL */}
+      {rejectTarget && (
+        <div className="pd-modal-overlay" onClick={() => setRejectTarget(null)}>
+          <div
+            className="pd-confirm-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 460, textAlign: "left" }}
+          >
+            <h3 className="pd-confirm-title" style={{ textAlign: "left" }}>
+              Reject Product
+            </h3>
+            <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 600, color: "#d4af37" }}>
+              {rejectTarget.name}
+            </p>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#6b7280", lineHeight: 1.5 }}>
+              Provide a reason — this will be saved to the product record and visible to the jeweller.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#374151" }}>
+                Rejection Reason
+              </label>
+              <textarea
+                rows={4}
+                placeholder="e.g. Images are too low quality, please resubmit with clear photos..."
+                value={rejectReason}
+                onChange={(e) => { setRejectReason(e.target.value); setRejectError(""); }}
+                style={{
+                  width: "100%", padding: "12px 14px", border: `1.5px solid ${rejectError ? "#dc2626" : "#e5e7eb"}`,
+                  borderRadius: 10, fontSize: 13, color: "#111827", resize: "vertical",
+                  fontFamily: "inherit", outline: "none", boxSizing: "border-box",
+                }}
+              />
+              {rejectError && (
+                <p style={{ margin: 0, fontSize: 12, color: "#dc2626", fontWeight: 500 }}>
+                  {rejectError}
+                </p>
+              )}
+            </div>
+            <div className="pd-confirm-actions">
+              <button
+                className="pd-confirm-cancel"
+                onClick={() => setRejectTarget(null)}
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="pd-confirm-delete"
+                onClick={handleConfirmReject}
+                disabled={actionLoading}
+              >
+                {actionLoading ? "Rejecting..." : "Confirm Reject"}
+              </button>
             </div>
           </div>
         </div>
@@ -743,14 +752,16 @@ const ProductDashboard = ({ defaultFilter = "All Categories" }) => {
               <button
                 className="pd-confirm-cancel"
                 onClick={() => setDeleteTarget(null)}
+                disabled={actionLoading}
               >
                 Cancel
               </button>
               <button
                 className="pd-confirm-delete"
                 onClick={() => handleDelete(deleteTarget.id)}
+                disabled={actionLoading}
               >
-                Yes, Delete
+                {actionLoading ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
           </div>

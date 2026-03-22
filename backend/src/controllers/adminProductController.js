@@ -10,7 +10,7 @@ export const adminGetAllProducts = async (req, res) => {
       .from('products')
       .select(`
         id, name, description, category, price, price_mode,
-        metal_type, karat, weight, stock_quantity,
+        metal_type, karat, weight, stock_quantity, sku, rejection_reason,
         is_active, is_available, primary_image_url, image_url,
         total_views, total_sold, admin_status,
         created_at, updated_at, jeweller_id,
