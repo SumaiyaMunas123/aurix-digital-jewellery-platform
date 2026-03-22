@@ -139,13 +139,14 @@ export const sendMessage = async (req, res) => {
   try {
     const { 
       thread_id, 
-      sender_id, 
-      message, 
       message_type = 'text',
       file_url = null,
       quotation_id = null,
       ai_design_id = null
     } = req.body;
+
+    const message = req.body.message || req.body.content;
+    const sender_id = req.user?.id || req.body.sender_id;
 
     console.log('💬 Send message');
     console.log('Thread:', thread_id);

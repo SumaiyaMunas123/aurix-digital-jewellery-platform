@@ -14,7 +14,7 @@ const emailVerificationStore = new Map();
 
 let mailTransporter;
 
-const getMailTransporter = () => {
+const getMailTransporter = async () => {
   if (mailTransporter) {
     return mailTransporter;
   }
@@ -25,7 +25,19 @@ const getMailTransporter = () => {
   const pass = process.env.SMTP_PASS;
 
   if (!host || !port || !user || !pass) {
-    throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in backend .env');
+    console.log('⚠️ SMTP attributes missing in .env. Generating Ethereal test account...');
+    const testAccount = await nodemailer.createTestAccount();
+    
+    mailTransporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      secure: false, 
+      auth: {
+        user: testAccount.user, 
+        pass: testAccount.pass, 
+      },
+    });
+    return mailTransporter;
   }
 
   mailTransporter = nodemailer.createTransport({
@@ -51,16 +63,24 @@ const createEmailVerificationCode = (email) => {
 };
 
 const sendVerificationCodeEmail = async (email, code) => {
-  const transporter = getMailTransporter();
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const transporter = await getMailTransporter();
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'testing@aurix.com';
 
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from,
     to: email,
     subject: 'Aurix email verification code',
     text: `Your Aurix verification code is ${code}. It expires in 10 minutes.`,
     html: `<p>Your Aurix verification code is <strong>${code}</strong>.</p><p>This code expires in 10 minutes.</p>`
   });
+  
+  const testUrl = nodemailer.getTestMessageUrl(info);
+  if (testUrl) {
+    console.log('\n📧 ========================================');
+    console.log('📧 TEST EMAIL SENT! View your code here:');
+    console.log('📧 ' + testUrl);
+    console.log('📧 ========================================\n');
+  }
 };
 
 const findUserByIdentifier = async (identifier) => {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:aurix/features/customer/chat/models/chat_message.dart';
 import 'package:aurix/features/customer/chat/data/chat_repository.dart';
@@ -28,69 +29,69 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _scroll = ScrollController();
   final _chatRepository = ChatRepository();
 
-  late Future<List<ChatMessage>> _messagesFuture;
   List<ChatMessage> _messages = [];
+  StreamSubscription<List<Map<String, dynamic>>>? _messageSubscription;
+  final _currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
   @override
   void initState() {
     super.initState();
-    _messagesFuture = _loadMessages();
+    _setupRealtimeChat();
   }
 
-  Future<List<ChatMessage>> _loadMessages() async {
-    // If threadId is provided, try to load from backend
+  void _setupRealtimeChat() {
     if (widget.threadId != null && widget.threadId!.isNotEmpty) {
-      try {
-        final messages = await _chatRepository.getMessages(widget.threadId!);
-        print('✅ Loaded ${messages.length} messages from backend');
+      _messageSubscription = Supabase.instance.client
+          .from('chat_messages')
+          .stream(primaryKey: ['id'])
+          .eq('thread_id', widget.threadId!)
+          .order('created_at', ascending: true)
+          .listen((data) {
+        if (!mounted) return;
         setState(() {
-          _messages = messages.map((m) {
+          _messages = data.map((m) {
             return ChatMessage(
-              id: m['id'] ?? '',
-              text: m['content'] ?? m['message'] ?? '',
-              isMe: m['is_sent_by_me'] ?? false,
+              id: m['id']?.toString() ?? '',
+              text: m['message_text'] ?? m['content'] ?? m['message'] ?? '',
+              isMe: m['sender_id'] == _currentUserId,
               time: m['created_at'] != null
                   ? DateTime.parse(m['created_at'])
                   : DateTime.now(),
             );
           }).toList();
         });
-        return _messages;
-      } catch (e) {
-        print('⚠️ Failed to load messages: $e');
-      }
+        _scrollToBottom();
+      });
+    } else {
+      // Fallback sample data if no thread
+      setState(() {
+        _messages = [
+          ChatMessage(
+            id: "1",
+            text: "Hi! How can I help you today?",
+            isMe: false,
+            time: DateTime.now().subtract(const Duration(minutes: 5)),
+          ),
+          ChatMessage(
+            id: "2",
+            text: "I want a 22K ring design.",
+            isMe: true,
+            time: DateTime.now().subtract(const Duration(minutes: 3)),
+          ),
+          ChatMessage(
+            id: "3",
+            text: "Great! We have some beautiful 22K designs.",
+            isMe: false,
+            time: DateTime.now().subtract(const Duration(minutes: 1)),
+          ),
+        ];
+      });
     }
-
-    // Return sample messages as fallback
-    final sampleMessages = [
-      ChatMessage(
-        id: "1",
-        text: "Hi! How can I help you today?",
-        isMe: false,
-        time: DateTime.now().subtract(const Duration(minutes: 5)),
-      ),
-      ChatMessage(
-        id: "2",
-        text: "I want a 22K ring design.",
-        isMe: true,
-        time: DateTime.now().subtract(const Duration(minutes: 3)),
-      ),
-      ChatMessage(
-        id: "3",
-        text: "Great! We have some beautiful 22K designs. Would you like me to send you some options?",
-        isMe: false,
-        time: DateTime.now().subtract(const Duration(minutes: 1)),
-      ),
-    ];
-    
-    if (mounted) {
-      setState(() => _messages = sampleMessages);
-    }
-    return sampleMessages;
   }
 
   @override
   void dispose() {
+    _messageSubscription?.cancel();
     _controller.dispose();
     _scroll.dispose();
     super.dispose();
@@ -113,19 +114,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     HapticFeedback.selectionClick();
 
-    // Add message locally first
-    final newMessage = ChatMessage(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      text: text,
-      isMe: true,
-      time: DateTime.now(),
-    );
-
-    setState(() {
-      _messages.add(newMessage);
-      _controller.clear();
-    });
-
+    _controller.clear();
     _scrollToBottom();
 
     // Try to send to backend
