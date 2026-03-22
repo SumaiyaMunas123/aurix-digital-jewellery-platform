@@ -743,7 +743,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
                           </div>
                         </td>
                         <td>
-                          <span className="brn-label">BRN:</span>{" "}
+                          <span className="brn-label"></span>{" "}
                           <span className="brn-value">
                             {req.business_registration_number || "—"}
                           </span>
