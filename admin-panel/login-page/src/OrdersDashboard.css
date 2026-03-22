@@ -384,7 +384,6 @@
   }
 }
 
-/* ── Pending tab badge ── */
 .od-tab-badge {
   display: inline-flex;
   align-items: center;
@@ -400,7 +399,6 @@
   line-height: 1;
 }
 
-/* ── Empty state ── */
 .od-empty {
   text-align: center;
   padding: 48px 0 !important;
@@ -408,7 +406,6 @@
   font-size: 14px;
 }
 
-/* ── Order detail modal ── */
 .od-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -549,9 +546,10 @@
   font-size: 16px;
 }
 
+/* Updated: 2 columns instead of 3 (unit price removed) */
 .od-modal-details-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
