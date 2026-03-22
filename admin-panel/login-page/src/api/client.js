@@ -155,3 +155,24 @@ export const getAdminActionLogs = (jewellerId) =>
 
 // ── UTILITY ──────────────────────────────────────────────────
 export const getServerInfo = () => fetch('/').then(res => res.json());
+// ============ ORDER ENDPOINTS (ADMIN) ============
+
+export const adminGetAllOrders = (filters = {}) => {
+  const params = new URLSearchParams(filters).toString();
+  return apiCall(`/admin/orders${params ? `?${params}` : ''}`, { method: 'GET' });
+};
+
+export const adminGetOrderById = (orderId) =>
+  apiCall(`/admin/orders/${orderId}`, { method: 'GET' });
+
+export const adminGetOrderStats = () =>
+  apiCall('/admin/orders/stats', { method: 'GET' });
+
+export const adminUpdateOrderStatus = (orderId, status, note = '') =>
+  apiCall(`/admin/orders/${orderId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, note }),
+  });
+
+export const adminDeleteOrder = (orderId) =>
+  apiCall(`/admin/orders/${orderId}`, { method: 'DELETE' });

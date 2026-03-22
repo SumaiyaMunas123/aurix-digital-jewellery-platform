@@ -20,6 +20,13 @@ import {
   adminGetProductStats,
   adminGetProductsByJeweller,
 } from '../controllers/adminProductController.js';
+import {
+  adminGetAllOrders,
+  adminGetOrderById,
+  adminGetOrderStats,
+  adminUpdateOrderStatus,
+  adminDeleteOrder,
+} from '../controllers/adminOrderController.js';
 
 const router = express.Router();
 
@@ -103,5 +110,13 @@ router.patch('/products/:id/visibility', requireAuth, requireAdmin, adminToggleP
 
 // All products by a specific jeweller
 router.get('/jewellers/:jeweller_id/products', requireAuth, requireAdmin, adminGetProductsByJeweller);
+
+
+// ============ ORDER MANAGEMENT ============
+router.get('/orders/stats', requireAuth, requireAdmin, adminGetOrderStats);
+router.get('/orders', requireAuth, requireAdmin, adminGetAllOrders);
+router.get('/orders/:id', requireAuth, requireAdmin, adminGetOrderById);
+router.patch('/orders/:id/status', requireAuth, requireAdmin, adminUpdateOrderStatus);
+router.delete('/orders/:id', requireAuth, requireAdmin, adminDeleteOrder);
 
 export default router;
