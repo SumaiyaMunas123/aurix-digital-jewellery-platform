@@ -36,22 +36,18 @@ class ApiClient {
 
   void _setupInterceptors(Dio dioInstance) {
     dioInstance.interceptors.add(
-    // Auth interceptor - adds token to all requests
-    _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await TokenService.getToken();
+          final token = _token ?? await TokenService.getToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
           handler.next(options);
         },
         onError: (error, handler) async {
-          // Handle 401 - token might be expired
           if (error.response?.statusCode == 401) {
-            print('Received 401 Unauthorized - token may be expired');
-            // Clear token on 401 - frontend will redirect to login
             await TokenService.clearToken();
+            _token = null;
           }
           handler.next(error);
         },
@@ -79,10 +75,7 @@ class ApiClient {
 
   void setToken(String token) {
     _token = token;
-    // Also update tokens in interceptors if needed
   }
-  
-  void clearToken() => _token = null;
 
-  Dio get dio => _dio;
+  void clearToken() => _token = null;
 }
