@@ -86,7 +86,6 @@ const OrderModal = ({ order, onClose, onStatusChange }) => {
         </div>
 
         <div className="od-modal-body">
-          {/* Customer */}
           <div className="od-modal-section">
             <h4 className="od-modal-section-title">Customer</h4>
             <p className="od-modal-val">{customer?.name || "—"}</p>
@@ -94,21 +93,18 @@ const OrderModal = ({ order, onClose, onStatusChange }) => {
             {customer?.phone && <p className="od-modal-sub">{customer.phone}</p>}
           </div>
 
-          {/* Jeweller */}
           <div className="od-modal-section">
             <h4 className="od-modal-section-title">Jeweller</h4>
             <p className="od-modal-val">{jeweller?.business_name || jeweller?.name || "—"}</p>
             <p className="od-modal-sub">{jeweller?.email || "—"}</p>
           </div>
 
-          {/* Product */}
           <div className="od-modal-section">
             <h4 className="od-modal-section-title">Product</h4>
             <p className="od-modal-val">{product?.name || "—"}</p>
             <p className="od-modal-sub">{product?.category || "—"}</p>
           </div>
 
-          {/* Order details */}
           <div className="od-modal-section">
             <h4 className="od-modal-section-title">Order Details</h4>
             <div className="od-modal-details-grid">
@@ -118,7 +114,6 @@ const OrderModal = ({ order, onClose, onStatusChange }) => {
             </div>
           </div>
 
-          {/* Status update */}
           <div className="od-modal-section">
             <h4 className="od-modal-section-title">Update Status</h4>
             <select
@@ -233,6 +228,10 @@ const OrdersDashboard = () => {
               onClick={() => setActiveTab(tab.value)}
             >
               {tab.label}
+              {/* ── Pending badge ── */}
+              {tab.value === "pending_payment" && stats?.pending_payment > 0 && (
+                <span className="od-tab-badge">{stats.pending_payment}</span>
+              )}
             </button>
           ))}
         </div>
