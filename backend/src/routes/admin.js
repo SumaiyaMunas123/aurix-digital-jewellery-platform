@@ -1,6 +1,7 @@
 import express from 'express';
 import { adminLogin } from '../controllers/adminLogin.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { supabase } from '../config/supabaseClient.js';
 import {
   getPendingJewellers,
   getAllJewellers,
@@ -38,6 +39,42 @@ router.put('/jewellers/:jeweller_id/reject', requireAuth, requireAdmin, rejectJe
 
 // ============ STATS ============
 router.get('/stats', requireAuth, requireAdmin, getPlatformStats);
+
+// ============ ORDERS CHART ============
+router.get('/orders/chart', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('created_at')
+      .gte('created_at', new Date(new Date().setMonth(new Date().getMonth() - 5)).toISOString());
+
+    if (error) throw error;
+
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - i);
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: d.toLocaleString('en-US', { month: 'short' }),
+        count: 0,
+      });
+    }
+
+    (data || []).forEach((order) => {
+      const d = new Date(order.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const month = months.find((m) => m.key === key);
+      if (month) month.count++;
+    });
+
+    return res.status(200).json({ success: true, chart: months });
+  } catch (error) {
+    console.error('orders/chart error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // ============ PRODUCT MANAGEMENT ============
 

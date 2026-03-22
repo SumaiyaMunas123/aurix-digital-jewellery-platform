@@ -19,6 +19,8 @@ const AdminDashboard = ({ onLogout }) => {
   );
   const [navProps, setNavProps] = useState({});
   const [liveStats, setLiveStats] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [chartPeriod, setChartPeriod] = useState("month");
 
   useEffect(() => {
     apiCall("/admin/stats")
@@ -26,6 +28,14 @@ const AdminDashboard = ({ onLogout }) => {
         if (data.success) setLiveStats(data.stats);
       })
       .catch((err) => console.error("Failed to load stats:", err));
+  }, []);
+
+  useEffect(() => {
+    apiCall("/admin/orders/chart")
+      .then((data) => {
+        if (data.success) setChartData(data.chart || []);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -202,16 +212,89 @@ const AdminDashboard = ({ onLogout }) => {
       <div className="content-grid">
         <div className="chart-section">
           <div className="section-header">
-            <h2>Sales Overview</h2>
+            <h2>Orders Overview</h2>
             <div className="time-filter">
-              <button>Week</button>
-              <button className="active">Month</button>
+              {/* <button
+                className={chartPeriod === "week" ? "active" : ""}
+                onClick={() => setChartPeriod("week")}
+              >Week</button> */}
+              <button
+                className={chartPeriod === "month" ? "active" : ""}
+                onClick={() => setChartPeriod("month")}
+              >Month</button>
             </div>
           </div>
-          <div className="chart-placeholder">
-            <span>📊</span>
-            <p>Sales Chart Visualization</p>
-          </div>
+
+          {/* Line Chart */}
+          {chartData.length === 0 ? (
+            <div className="chart-placeholder">
+              <span>📊</span>
+              <p>No order data yet</p>
+            </div>
+          ) : (() => {
+            const W = 500, H = 180, padL = 36, padR = 16, padT = 16, padB = 28;
+            const maxVal = Math.max(...chartData.map((d) => d.count), 1);
+            const n = chartData.length;
+            const xStep = (W - padL - padR) / (n - 1);
+            const yScale = (v) => padT + (H - padT - padB) * (1 - v / maxVal);
+            const pts = chartData.map((d, i) => ({
+              x: padL + i * xStep,
+              y: yScale(d.count),
+              count: d.count,
+              label: d.label,
+            }));
+            const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+            const areaPath = `${linePath} L${pts[pts.length - 1].x},${H - padB} L${pts[0].x},${H - padB} Z`;
+            const dotColors = ["#D4AF37", "#D4AF37","#D4AF37", "#D4AF37", "#D4AF37"];
+
+            return (
+              <div className="line-chart-wrap">
+                <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "100%" }}>
+                  <defs>
+                    <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#D4AF37" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Grid lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
+                    const y = padT + (H - padT - padB) * t;
+                    const val = Math.round(maxVal * (1 - t));
+                    return (
+                      <g key={i}>
+                        <line x1={padL} y1={y} x2={W - padR} y2={y}
+                          stroke="#f0f0f0" strokeWidth="1" />
+                        <text x={padL - 4} y={y + 4} textAnchor="end"
+                          fontSize="9" fill="#9ca3af">{val}</text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Area fill */}
+                  <path d={areaPath} fill="url(#lineGrad)" />
+
+                  {/* Line */}
+                  <path d={linePath} fill="none" stroke="#D4AF37"
+                    strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+
+                  {/* Dots + labels */}
+                  {pts.map((p, i) => (
+                    <g key={i}>
+                      <circle cx={p.x} cy={p.y} r="5"
+                        fill={dotColors[i % dotColors.length]}
+                        stroke="#fff" strokeWidth="2" />
+                      <text x={p.x} y={H - padB + 14} textAnchor="middle"
+                        fontSize="10" fontWeight="600" fill="#6b7280">{p.label}</text>
+                      <text x={p.x} y={p.y - 10} textAnchor="middle"
+                        fontSize="10" fontWeight="700"
+                        fill={dotColors[i % dotColors.length]}>{p.count}</text>
+                    </g>
+                  ))}
+                </svg>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="activity-section">
