@@ -70,5 +70,7 @@ export async function getPlatinumPrice(req, res) {
       success: false,
       message: err?.message ?? 'Failed to fetch platinum price',
     });
+
+    
   }
 }
