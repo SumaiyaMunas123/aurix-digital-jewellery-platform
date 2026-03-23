@@ -1,0 +1,170 @@
+{
+  "info": {
+    "name": "Aurix Performance Smoke",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "PERF-001 Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"identifier\": \"{{test_identifier}}\",\n  \"password\": \"{{test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{backend_base}}/auth/login",
+          "host": [
+            "{{backend_base}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Response time < 1200 ms', function () { pm.expect(pm.response.responseTime).to.be.below(1200); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PERF-002 Products List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{backend_base}}/products",
+          "host": [
+            "{{backend_base}}"
+          ],
+          "path": [
+            "products"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Response time < 1000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PERF-003 Chat Threads",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{backend_base}}/chat/threads/{{user_id}}",
+          "host": [
+            "{{backend_base}}"
+          ],
+          "path": [
+            "chat",
+            "threads",
+            "{{user_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Response time < 1200 ms', function () { pm.expect(pm.response.responseTime).to.be.below(1200); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "PERF-004 Pending Jeweller Requests",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{backend_base}}/admin/jewellers/pending",
+          "host": [
+            "{{backend_base}}"
+          ],
+          "path": [
+            "admin",
+            "jewellers",
+            "pending"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Response time < 1500 ms', function () { pm.expect(pm.response.responseTime).to.be.below(1500); });"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "backend_base",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "test_identifier",
+      "value": "customer@example.com"
+    },
+    {
+      "key": "test_password",
+      "value": "Password123"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    }
+  ]
+}
