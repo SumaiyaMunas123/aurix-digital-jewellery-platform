@@ -93,10 +93,19 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => next),
       );
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+      var message = e.toString();
+      if (message.startsWith('Exception: ')) {
+        message = message.substring('Exception: '.length);
+      }
+
+      if (message.trim().isEmpty) {
+        message = 'Login failed. Please try again.';
+      }
+
       setState(() {
-        _error = "Invalid login credentials";
+        _error = message;
       });
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -170,7 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(26),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10),
+              color: (isDark ? Colors.white : Colors.black)
+                  .withValues(alpha: 0.10),
             ),
             color: (isDark ? Colors.white : Colors.black)
                 .withValues(alpha: isDark ? 0.06 : 0.045),
@@ -389,8 +399,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 14),
                             MouseRegion(
-                              onEnter: (_) => setState(() => _googleHovered = true),
-                              onExit: (_) => setState(() => _googleHovered = false),
+                              onEnter: (_) =>
+                                  setState(() => _googleHovered = true),
+                              onExit: (_) =>
+                                  setState(() => _googleHovered = false),
                               child: GestureDetector(
                                 onTap: _googleLoading ? null : _googleLogin,
                                 child: AnimatedContainer(
@@ -403,11 +415,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: const Color(0xFFD4AF37),
                                     ),
                                     color: _googleHovered
-                                        ? const Color(0xFFD4AF37).withValues(alpha: 0.1)
+                                        ? const Color(0xFFD4AF37)
+                                            .withValues(alpha: 0.1)
                                         : Colors.transparent,
                                   ),
                                   transform: Matrix4.identity()
-                                    ..translate(_googleHovered ? 0 : 0, _googleHovered ? -2 : 0),
+                                    ..translate(_googleHovered ? 0 : 0,
+                                        _googleHovered ? -2 : 0),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
