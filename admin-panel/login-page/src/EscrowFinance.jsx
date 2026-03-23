@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./EscrowFinance.css";
 
-const transactions = [
+const initialTransactions = [
   {
     id: "ESC-1042",
     orderId: "ORD-8492",
@@ -81,12 +81,23 @@ const statusMap = {
   Refunded: "ef-pill ef-refunded",
 };
 
+const getTodayFormatted = () => {
+  return new Date().toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
 const EscrowFinance = () => {
   const [activeTab, setActiveTab] = useState("All");
+  const [confirmRelease, setConfirmRelease] = useState(null);
+  const [transactions, setTransactions] = useState(initialTransactions);
+
   const tabs = ["All", "Held", "Released", "Disputed", "Refunded"];
 
   const filtered = transactions.filter(
-    (t) => activeTab === "All" || t.status === activeTab,
+    (t) => activeTab === "All" || t.status === activeTab
   );
 
   const summaryCards = [
@@ -96,6 +107,17 @@ const EscrowFinance = () => {
     { label: "Disputed Funds", value: "LKR 12,800" },
     { label: "Platform Commission", value: "LKR 34,120" },
   ];
+
+  const handleRelease = () => {
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === confirmRelease.id
+          ? { ...t, status: "Released", release: getTodayFormatted() }
+          : t
+      )
+    );
+    setConfirmRelease(null);
+  };
 
   return (
     <div className="ef-page">
@@ -135,7 +157,7 @@ const EscrowFinance = () => {
             <thead>
               <tr>
                 <th>ESCROW ID</th>
-                <th>ORDER</th>
+                <th>ORDER ID</th>
                 <th>JEWELER</th>
                 <th>BUYER</th>
                 <th>AMOUNT</th>
@@ -169,7 +191,12 @@ const EscrowFinance = () => {
                   <td>
                     <div className="ef-action-row">
                       {t.status === "Held" && (
-                        <button className="ef-release-btn">Release</button>
+                        <button
+                          className="ef-release-btn"
+                          onClick={() => setConfirmRelease(t)}
+                        >
+                          Release
+                        </button>
                       )}
                       <button className="ef-view-btn">View</button>
                     </div>
@@ -185,6 +212,41 @@ const EscrowFinance = () => {
           </p>
         </div>
       </div>
+
+      {confirmRelease && (
+        <div
+          className="ef-modal-overlay"
+          onClick={() => setConfirmRelease(null)}
+        >
+          <div className="ef-modal" onClick={(e) => e.stopPropagation()}>              
+            {/* <p className="ef-modal-title">Release escrow funds</p> */}
+            <p className="ef-modal-sub">
+              {confirmRelease.id} &middot; {confirmRelease.jeweler}
+            </p>
+            <p className="ef-modal-amount">
+              LKR{" "}
+              {confirmRelease.amount.toLocaleString("en-LK", {
+                maximumFractionDigits: 2,
+              })}
+            </p>
+            <p className="ef-modal-desc">
+              This will release the held funds to the jeweler. This action
+              cannot be undone.
+            </p>
+            <div className="ef-modal-actions">
+              <button
+                className="ef-modal-cancel"
+                onClick={() => setConfirmRelease(null)}
+              >
+                Cancel
+              </button>
+              <button className="ef-modal-confirm" onClick={handleRelease}>
+                Yes, release
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

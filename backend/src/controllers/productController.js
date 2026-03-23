@@ -7,65 +7,35 @@ const ensureVerifiedJeweller = async (userId) => {
     .eq('id', userId)
     .single();
 
-  if (error || !jeweller) {
-    return { ok: false, status: 404, message: 'Jeweller not found' };
-  }
-
-  if (jeweller.role !== 'jeweller') {
-    return { ok: false, status: 403, message: 'Only jewellers can perform this action' };
-  }
-
+  if (error || !jeweller) return { ok: false, status: 404, message: 'Jeweller not found' };
+  if (jeweller.role !== 'jeweller') return { ok: false, status: 403, message: 'Only jewellers can perform this action' };
   if (!jeweller.verified || jeweller.verification_status !== 'approved') {
-    return {
-      ok: false,
-      status: 403,
-      message: 'Your account must be verified before performing this action'
-    };
+    return { ok: false, status: 403, message: 'Your account must be verified before performing this action' };
   }
-
   return { ok: true, jeweller };
 };
 
-// ==================== ADD PRODUCT ====================
 export const addProduct = async (req, res) => {
   try {
-    console.log(' Add product request');
-    console.log('Body:', req.body);
-    console.log('User:', req.user);
-    
-    const { 
-      name, 
-      description, 
-      price,
-      price_mode,
-      category,
-      metal_type,
-      karat,
-      weight_grams,
-      making_charge,
-      image_url,
-      stock_quantity 
+    const {
+      name, description, price, price_mode, category,
+      metal_type, karat, weight_grams, making_charge,
+      image_url, stock_quantity
     } = req.body;
 
     const jeweller_id = req.user?.id;
 
-    // Validate
     if (!jeweller_id || !name || !description) {
-      return res.status(400).json({
-        success: false,
-        message: 'name and description are required'
-      });
+      return res.status(400).json({ success: false, message: 'name and description are required' });
     }
 
     const verification = await ensureVerifiedJeweller(jeweller_id);
     if (!verification.ok) {
-      return res.status(verification.status).json({
-        success: false,
-        message: verification.message
-      });
+      return res.status(verification.status).json({ success: false, message: verification.message });
     }
 
-    // Insert product
+    const qty = parseInt(stock_quantity) || 1;
+
     const { data: newProduct, error } = await supabase
       .from('products')
       .insert([{
@@ -81,41 +51,28 @@ export const addProduct = async (req, res) => {
         making_charge: making_charge ? parseFloat(making_charge) : null,
         image_url: image_url || null,
         primary_image_url: image_url || null,
-        stock_quantity: stock_quantity || 1,
-        is_available: true,
-        is_active: true
+        stock_quantity: qty,
+        is_available: qty > 0,
+        is_active: true,
+        admin_status: 'pending',
+        total_views: 0,
+        total_sold: 0,
       }])
       .select()
       .single();
 
-    if (error) {
-      console.error('❌ Database error:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    console.log(' Product created:', newProduct.id);
-
-    return res.status(201).json({
-      success: true,
-      message: 'Product added successfully',
-      product: newProduct
-    });
+    return res.status(201).json({ success: true, message: 'Product added successfully', product: newProduct });
 
   } catch (error) {
-    console.error(' Add product error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('addProduct error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
-// ==================== GET ALL PRODUCTS ====================
 export const getAllProducts = async (req, res) => {
   try {
-    console.log(' Get products');
-    
     const { category, search, min_price, max_price } = req.query;
 
     let query = supabase
@@ -123,41 +80,21 @@ export const getAllProducts = async (req, res) => {
       .select(`
         *,
         jeweller:users!products_jeweller_id_fkey(
-          id,
-          name,
-          business_name,
-          district,
-          province,
-          verified,
-          phone,
-          email
+          id, name, business_name, district, province, verified, phone, email
         )
       `)
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .eq('admin_status', 'approved');
 
-    if (category && category !== 'All') {
-      query = query.eq('category', category);
-    }
-
-    if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
-    }
-
-    if (min_price) {
-      query = query.gte('price', parseFloat(min_price));
-    }
-
-    if (max_price) {
-      query = query.lte('price', parseFloat(max_price));
-    }
+    if (category && category !== 'All') query = query.eq('category', category);
+    if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+    if (min_price) query = query.gte('price', parseFloat(min_price));
+    if (max_price) query = query.lte('price', parseFloat(max_price));
 
     query = query.order('created_at', { ascending: false });
 
     const { data: products, error } = await query;
-
     if (error) throw error;
-
-    console.log(`✅ Found ${products.length} products`);
 
     const mappedProducts = (products || []).map((product) => ({
       id: product.id,
@@ -174,89 +111,54 @@ export const getAllProducts = async (req, res) => {
       imageUrl: product.primary_image_url || product.image_url || null,
       description: product.description || '',
       metalType: product.metal_type || null,
-      jewellerId: product.jeweller_id || null
+      jewellerId: product.jeweller_id || null,
+      stockQuantity: product.stock_quantity,
+      isAvailable: product.is_available,
     }));
 
-    return res.status(200).json({
-      success: true,
-      data: mappedProducts
-    });
+    return res.status(200).json({ success: true, data: mappedProducts });
 
   } catch (error) {
-    console.error('❌ Get products error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('getAllProducts error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
-// ==================== GET SINGLE PRODUCT ====================
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 Get product:', id);
 
     const { data: product, error } = await supabase
       .from('products')
       .select(`
         *,
         jeweller:users!products_jeweller_id_fkey(
-          id,
-          name,
-          business_name,
-          district,
-          province,
-          verified,
-          phone,
-          email
+          id, name, business_name, district, province, verified, phone, email
         )
       `)
       .eq('id', id)
       .single();
 
     if (error || !product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    // Increment view count
-    await supabase
-      .from('products')
-      .update({ total_views: (product.total_views || 0) + 1 })
-      .eq('id', id);
+    await supabase.rpc('increment_product_views', { product_id: id });
 
-    console.log(' Product found');
-
-    return res.status(200).json({
-      success: true,
-      product: product
-    });
+    return res.status(200).json({ success: true, product });
 
   } catch (error) {
-    console.error(' Get product error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('getProductById error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
-// ==================== GET JEWELLER'S PRODUCTS ====================
 export const getJewellerProducts = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
-    console.log(' Get jeweller products:', jeweller_id);
 
     if (req.user?.role === 'jeweller' && req.user.id !== jeweller_id) {
-      return res.status(403).json({
-        success: false,
-        message: 'You can only view your own products'
-      });
+      return res.status(403).json({ success: false, message: 'You can only view your own products' });
     }
 
     const { data: products, error } = await supabase
@@ -267,138 +169,107 @@ export const getJewellerProducts = async (req, res) => {
 
     if (error) throw error;
 
-    console.log(` Found ${products.length} products`);
-
-    return res.status(200).json({
-      success: true,
-      count: products.length,
-      products: products
-    });
+    return res.status(200).json({ success: true, count: products.length, products });
 
   } catch (error) {
-    console.error(' Error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('getJewellerProducts error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
-// ==================== UPDATE PRODUCT ====================
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(' Update product:', id);
 
     const { data: existing, error: fetchError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single();
+      .from('products').select('*').eq('id', id).single();
 
     if (fetchError || !existing) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+      return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
     if (req.user?.role === 'jeweller' && existing.jeweller_id !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'You can only update your own products'
-      });
+      return res.status(403).json({ success: false, message: 'You can only update your own products' });
     }
 
     const verification = await ensureVerifiedJeweller(req.user?.id);
     if (!verification.ok) {
-      return res.status(verification.status).json({
-        success: false,
-        message: verification.message
-      });
+      return res.status(verification.status).json({ success: false, message: verification.message });
     }
 
     const updateData = { updated_at: new Date().toISOString() };
-    
     Object.keys(req.body).forEach(key => {
       if (req.body[key] !== undefined) {
-        if (key === 'weight_grams') {
-          updateData.weight = parseFloat(req.body[key]);
-        } else {
-          updateData[key] = req.body[key];
-        }
+        updateData[key === 'weight_grams' ? 'weight' : key] = req.body[key];
       }
     });
 
     const { data: updated, error } = await supabase
-      .from('products')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+      .from('products').update(updateData).eq('id', id).select().single();
 
     if (error) throw error;
 
-    console.log('✅ Product updated');
-
-    return res.status(200).json({
-      success: true,
-      message: 'Product updated',
-      product: updated
-    });
+    return res.status(200).json({ success: true, message: 'Product updated', product: updated });
 
   } catch (error) {
-    console.error(' Update error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('updateProduct error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
-// ==================== TOGGLE VISIBILITY ====================
-export const toggleProductVisibility = async (req, res) => {
+export const updateStock = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('👁️ Toggle visibility:', id);
+    const { stock_quantity } = req.body;
 
-    const { data: product, error: fetchError } = await supabase
+    if (stock_quantity === undefined || stock_quantity === null) {
+      return res.status(400).json({ success: false, message: 'stock_quantity is required' });
+    }
+
+    const qty = parseInt(stock_quantity);
+    if (isNaN(qty) || qty < 0) {
+      return res.status(400).json({ success: false, message: 'stock_quantity must be a non-negative number' });
+    }
+
+    const { data: existing, error: fetchError } = await supabase
       .from('products')
-      .select('is_active, jeweller_id')
+      .select('id, jeweller_id, admin_status, stock_quantity')
       .eq('id', id)
       .single();
 
-    if (fetchError || !product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+    if (fetchError || !existing) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    if (req.user?.role === 'jeweller' && product.jeweller_id !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'You can only change visibility of your own products'
-      });
+    if (req.user?.role === 'jeweller' && existing.jeweller_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'You can only update stock for your own products' });
     }
 
     const verification = await ensureVerifiedJeweller(req.user?.id);
     if (!verification.ok) {
-      return res.status(verification.status).json({
-        success: false,
-        message: verification.message
-      });
+      return res.status(verification.status).json({ success: false, message: verification.message });
     }
 
-    const newStatus = !product.is_active;
+    const isAvailable = qty > 0;
+
+    let newAdminStatus = existing.admin_status;
+    if (existing.admin_status === 'flagged' && qty > 0) {
+      newAdminStatus = 'approved';
+      console.log(`Product ${id} restocked — auto-restoring from flagged to approved`);
+    }
+    if (qty === 0 && existing.admin_status === 'approved') {
+      newAdminStatus = 'flagged';
+      console.log(`Product ${id} out of stock — auto-flagging`);
+    }
 
     const { data: updated, error } = await supabase
       .from('products')
-      .update({ 
-        is_active: newStatus,
-        updated_at: new Date().toISOString()
+      .update({
+        stock_quantity: qty,
+        is_available: isAvailable,
+        admin_status: newAdminStatus,
+        is_active: newAdminStatus === 'approved',
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select()
@@ -406,106 +277,105 @@ export const toggleProductVisibility = async (req, res) => {
 
     if (error) throw error;
 
-    console.log(`✅ Product ${newStatus ? 'shown' : 'hidden'}`);
-
     return res.status(200).json({
       success: true,
-      message: `Product ${newStatus ? 'shown' : 'hidden'}`,
-      product: updated
+      message: isAvailable ? 'Stock updated' : 'Stock updated — product marked as out of stock',
+      product: updated,
+      auto_restored: newAdminStatus === 'approved' && existing.admin_status === 'flagged',
+      auto_flagged: newAdminStatus === 'flagged' && existing.admin_status === 'approved',
     });
 
   } catch (error) {
-    console.error('❌ Toggle error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('updateStock error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
-// ==================== DELETE PRODUCT ====================
-export const deleteProduct = async (req, res) => {
+export const toggleProductVisibility = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🗑️ Delete product:', id);
 
-    const { data: existing, error: fetchError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data: product, error: fetchError } = await supabase
+      .from('products').select('is_active, jeweller_id').eq('id', id).single();
 
-    if (fetchError || !existing) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+    if (fetchError || !product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    if (req.user?.role === 'jeweller' && existing.jeweller_id !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'You can only delete your own products'
-      });
+    if (req.user?.role === 'jeweller' && product.jeweller_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'You can only change visibility of your own products' });
     }
 
     const verification = await ensureVerifiedJeweller(req.user?.id);
     if (!verification.ok) {
-      return res.status(verification.status).json({
-        success: false,
-        message: verification.message
-      });
+      return res.status(verification.status).json({ success: false, message: verification.message });
     }
 
-    const { error } = await supabase
+    const newStatus = !product.is_active;
+
+    const { data: updated, error } = await supabase
       .from('products')
-      .delete()
-      .eq('id', id);
+      .update({ is_active: newStatus, updated_at: new Date().toISOString() })
+      .eq('id', id).select().single();
 
     if (error) throw error;
 
-    console.log('✅ Product deleted');
-
     return res.status(200).json({
       success: true,
-      message: 'Product deleted'
+      message: `Product ${newStatus ? 'shown' : 'hidden'}`,
+      product: updated,
     });
 
   } catch (error) {
-    console.error('❌ Delete error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('toggleProductVisibility error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
 
-// ==================== GET CATEGORIES ====================
+export const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data: existing, error: fetchError } = await supabase
+      .from('products').select('*').eq('id', id).single();
+
+    if (fetchError || !existing) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    if (req.user?.role === 'jeweller' && existing.jeweller_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own products' });
+    }
+
+    const verification = await ensureVerifiedJeweller(req.user?.id);
+    if (!verification.ok) {
+      return res.status(verification.status).json({ success: false, message: verification.message });
+    }
+
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw error;
+
+    return res.status(200).json({ success: true, message: 'Product deleted' });
+
+  } catch (error) {
+    console.error('deleteProduct error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
 export const getCategories = async (req, res) => {
   try {
     const { data: products, error } = await supabase
-      .from('products')
-      .select('category')
-      .not('category', 'is', null);
+      .from('products').select('category').not('category', 'is', null);
 
     if (error) throw error;
 
     const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
 
-    return res.status(200).json({
-      success: true,
-      count: categories.length,
-      categories: categories
-    });
+    return res.status(200).json({ success: true, count: categories.length, categories });
 
   } catch (error) {
-    console.error('❌ Get categories error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
+    console.error('getCategories error:', error.message);
+    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };

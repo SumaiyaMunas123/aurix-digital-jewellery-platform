@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./JewelerVerification.css";
-import { getAllJewellers, approveJeweller, rejectJeweller } from "./api/client";
+import {
+  getAllJewellers,
+  approveJeweller,
+  rejectJeweller,
+  apiCall,
+} from "./api/client";
 
 const tabs = ["All Requests", "Pending", "Approved", "Rejected"];
 
@@ -19,7 +24,6 @@ const formatDate = (dateStr) => {
   });
 };
 
-/* ─── Required documents ─── */
 const REQUIRED_DOCUMENTS = [
   {
     key: "business_registration_cert",
@@ -70,13 +74,12 @@ const REQUIRED_DOCUMENTS = [
   },
 ];
 
-/* ─── File viewer modal ─── */
 const FileViewerModal = ({ file, label, onClose }) => {
   if (!file) return null;
-
   const isImage =
-    typeof file === "string" && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(file);
-  const isPdf = typeof file === "string" && /\.pdf$/i.test(file);
+    typeof file === "string" &&
+    /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/i.test(file);
+  const isPdf = typeof file === "string" && /\.pdf(\?.*)?$/i.test(file);
   const fileUrl = typeof file === "string" ? file : URL.createObjectURL(file);
 
   return (
@@ -125,7 +128,6 @@ const FileViewerModal = ({ file, label, onClose }) => {
   );
 };
 
-/* ─── Detail side-panel ─── */
 const JewelerDetailPanel = ({
   jeweler,
   onClose,
@@ -135,12 +137,34 @@ const JewelerDetailPanel = ({
 }) => {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
-  const [viewingFile, setViewingFile] = useState(null); // { file, label }
+  const [viewingFile, setViewingFile] = useState(null);
+  const [documents, setDocuments] = useState({});
+  const [docFeedback, setDocFeedback] = useState({});
+  const [feedbackInputs, setFeedbackInputs] = useState({});
+  const [savingFeedback, setSavingFeedback] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
 
   useEffect(() => {
-    // Reset reject state when jeweler changes
     setShowRejectInput(false);
     setRejectReason("");
+    setDocuments({});
+    setDocFeedback({});
+    setFeedbackInputs({});
+    setAuditLogs([]);
+
+    if (!jeweler) return;
+
+    apiCall(`/documents/${jeweler.id}`)
+      .then((d) => {
+        const docs = d.documents || {};
+        setDocuments(docs);
+        setDocFeedback(docs.feedback || {});
+      })
+      .catch((err) => console.error("Failed to load documents:", err.message));
+
+    apiCall(`/documents/${jeweler.id}/logs`)
+      .then((d) => setAuditLogs(d.logs || []))
+      .catch((err) => console.error("Failed to load logs:", err.message));
   }, [jeweler?.id]);
 
   if (!jeweler) return null;
@@ -156,23 +180,34 @@ const JewelerDetailPanel = ({
     setShowRejectInput(false);
   };
 
-  /* For approved jewellers treat every doc as submitted */
-  const getDocStatus = (doc) => {
-    if (isApproved) return true;
-    return !!(jeweler[doc.key] || jeweler.documents?.[doc.key]);
-  };
+  const getDocFile = (doc) => documents[doc.key] || null;
+  const getDocStatus = (doc) => !!getDocFile(doc);
 
-  const getDocFile = (doc) =>
-    jeweler[doc.key] || jeweler.documents?.[doc.key] || null;
+  const handleSaveFeedback = async (docKey) => {
+    const text = (feedbackInputs[docKey] || "").trim();
+    if (!text) return;
+    setSavingFeedback(docKey);
+    try {
+      await apiCall(`/documents/${jeweler.id}/feedback`, {
+        method: "POST",
+        body: JSON.stringify({ document_key: docKey, feedback: text }),
+      });
+      setDocFeedback((prev) => ({
+        ...prev,
+        [docKey]: { message: text, created_at: new Date().toISOString() },
+      }));
+      setFeedbackInputs((prev) => ({ ...prev, [docKey]: "" }));
+    } catch (err) {
+      alert("Failed to save feedback: " + err.message);
+    } finally {
+      setSavingFeedback(null);
+    }
+  };
 
   return (
     <>
-      {/* Backdrop */}
       <div className="panel-backdrop" onClick={onClose} />
-
-      {/* Panel */}
       <div className="detail-panel">
-        {/* ── Header ── */}
         <div className="panel-header">
           <div style={{ minWidth: 0 }}>
             <h2 className="panel-title">{displayName}</h2>
@@ -183,7 +218,6 @@ const JewelerDetailPanel = ({
           </button>
         </div>
 
-        {/* ── Status & date ── */}
         <div className="panel-status-row">
           <span
             className={statusClassMap[status] || "status-pill status-pending"}
@@ -195,7 +229,6 @@ const JewelerDetailPanel = ({
           </span>
         </div>
 
-        {/* ── Business info ── */}
         <div className="panel-section">
           <h3 className="panel-section-title">Business Information</h3>
           <div className="panel-info-grid">
@@ -205,13 +238,10 @@ const JewelerDetailPanel = ({
                 {jeweler.business_name || "—"}
               </span>
             </div>
-
             <div className="panel-info-item">
               <span className="panel-info-label">Owner / Contact</span>
               <span className="panel-info-value">{jeweler.name || "—"}</span>
             </div>
-
-            {/* Email — clickable mailto */}
             <div className="panel-info-item">
               <span className="panel-info-label">Email</span>
               {jeweler.email ? (
@@ -227,8 +257,6 @@ const JewelerDetailPanel = ({
                 <span className="panel-info-value">—</span>
               )}
             </div>
-
-            {/* Phone — clickable tel */}
             <div className="panel-info-item">
               <span className="panel-info-label">Phone</span>
               {jeweler.phone ? (
@@ -244,14 +272,12 @@ const JewelerDetailPanel = ({
                 <span className="panel-info-value">—</span>
               )}
             </div>
-
             <div className="panel-info-item">
               <span className="panel-info-label">BRN Number</span>
               <span className="panel-info-value">
                 {jeweler.business_registration_number || "—"}
               </span>
             </div>
-
             <div className="panel-info-item">
               <span className="panel-info-label">Business Address</span>
               <span className="panel-info-value">{jeweler.address || "—"}</span>
@@ -259,53 +285,76 @@ const JewelerDetailPanel = ({
           </div>
         </div>
 
-        {/* ── Documents ── */}
         <div className="panel-section">
           <h3 className="panel-section-title">Required Documents</h3>
-          {isApproved && (
-            <p className="panel-section-note panel-section-note-approved">
-              ✓ All documents verified and accepted.
-            </p>
-          )}
-          {!isApproved && (
-            <p className="panel-section-note">
-              Documents required for jewellery business registration and
-              verification.
-            </p>
-          )}
+          <p className="panel-section-note">
+            {isApproved
+              ? "Documents submitted by the jeweller."
+              : "Documents required for jewellery business registration and verification."}
+          </p>
           <div className="doc-list">
             {REQUIRED_DOCUMENTS.map((doc) => {
-              const submitted = getDocStatus(doc);
               const file = getDocFile(doc);
+              const submitted = getDocStatus(doc);
+              const feedback = docFeedback[doc.key];
 
               return (
                 <div
                   key={doc.key}
-                  className={`doc-item ${submitted ? "doc-submitted" : "doc-missing"}`}
+                  className={`doc-item ${submitted ? "doc-submitted" : "doc-missing"} ${file ? "doc-clickable" : ""}`}
+                  onClick={() =>
+                    file && setViewingFile({ file, label: doc.label })
+                  }
+                  title={file ? "Click to view document" : ""}
                 >
                   <div className="doc-icon">{submitted ? "✓" : "○"}</div>
 
                   <div className="doc-info">
                     <p className="doc-label">{doc.label}</p>
                     <p className="doc-desc">{doc.description}</p>
+
+                    {feedback && (
+                      <p className="doc-feedback-saved">
+                        💬 {feedback.message}
+                      </p>
+                    )}
+
+                    {!isApproved && file && (
+                      <div
+                        className="doc-feedback-row"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          className="doc-feedback-input"
+                          type="text"
+                          placeholder="Add feedback for this document…"
+                          value={feedbackInputs[doc.key] || ""}
+                          onChange={(e) =>
+                            setFeedbackInputs((prev) => ({
+                              ...prev,
+                              [doc.key]: e.target.value,
+                            }))
+                          }
+                        />
+                        <button
+                          className="doc-feedback-btn"
+                          onClick={() => handleSaveFeedback(doc.key)}
+                          disabled={
+                            savingFeedback === doc.key ||
+                            !(feedbackInputs[doc.key] || "").trim()
+                          }
+                        >
+                          {savingFeedback === doc.key ? "…" : "Send"}
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="doc-right">
                     {submitted ? (
                       <>
                         <span className="badge-submitted">Submitted</span>
-                        {/* View file button — shown when there's an actual file URL/object */}
-                        {file && (
-                          <button
-                            className="btn-view-file"
-                            onClick={() =>
-                              setViewingFile({ file, label: doc.label })
-                            }
-                            title="View document"
-                          >
-                            View
-                          </button>
-                        )}
+                        {file && <span className="doc-view-hint">👁 View</span>}
                       </>
                     ) : (
                       <span className="badge-missing">Missing</span>
@@ -317,7 +366,6 @@ const JewelerDetailPanel = ({
           </div>
         </div>
 
-        {/* ── Rejection reason (if any) ── */}
         {jeweler.rejection_reason && (
           <div className="panel-section">
             <h3 className="panel-section-title">Rejection Reason</h3>
@@ -327,13 +375,49 @@ const JewelerDetailPanel = ({
           </div>
         )}
 
-        {/* ── Actions ──
-            • Approved  → show only Reject (to revoke approval)
-            • Pending / Rejected → show Approve + Reject
-        ── */}
+        {auditLogs.length > 0 && (
+          <div className="panel-section">
+            <h3 className="panel-section-title">Action History</h3>
+            <ul className="audit-log-list">
+              {auditLogs.map((log) => (
+                <li key={log.id} className="audit-log-item">
+                  <span className={`audit-log-action audit-log-${log.action}`}>
+                    {log.action === "approved" && "✓ Approved"}
+                    {log.action === "rejected" && "✕ Rejected"}
+                    {log.action === "document_feedback" && "💬 Feedback sent"}
+                    {!["approved", "rejected", "document_feedback"].includes(
+                      log.action,
+                    ) && log.action}
+                  </span>
+                  {log.details?.reason && (
+                    <span className="audit-log-detail">
+                      {" "}
+                      — {log.details.reason}
+                    </span>
+                  )}
+                  {log.details?.document_key && (
+                    <span className="audit-log-detail">
+                      {" "}
+                      — {log.details.document_key.replace(/_/g, " ")}
+                    </span>
+                  )}
+                  <span className="audit-log-time">
+                    {new Date(log.performed_at).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="panel-actions">
           {isApproved ? (
-            /* Approved: only Reject available */
             !showRejectInput ? (
               <button
                 className="btn-panel-reject"
@@ -374,8 +458,7 @@ const JewelerDetailPanel = ({
                 </div>
               </div>
             )
-          ) : /* Pending / Rejected: Approve + Reject */
-          !showRejectInput ? (
+          ) : !showRejectInput ? (
             <>
               <button
                 className="btn-panel-approve"
@@ -428,7 +511,6 @@ const JewelerDetailPanel = ({
         </div>
       </div>
 
-      {/* ── File viewer modal ── */}
       {viewingFile && (
         <FileViewerModal
           file={viewingFile.file}
@@ -440,15 +522,18 @@ const JewelerDetailPanel = ({
   );
 };
 
-/* ─── Main component ─── */
 const JewelerVerification = ({ defaultTab = "All Requests" }) => {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState(defaultTab || "All Requests");
   const [search, setSearch] = useState("");
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [selectedJeweler, setSelectedJeweler] = useState(null);
+
+  useEffect(() => {
+    if (defaultTab) setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   const fetchJewellers = async () => {
     setLoading(true);
@@ -457,8 +542,10 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
       const data = await getAllJewellers();
       setRequests(data.jewellers || []);
     } catch (err) {
-      setError("Failed to load jewellers. Is the backend running?");
-      console.error(err);
+      setError(
+        err.message || "Failed to load jewellers. Is the backend running?",
+      );
+      console.error("fetchJewellers error:", err);
     } finally {
       setLoading(false);
     }
@@ -516,15 +603,42 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
     return matchesTab && matchesSearch;
   });
 
+  const pendingCount = requests.filter(
+    (r) => r.verification_status === "pending",
+  ).length;
+  const approvedCount = requests.filter(
+    (r) => r.verification_status === "approved",
+  ).length;
+  const rejectedCount = requests.filter(
+    (r) => r.verification_status === "rejected",
+  ).length;
+
+  const statCards = [
+    { label: "TOTAL JEWELLERS", value: requests.length, color: "#111827" },
+    { label: "PENDING", value: pendingCount, color: "#111827" },
+    { label: "APPROVED", value: approvedCount, color: "#111827" },
+    { label: "REJECTED", value: rejectedCount, color: "#111827" },
+  ];
+
   return (
     <div className="verification-page">
-      {/* ── Header ── */}
       <div className="verification-header">
         <h1>Jeweler Verification</h1>
-        {/* <button className="btn-register">Register Jeweler</button> */}
       </div>
 
-      {/* ── Tabs ── */}
+      <div className="pd-stats-grid jv-stats-grid">
+        {statCards.map((card) => (
+          <div key={card.label} className="pd-stat-card">
+            <div className="pd-stat-label">{card.label}</div>
+            <div className="pd-stat-value-row">
+              <div className="pd-stat-value" style={{ color: card.color }}>
+                {card.value}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="verification-toolbar">
         <div className="verification-tabs">
           {tabs.map((tab) => (
@@ -534,15 +648,17 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
               onClick={() => setActiveTab(tab)}
             >
               {tab}
+              {tab === "Pending" && pendingCount > 0 && (
+                <span className="tab-pending-badge">{pendingCount}</span>
+              )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* ── Search / Filter ── */}
       <div className="verification-filters-row">
         <div className="verification-search">
-           <svg
+          <svg
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -550,7 +666,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             stroke="currentColor"
             strokeWidth="2"
           >
-            <circle cx="11" cy="5" r="8" />
+            <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
@@ -560,12 +676,8 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        {/* <button className="btn-filters" onClick={() => setSearch("")}>
-          Filter
-        </button> */}
       </div>
 
-      {/* ── Table card ── */}
       <div className="verification-card">
         {loading ? (
           <div style={{ padding: "2rem", textAlign: "center", color: "#888" }}>
@@ -575,7 +687,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
           <div
             style={{ padding: "2rem", textAlign: "center", color: "#c0392b" }}
           >
-            {error}
+            <strong>Error:</strong> {error}
             <br />
             <button
               className="btn-dark"
@@ -629,7 +741,7 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
                           </div>
                         </td>
                         <td>
-                          <span className="brn-label">BRN:</span>{" "}
+                          <span className="brn-label"></span>{" "}
                           <span className="brn-value">
                             {req.business_registration_number || "—"}
                           </span>
@@ -661,7 +773,6 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
             </table>
           </div>
         )}
-
         <div className="verification-footer-row">
           <p className="results-text">
             Showing {filteredRequests.length} of {requests.length} results
@@ -669,7 +780,6 @@ const JewelerVerification = ({ defaultTab = "All Requests" }) => {
         </div>
       </div>
 
-      {/* ── Detail Side Panel ── */}
       <JewelerDetailPanel
         jeweler={selectedJeweler}
         onClose={() => setSelectedJeweler(null)}

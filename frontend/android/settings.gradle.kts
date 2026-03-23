@@ -10,9 +10,23 @@ pluginManagement {
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
+    resolutionStrategy {
+        eachPlugin {
+            when (requested.id.id) {
+                "com.android.application", "com.android.library" -> {
+                    useModule("com.android.tools.build:gradle:${requested.version}")
+                }
+                "org.jetbrains.kotlin.android", "org.jetbrains.kotlin.jvm", "org.jetbrains.kotlin.kapt" -> {
+                    useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+                }
+            }
+        }
+    }
+
     repositories {
         google()
         mavenCentral()
+        maven("https://maven.aliyun.com/repository/gradle-plugin")
         gradlePluginPortal()
     }
 }

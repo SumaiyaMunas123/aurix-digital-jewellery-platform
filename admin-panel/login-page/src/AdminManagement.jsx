@@ -6,10 +6,10 @@ const initialAdmins = [
     id: 1,
     initials: "SJ",
     name: "Sanuthmi Jayalath",
-    email: "sanuthmi@aurix.lk",
+    email: "aurixsanu@gmail.com",
     role: "Senior Admin",
     department: "Platform Operations",
-    joined: "Jan 2023",
+    joined: "Jan 2026",
     lastActive: "Today, 9:41 AM",
     status: "Active",
     isCurrent: true,
@@ -64,19 +64,6 @@ const initialAdmins = [
   },
 ];
 
-const roleMeta = {
-  "Senior Admin": { dot: "#D4AF37", color: "#92680a", border: "#fde68a" },
-  Admin: { dot: "#7c3aed", color: "#5b21b6", border: "#ddd6fe" },
-  "Junior Admin": { dot: "#2563eb", color: "#1d4ed8", border: "#bfdbfe" },
-};
-
-const adminActivity = {
-  1: [3, 3, 2, 3, 3, 2, 3, 3, 2, 3, 3, 3],
-  2: [1, 2, 2, 1, 3, 2, 2, 3, 3, 2, 2, 3],
-  3: [0, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 1],
-  4: [1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0],
-};
-
 const departments = [
   "Platform Operations",
   "Verification",
@@ -98,8 +85,6 @@ const countryCodes = [
   { code: "+65", flag: "SG" },
   { code: "+60", flag: "MY" },
 ];
-
-const ACT_COLORS = ["#f0f0f0", "#d1fae5", "#6ee7b7", "#059669"];
 
 const allPermissions = [
   { key: "jewelers", label: "Jeweler Verification" },
@@ -281,20 +266,6 @@ const IconPlus = () => (
   >
     <line x1="12" y1="5" x2="12" y2="19" />
     <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-const IconCheck = () => (
-  <svg
-    width="9"
-    height="9"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#fff"
-    strokeWidth="3"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12" />
   </svg>
 );
 const IconX = () => (
@@ -608,7 +579,6 @@ export default function AdminManagement() {
               <th>Role</th>
               <th>Department</th>
               <th>Last Login</th>
-              <th>Activity</th>
               <th>Status</th>
               <th style={{ textAlign: "right" }}>Actions</th>
             </tr>
@@ -616,14 +586,12 @@ export default function AdminManagement() {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={6}>
                   <div className="am-empty">No admins found.</div>
                 </td>
               </tr>
             ) : (
               filtered.map((admin) => {
-                const rm = roleMeta[admin.role] || roleMeta["Admin"];
-                const activity = adminActivity[admin.id] || Array(12).fill(0);
                 const parts = admin.lastActive.includes(",")
                   ? admin.lastActive.split(",").map((s) => s.trim())
                   : [admin.lastActive, null];
@@ -641,16 +609,7 @@ export default function AdminManagement() {
                       </div>
                     </td>
                     <td>
-                      <span
-                        className="am-role-chip"
-                        style={{ color: rm.color, borderColor: rm.border }}
-                      >
-                        <span
-                          className="am-role-dot"
-                          style={{ background: rm.dot }}
-                        />
-                        {admin.role}
-                      </span>
+                      <span className="am-role-chip">{admin.role}</span>
                     </td>
                     <td>
                       <span className="am-meta-text">{admin.department}</span>
@@ -661,20 +620,6 @@ export default function AdminManagement() {
                         {parts[1] && (
                           <span className="am-login-date">{parts[1]}</span>
                         )}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="am-activity-bar-wrap">
-                        <div className="am-activity-bar">
-                          {activity.map((v, i) => (
-                            <div
-                              key={i}
-                              className="am-activity-seg"
-                              style={{ background: ACT_COLORS[v] }}
-                            />
-                          ))}
-                        </div>
-                        <span className="am-activity-label">12w</span>
                       </div>
                     </td>
                     <td>
@@ -869,7 +814,6 @@ function AddModal({ onClose, onAdd }) {
               </select>
             </div>
           </div>
-
           <hr className="am-section-divider" />
           <span className="am-section-title">Contact Details</span>
           <div className="am-modal-grid">
@@ -896,7 +840,6 @@ function AddModal({ onClose, onAdd }) {
               />
             </div>
           </div>
-
           <hr className="am-section-divider" />
           <span className="am-section-title">Set Password</span>
           <div className="am-modal-grid">
@@ -919,7 +862,6 @@ function AddModal({ onClose, onAdd }) {
               />
             </div>
           </div>
-
           <div className="am-modal-footer">
             <button className="am-modal-cancel" onClick={onClose}>
               Cancel
@@ -1053,7 +995,6 @@ function EditModal({ admin, onClose, onSave, onDelete }) {
               </select>
             </div>
           </div>
-
           <hr className="am-section-divider" />
           <span className="am-section-title">Contact Details</span>
           <div className="am-modal-grid">
@@ -1079,7 +1020,6 @@ function EditModal({ admin, onClose, onSave, onDelete }) {
               />
             </div>
           </div>
-
           <hr className="am-section-divider" />
           <span className="am-section-title">
             Change Password{" "}
@@ -1114,7 +1054,6 @@ function EditModal({ admin, onClose, onSave, onDelete }) {
               />
             </div>
           </div>
-
           <hr className="am-section-divider" />
           <span className="am-section-title">Permissions</span>
           <div className="am-perms-grid" style={{ marginBottom: 4 }}>
@@ -1136,7 +1075,6 @@ function EditModal({ admin, onClose, onSave, onDelete }) {
               );
             })}
           </div>
-
           <div className="am-modal-footer">
             {!form.isCurrent && (
               <button

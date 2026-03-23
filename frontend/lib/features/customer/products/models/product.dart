@@ -1,11 +1,13 @@
 class Product {
   final String id;
   final String name;
+  final String? description;
   final String jeweller;
   final String karat;
   final String weight;
   final int? priceLkr;
   final String category;
+  final String? imageUrl;
 
   final bool isDeal;
   final bool isNew;
@@ -15,11 +17,13 @@ class Product {
   const Product({
     required this.id,
     required this.name,
+    this.description,
     required this.jeweller,
     required this.karat,
     required this.weight,
-    required this.priceLkr,
+    this.priceLkr,
     required this.category,
+    this.imageUrl,
     required this.isDeal,
     required this.isNew,
     required this.isFeatured,
@@ -32,15 +36,17 @@ class Product {
     return Product(
       id: (m["id"] ?? "").toString(),
       name: (m["name"] ?? "").toString(),
-      jeweller: (m["jeweller"] ?? "").toString(),
+      description: (m["description"] ?? "").toString(),
+      jeweller: (m["jeweller_name"] ?? m["jeweller"] ?? "").toString(),
       karat: (m["karat"] ?? "").toString(),
       weight: (m["weight"] ?? "").toString(),
-      priceLkr: (m["priceLkr"] is int) ? m["priceLkr"] as int : null,
+      priceLkr: (m["price_lkr"] is int) ? m["price_lkr"] as int : null,
       category: (m["category"] ?? "").toString(),
-      isDeal: m["isDeal"] == true,
-      isNew: m["isNew"] == true,
-      isFeatured: m["isFeatured"] == true,
-      isTrending: m["isTrending"] == true,
+      imageUrl: (m["image_url"] ?? "").toString(),
+      isDeal: m["is_deal"] == true || m["isDeal"] == true,
+      isNew: m["is_new"] == true || m["isNew"] == true,
+      isFeatured: m["is_featured"] == true || m["isFeatured"] == true,
+      isTrending: m["is_trending"] == true || m["isTrending"] == true,
     );
   }
 }

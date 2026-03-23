@@ -31,7 +31,6 @@ const AdminLogin = ({ onLogin }) => {
       const data = await response.json();
 
       if (data.success) {
-        // Pass both the user and token to the parent
         if (onLogin) onLogin(data.user, data.token);
       } else {
         setError(data.message || "Invalid credentials.");

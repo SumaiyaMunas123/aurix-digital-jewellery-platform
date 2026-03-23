@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
-import '../../../../../core/network/api_client.dart';
+
+import '../../../../core/network/api_client.dart';
 import '../models/product.dart';
 import 'product_repository.dart';
 
@@ -12,142 +13,96 @@ class ProductRepoApi implements ProductRepository {
       final response = await _apiClient.dio.get('/products');
 
       if (response.statusCode != 200) {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          message: 'Failed to fetch products',
-        );
+        return [];
       }
 
       final data = response.data;
-
-      if (data == null || !data.containsKey('data')) {
-        throw Exception('Invalid products response');
+      if (data is! Map || data['success'] != true) {
+        return [];
       }
 
-      final List<dynamic> productsList = data['data'] ?? [];
-
+      final productsList = data['data'] as List? ?? [];
       return productsList
-          .map((p) => Product.fromMap(p as Map<String, dynamic>))
+          .whereType<Map>()
+          .map((p) => Product.fromMap(p.cast<String, dynamic>()))
           .toList();
-    } on DioException catch (e) {
-      print('DioException fetching products: ${e.message}');
-      throw Exception('Failed to fetch products: ${e.message}');
-    } catch (e) {
-      print('Error fetching products: $e');
-      throw Exception('Error fetching products: $e');
+    } on DioException {
+      return [];
+    } catch (_) {
+      return [];
     }
   }
 
-  /// Get single product by ID
   Future<Product?> getById(String productId) async {
     try {
       final response = await _apiClient.dio.get('/products/$productId');
-
-      if (response.statusCode != 200) {
-        return null;
-      }
+      if (response.statusCode != 200) return null;
 
       final data = response.data;
+      if (data is! Map || data['data'] is! Map) return null;
 
-      if (data == null || !data.containsKey('data')) {
-        return null;
-      }
-
-      return Product.fromMap(data['data'] as Map<String, dynamic>);
-    } catch (e) {
-      print('Error fetching product: $e');
+      return Product.fromMap((data['data'] as Map).cast<String, dynamic>());
+    } catch (_) {
       return null;
     }
   }
 
-  /// Get products by category
   Future<List<Product>> getByCategory(String category) async {
     try {
       final response = await _apiClient.dio.get(
         '/products',
         queryParameters: {'category': category},
       );
-
-      if (response.statusCode != 200) {
-        throw DioException(
-          requestOptions: response.requestOptions,
-          response: response,
-          message: 'Failed to fetch products',
-        );
-      }
+      if (response.statusCode != 200) return [];
 
       final data = response.data;
-
-      if (data == null || !data.containsKey('data')) {
-        return [];
-      }
-
-      final List<dynamic> productsList = data['data'] ?? [];
+      final productsList = (data is Map ? data['data'] : null) as List? ?? [];
 
       return productsList
-          .map((p) => Product.fromMap(p as Map<String, dynamic>))
+          .whereType<Map>()
+          .map((p) => Product.fromMap(p.cast<String, dynamic>()))
           .toList();
-    } catch (e) {
-      print('Error fetching products by category: $e');
+    } catch (_) {
       return [];
     }
   }
 
-  /// Get featured products
   Future<List<Product>> getFeatured() async {
     try {
       final response = await _apiClient.dio.get(
         '/products',
         queryParameters: {'featured': true},
       );
-
-      if (response.statusCode != 200) {
-        return [];
-      }
+      if (response.statusCode != 200) return [];
 
       final data = response.data;
-
-      if (data == null || !data.containsKey('data')) {
-        return [];
-      }
-
-      final List<dynamic> productsList = data['data'] ?? [];
+      final productsList = (data is Map ? data['data'] : null) as List? ?? [];
 
       return productsList
-          .map((p) => Product.fromMap(p as Map<String, dynamic>))
+          .whereType<Map>()
+          .map((p) => Product.fromMap(p.cast<String, dynamic>()))
           .toList();
-    } catch (e) {
-      print('Error fetching featured products: $e');
+    } catch (_) {
       return [];
     }
   }
 
-  /// Search products
   Future<List<Product>> search(String query) async {
     try {
       final response = await _apiClient.dio.get(
         '/products/search',
         queryParameters: {'q': query},
       );
-
-      if (response.statusCode != 200) {
-        return [];
-      }
+      if (response.statusCode != 200) return [];
 
       final data = response.data;
-
-      if (data == null || !data.containsKey('data')) {
-        return [];
-      }
-
-      final List<dynamic> productsList = data['data'] ?? [];
+      final productsList = (data is Map ? data['data'] : null) as List? ?? [];
 
       return productsList
-          .map((p) => Product.fromMap(p as Map<String, dynamic>))
+          .whereType<Map>()
+          .map((p) => Product.fromMap(p.cast<String, dynamic>()))
           .toList();
-    } catch (e) {
-      print('Error searching products: $e');
+    } catch (_) {
       return [];
     }
   }

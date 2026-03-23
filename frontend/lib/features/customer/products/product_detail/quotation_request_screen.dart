@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/aurix_background.dart';
 import '../../../../core/widgets/aurix_glass_card.dart';
+import '../../chat/chat_room/chat_room_screen.dart';
 import '../../../customer/quotations/data/quotation_store.dart';
 
 class QuotationRequestScreen extends StatefulWidget {
@@ -64,7 +65,19 @@ class _QuotationRequestScreenState extends State<QuotationRequestScreen> {
       ),
     );
 
-    Navigator.pop(context);
+    // Navigate to chat with the jeweler
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatRoomScreen(
+              title: widget.jewellerName,
+            ),
+          ),
+        );
+      }
+    });
   }
 
   @override

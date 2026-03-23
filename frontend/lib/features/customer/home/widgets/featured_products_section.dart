@@ -31,6 +31,27 @@ class FeaturedProductsSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (p.imageUrl != null && p.imageUrl!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            height: 60,
+                            width: double.infinity,
+                            color: const Color(0xFFD4AF37).withValues(alpha: 0.1),
+                            child: Image.network(
+                              p.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.image_outlined,
+                                size: 24,
+                                color: Color(0xFFD4AF37),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
                     const SizedBox(height: 6),

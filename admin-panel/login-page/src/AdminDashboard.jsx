@@ -9,6 +9,7 @@ import OrdersDashboard from "./OrdersDashboard";
 import EscrowFinance from "./EscrowFinance";
 import SettingsPage from "./SettingsPage";
 import AdminManagement from "./AdminManagement";
+import UserProfile from "./UserProfile";
 import { apiCall } from "./api/client";
 
 const AdminDashboard = ({ onLogout }) => {
@@ -18,6 +19,8 @@ const AdminDashboard = ({ onLogout }) => {
   );
   const [navProps, setNavProps] = useState({});
   const [liveStats, setLiveStats] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [chartPeriod, setChartPeriod] = useState("month");
 
   useEffect(() => {
     apiCall("/admin/stats")
@@ -27,14 +30,23 @@ const AdminDashboard = ({ onLogout }) => {
       .catch((err) => console.error("Failed to load stats:", err));
   }, []);
 
+  useEffect(() => {
+    apiCall("/admin/orders/chart")
+      .then((data) => {
+        if (data.success) setChartData(data.chart || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const current = menuItems.find(item => item.id === activeMenu);
+    document.title = current ? `${current.label }` : "Aurix Admin Dashboard";
+  }, [activeMenu]);
+
   const navigateTo = (menu, props = {}) => {
     localStorage.setItem('activeMenu', menu);
     setActiveMenu(menu);
     setNavProps(props);
-  };
-
-  const handleProfileClick = () => {
-    alert("User profile clicked!");
   };
 
   // SVG Icons
@@ -74,16 +86,7 @@ const AdminDashboard = ({ onLogout }) => {
         <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
       </svg>
     ),
-    Menu: () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-      </svg>
-    ),
-    Close: () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-      </svg>
-    ),
+  
     Logout: () => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
         <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
@@ -145,7 +148,7 @@ const AdminDashboard = ({ onLogout }) => {
   const stats = [
     { label: "Jeweler Verifications", value: liveStats ? String(liveStats.pendingJewellers) : "…", icon: "People"   },
     { label: "Total Products",        value: liveStats ? String(liveStats.totalProducts)    : "…", icon: "Products" },
-    { label: "Active Orders",         value: "—",                                                  icon: "Orders"   },
+    { label: "Active Orders",         value: liveStats ? String(liveStats.activeOrders)     : "…", icon: "Orders"   },
     { label: "Escrow Balance",        value: "—",                                                  icon: "Finance"  },
     { label: "Total Jewellers",       value: liveStats ? String(liveStats.totalJewellers)   : "…", icon: "People"   },
   ];
@@ -160,7 +163,6 @@ const AdminDashboard = ({ onLogout }) => {
   const renderDashboardOverview = () => (
     <>
       <div className="page-header">
-        <title>Admin Dashboard</title>
         <h1>Dashboard Overview</h1>
       </div>
 
@@ -197,16 +199,84 @@ const AdminDashboard = ({ onLogout }) => {
       <div className="content-grid">
         <div className="chart-section">
           <div className="section-header">
-            <h2>Sales Overview</h2>
+            <h2>Orders Overview</h2>
             <div className="time-filter">
-              <button>Week</button>
-              <button className="active">Month</button>
+              <button
+                className={chartPeriod === "month" ? "active" : ""}
+                onClick={() => setChartPeriod("month")}
+              >Month</button>
             </div>
           </div>
-          <div className="chart-placeholder">
-            <span>📊</span>
-            <p>Sales Chart Visualization</p>
-          </div>
+
+          {/* Line Chart */}
+          {chartData.length === 0 ? (
+            <div className="chart-placeholder">
+              <p>No order data yet</p>
+            </div>
+          ) : (() => {
+            const W = 500, H = 180, padL = 36, padR = 16, padT = 16, padB = 28;
+            const maxVal = Math.max(...chartData.map((d) => d.count), 1);
+            const n = chartData.length;
+            const xStep = (W - padL - padR) / (n - 1);
+            const yScale = (v) => padT + (H - padT - padB) * (1 - v / maxVal);
+            const pts = chartData.map((d, i) => ({
+              x: padL + i * xStep,
+              y: yScale(d.count),
+              count: d.count,
+              label: d.label,
+            }));
+            const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+            const areaPath = `${linePath} L${pts[pts.length - 1].x},${H - padB} L${pts[0].x},${H - padB} Z`;
+            const dotColors = ["#D4AF37", "#D4AF37","#D4AF37", "#D4AF37", "#D4AF37"];
+
+            return (
+              <div className="line-chart-wrap">
+                <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "100%" }}>
+                  <defs>
+                    <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#D4AF37" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Grid lines */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
+                    const y = padT + (H - padT - padB) * t;
+                    const val = Math.round(maxVal * (1 - t));
+                    return (
+                      <g key={i}>
+                        <line x1={padL} y1={y} x2={W - padR} y2={y}
+                          stroke="#f0f0f0" strokeWidth="1" />
+                        <text x={padL - 4} y={y + 4} textAnchor="end"
+                          fontSize="9" fill="#9ca3af">{val}</text>
+                      </g>
+                    );
+                  })}
+
+                  {/* Area fill */}
+                  <path d={areaPath} fill="url(#lineGrad)" />
+
+                  {/* Line */}
+                  <path d={linePath} fill="none" stroke="#D4AF37"
+                    strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+
+                  {/* Dots + labels */}
+                  {pts.map((p, i) => (
+                    <g key={i}>
+                      <circle cx={p.x} cy={p.y} r="5"
+                        fill={dotColors[i % dotColors.length]}
+                        stroke="#fff" strokeWidth="2" />
+                      <text x={p.x} y={H - padB + 14} textAnchor="middle"
+                        fontSize="10" fontWeight="600" fill="#6b7280">{p.label}</text>
+                      <text x={p.x} y={p.y - 10} textAnchor="middle"
+                        fontSize="10" fontWeight="700"
+                        fill={dotColors[i % dotColors.length]}>{p.count}</text>
+                    </g>
+                  ))}
+                </svg>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="activity-section">
@@ -240,6 +310,7 @@ const AdminDashboard = ({ onLogout }) => {
       case "admins":   return <AdminManagement />;
       case "disputes": return <div style={{ padding: "2rem" }}><h2>Disputes</h2><p>Coming soon.</p></div>;
       case "settings": return <SettingsPage />;
+      case "profile": return <UserProfile onNavigate={navigateTo} />;
       default:         return renderDashboardOverview();
     }
   };
@@ -256,7 +327,8 @@ const AdminDashboard = ({ onLogout }) => {
       />
 
       <main className="main-content">
-        <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} />
+        <TopBar onProfileClick={() => navigateTo("profile")} onLogout={onLogout} onNavigate={navigateTo} />
+        {/* <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} /> */}
         <div className="dashboard-content">
           {renderPage()}
           <Footer />

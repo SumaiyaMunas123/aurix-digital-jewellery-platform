@@ -53,7 +53,6 @@
   border: 1px solid #f0f0f0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
-  line-height: 28px;
 }
 
 .ef-summary-card:hover {
@@ -63,12 +62,12 @@
 }
 
 .ef-summary-label {
-  margin: 0 0 4px;
+  margin: 0 0 8px;
   font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.06em;
   color: #9ca3af;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .ef-summary-value {
@@ -125,23 +124,28 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
+
 .ef-table-wrapper {
   overflow-x: auto;
 }
+
 .ef-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
+
 .ef-table thead {
   background: #f9fafb;
 }
+
 .ef-table th,
 .ef-table td {
   padding: 14px 18px;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
 }
+
 .ef-table th {
   font-size: 11px;
   font-weight: 600;
@@ -149,9 +153,11 @@
   text-transform: uppercase;
   color: #9ca3af;
 }
+
 .ef-table tbody tr:last-child td {
   border-bottom: none;
 }
+
 .ef-table tbody tr:hover {
   background: #fafafa;
 }
@@ -159,22 +165,27 @@
 .ef-id {
   font-family: monospace;
   font-weight: 700;
-  color: #d4af37;
+  color: #9ca3af;
+  font-size: 13px;
 }
+
 .ef-order-id {
   font-family: monospace;
   font-size: 12px;
   color: #6b7280;
 }
+
 .ef-jeweler,
 .ef-buyer {
   font-size: 13px;
   color: #374151;
 }
+
 .ef-amount {
   font-weight: 700;
   color: #111827;
 }
+
 .ef-date {
   font-size: 12px;
   color: #6b7280;
@@ -220,6 +231,7 @@
   display: flex;
   gap: 6px;
 }
+
 .ef-release-btn {
   padding: 6px 14px;
   border: 1px solid #d4af37;
@@ -229,12 +241,15 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
+
 .ef-release-btn:hover {
   background: #d4af37;
   color: white;
   border-color: transparent;
 }
+
 .ef-view-btn {
   padding: 6px 14px;
   border: none;
@@ -244,10 +259,13 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 .ef-view-btn:hover {
-  background: #111827;
+  background: #d4af37;
 }
+
 .ef-release-btn:focus,
 .ef-release-btn:focus-visible,
 .ef-view-btn:focus,
@@ -260,17 +278,139 @@
   padding: 12px 18px;
   background: #f9fafb;
 }
+
 .ef-results-text {
   margin: 0;
   font-size: 12px;
   color: #6b7280;
 }
 
+/* Modal */
+.ef-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: ef-fade-in 0.15s ease;
+}
+
+@keyframes ef-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ef-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: ef-slide-up 0.2s ease;
+}
+
+@keyframes ef-slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.ef-modal-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fff9f0;
+  border: 1.5px solid #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}
+
+.ef-modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 6px;
+}
+
+.ef-modal-sub {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0 0 4px;
+}
+
+.ef-modal-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: #d4af37;
+  margin: 0 0 1rem;
+}
+
+.ef-modal-desc {
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 1.75rem;
+}
+
+.ef-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.ef-modal-cancel {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ef-modal-cancel:hover {
+  background: #f3f4f6;
+}
+
+.ef-modal-confirm {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: #d4af37;
+  color: white;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ef-modal-confirm:hover {
+  background: #c9a227;
+}
+
+.ef-modal-cancel:focus,
+.ef-modal-cancel:focus-visible,
+.ef-modal-confirm:focus,
+.ef-modal-confirm:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Responsive */
 @media (max-width: 1200px) {
   .ef-summary-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
 @media (max-width: 768px) {
   .ef-summary-grid {
     grid-template-columns: repeat(2, 1fr);

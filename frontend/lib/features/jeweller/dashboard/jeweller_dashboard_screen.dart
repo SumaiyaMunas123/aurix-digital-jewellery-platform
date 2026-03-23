@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/navigation/nav.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/aurix_glass_card.dart';
 import '../../customer/home/widgets/live_gold_rate_card.dart';
+import '../../customer/chat/chat_list_screen.dart';
+import '../products/jeweller_add_product_screen.dart';
+import '../quotations/quotation_requests_screen.dart';
 
 class JewellerDashboardScreen extends StatelessWidget {
   const JewellerDashboardScreen({super.key});
@@ -129,22 +133,32 @@ class JewellerDashboardScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 12),
-              _QuickActionTile(
-                icon: Icons.add_box_rounded,
-                title: "Add New Product",
-              ),
-              SizedBox(height: 10),
-              _QuickActionTile(
-                icon: Icons.request_quote_rounded,
-                title: "Review Quotations",
-              ),
-              SizedBox(height: 10),
-              _QuickActionTile(
-                icon: Icons.chat_bubble_rounded,
-                title: "Open Messages",
-              ),
             ],
           ),
+        ),
+        const SizedBox(height: 12),
+        _QuickActionTile(
+          icon: Icons.add_box_rounded,
+          title: "Add New Product",
+          onTap: () {
+            Nav.push(context, const JewellerAddProductScreen());
+          },
+        ),
+        const SizedBox(height: 10),
+        _QuickActionTile(
+          icon: Icons.request_quote_rounded,
+          title: "Review Quotations",
+          onTap: () {
+            Nav.push(context, const QuotationRequestsScreen());
+          },
+        ),
+        const SizedBox(height: 10),
+        _QuickActionTile(
+          icon: Icons.chat_bubble_rounded,
+          title: "Open Messages",
+          onTap: () {
+            Nav.push(context, const ChatListScreen());
+          },
         ),
       ],
     );
@@ -230,39 +244,44 @@ class _SummaryRow extends StatelessWidget {
 class _QuickActionTile extends StatelessWidget {
   final IconData icon;
   final String title;
+  final VoidCallback? onTap;
 
   const _QuickActionTile({
     required this.icon,
     required this.title,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 14,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.gold.withValues(alpha: 0.25),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
         ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.gold),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppColors.gold.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.gold),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
-          ),
-          const Icon(Icons.chevron_right_rounded),
-        ],
+            const Icon(Icons.chevron_right_rounded),
+          ],
+        ),
       ),
     );
   }

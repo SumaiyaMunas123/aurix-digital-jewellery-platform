@@ -4,37 +4,27 @@
  */
 
 import jwt from 'jsonwebtoken';
-
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
 export const validateUserAuth = (req, res, next) => {
   try {
-import { sendError } from '../utils/response.js';
-
-export const validateUserAuth = (req, res, next) => {
-  try {
-    // Extract user context from body, query, or headers
-    const user_id = req.body?.user_id || req.query?.user_id || null;
-    const user_type = req.body?.user_type || req.query?.user_type || 'customer';
-
-    // Optional: If JWT is provided, validate it
     const authHeader = req.headers.authorization;
 
-    // Check for JWT in Authorization header
+    // If a bearer token is present, verify and use authenticated context.
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
+
       try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = {
-          id: decoded.sub,
-          email: decoded.email,
-          name: decoded.name,
-          role: decoded.role,
+          id: decoded.sub || decoded.id || null,
+          email: decoded.email || null,
+          name: decoded.name || null,
+          role: decoded.role || null,
           isAuthenticated: true,
         };
         return next();
       } catch (tokenError) {
-        console.error('❌ Token verification failed:', tokenError.message);
         return res.status(401).json({
           success: false,
           message: 'Invalid or expired token',
@@ -43,24 +33,21 @@ export const validateUserAuth = (req, res, next) => {
       }
     }
 
-    // Allow anonymous requests with optional user_id (for development)
-    const { user_id } = req.body;
-    // Allow anonymous and authenticated requests
+    // Allow anonymous requests with optional user context.
+    const userId = req.body?.user_id || req.query?.user_id || null;
     req.user = {
-      id: user_id || null,
-      isAuthenticated: !!user_id,
+      id: userId,
+      role: req.body?.user_type || req.query?.user_type || 'customer',
+      isAuthenticated: false,
     };
 
-    next();
+    return next();
   } catch (error) {
-    console.error('❌ Auth middleware error:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Authentication failed',
       error: error.message,
     });
-    console.error('❌ Auth error:', error.message);
-    return sendError(res, 'Authentication failed', 401);
   }
 };
 
@@ -71,5 +58,6 @@ export const requireAuth = (req, res, next) => {
       message: 'Authentication required',
     });
   }
-  next();
+
+  return next();
 };

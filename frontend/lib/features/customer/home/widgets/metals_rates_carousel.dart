@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/gold_rate_service.dart';import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/aurix_glass_card.dart';
 import '../../../../dev/dummy_data/dummy_metal_rates.dart';
 import '../../../customer/gold_rate/pages/metal_detail_screen.dart';
@@ -18,10 +17,16 @@ class MetalsRatesCarousel extends StatefulWidget {
 class _MetalsRatesCarouselState extends State<MetalsRatesCarousel> {
   late final PageController _pageController;
   late Timer _timer;
+  late Timer _rateUpdateTimer;
 
   int _page = 0;
   MetalUnit _unit = MetalUnit.ounce;
   DateTime _now = DateTime.now();
+  
+  double? _goldRate;
+  double? _silverRate;
+  double? _platinumRate;
+  bool _ratesLoaded = false;
 
   @override
   void initState() {
@@ -32,11 +37,35 @@ class _MetalsRatesCarouselState extends State<MetalsRatesCarousel> {
         setState(() => _now = DateTime.now());
       }
     });
+    
+    // Fetch rates immediately and then every 30 seconds
+    _fetchRates();
+    _rateUpdateTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _fetchRates();
+    });
+  }
+  
+  Future<void> _fetchRates() async {
+    if (!mounted) return;
+    
+    final gold = await GoldRateService.getGoldRate();
+    final silver = await GoldRateService.getSilverRate();
+    final platinum = await GoldRateService.getPlatinumRate();
+    
+    if (mounted) {
+      setState(() {
+        if (gold != null) _goldRate = gold;
+        if (silver != null) _silverRate = silver;
+        if (platinum != null) _platinumRate = platinum;
+        _ratesLoaded = true;
+      });
+    }
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _rateUpdateTimer.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -63,7 +92,52 @@ class _MetalsRatesCarouselState extends State<MetalsRatesCarousel> {
   @override
   Widget build(BuildContext context) {
     final metals = DummyMetalRates.metals;
+    
+    // Update rates if they've been fetched
+    if (_ratesLoaded && (_goldRate != null || _silverRate != null || _platinumRate != null)) {
+      final updatedMetals = <MetalSnapshot>[];
+      for (final metal in metals) {
+        if (metal.metal == MetalType.gold && _goldRate != null) {
+          updatedMetals.add(
+            MetalSnapshot(
+              metal: metal.metal,
+              label: metal.label,
+              oneDay: _buildRateSeries(_goldRate!, 12),
+              sevenDays: _buildRateSeries(_goldRate!, 7),
+              oneMonth: _buildRateSeries(_goldRate!, 30),
+            ),
+          );
+        } else if (metal.metal == MetalType.silver && _silverRate != null) {
+          updatedMetals.add(
+            MetalSnapshot(
+              metal: metal.metal,
+              label: metal.label,
+              oneDay: _buildRateSeries(_silverRate!, 12),
+              sevenDays: _buildRateSeries(_silverRate!, 7),
+              oneMonth: _buildRateSeries(_silverRate!, 30),
+            ),
+          );
+        } else if (metal.metal == MetalType.platinum && _platinumRate != null) {
+          updatedMetals.add(
+            MetalSnapshot(
+              metal: metal.metal,
+              label: metal.label,
+              oneDay: _buildRateSeries(_platinumRate!, 12),
+              sevenDays: _buildRateSeries(_platinumRate!, 7),
+              oneMonth: _buildRateSeries(_platinumRate!, 30),
+            ),
+          );
+        } else {
+          updatedMetals.add(metal);
+        }
+      }
+      return _buildCarousel(updatedMetals);
+    }
 
+    return _buildCarousel(metals);
+  }
+  
+  Widget _buildCarousel(List<MetalSnapshot> metals) {
     return SizedBox(
       height: 380,
       child: PageView.builder(
@@ -91,11 +165,32 @@ class _MetalsRatesCarouselState extends State<MetalsRatesCarousel> {
               currentPage: _page,
               totalPages: metals.length,
               onUnitTap: _cycleUnit,
+              isLive: _ratesLoaded,
             ),
           );
         },
       ),
     );
+  }
+  
+  List<MetalHistoryPoint> _buildRateSeries(double baseRate, int count) {
+    final now = DateTime.now();
+    final List<MetalHistoryPoint> points = [];
+    
+    for (int i = count - 1; i >= 0; i--) {
+      // Add slight random variation
+      final variance = (i % 3 == 0) ? -0.005 : 0.005;
+      final rate = baseRate * (1 + variance);
+      
+      points.add(
+        MetalHistoryPoint(
+          time: now.subtract(Duration(hours: i)),
+          usdPerOunce: double.parse(rate.toStringAsFixed(2)),
+        ),
+      );
+    }
+    
+    return points;
   }
 }
 
@@ -106,6 +201,7 @@ class _MetalRateCard extends StatelessWidget {
   final int currentPage;
   final int totalPages;
   final VoidCallback onUnitTap;
+  final bool isLive;
 
   const _MetalRateCard({
     required this.metal,
@@ -114,6 +210,7 @@ class _MetalRateCard extends StatelessWidget {
     required this.currentPage,
     required this.totalPages,
     required this.onUnitTap,
+    this.isLive = false,
   });
 
   String _codeLabel() {
@@ -151,9 +248,9 @@ class _MetalRateCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Live',
+                      isLive ? 'Live' : 'Loading',
                       style: TextStyle(
-                        color: Colors.green.shade600,
+                        color: isLive ? Colors.green.shade600 : Colors.orange.shade600,
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
                       ),

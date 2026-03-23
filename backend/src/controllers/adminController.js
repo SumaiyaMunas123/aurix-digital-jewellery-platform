@@ -1,11 +1,10 @@
 import { supabase } from '../config/supabaseClient.js';
-import { sendSuccess, sendError, sendValidationError } from '../utils/responseFormatter.js';
-import { validateRequiredFields } from '../utils/validation.js';
+import { logAdminAction } from './documentController.js';
 
-// ==================== GET PENDING JEWELLERS ====================
+
 export const getPendingJewellers = async (req, res) => {
   try {
-    console.log('📋 Get pending jewellers');
+    console.log('Get pending jewellers');
 
     const { data: jewellers, error } = await supabase
       .from('users')
@@ -16,7 +15,7 @@ export const getPendingJewellers = async (req, res) => {
 
     if (error) throw error;
 
-    console.log(`✅ Found ${jewellers.length} pending jewellers`);
+    console.log(`Found ${jewellers.length} pending jewellers`);
 
     return res.status(200).json({
       success: true,
@@ -25,7 +24,7 @@ export const getPendingJewellers = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Server error',
@@ -34,10 +33,9 @@ export const getPendingJewellers = async (req, res) => {
   }
 };
 
-// ==================== GET ALL JEWELLERS ====================
 export const getAllJewellers = async (req, res) => {
   try {
-    console.log('📋 Get all jewellers');
+    console.log('Get all jewellers');
 
     const { status } = req.query;
 
@@ -55,7 +53,7 @@ export const getAllJewellers = async (req, res) => {
 
     if (error) throw error;
 
-    console.log(`✅ Found ${jewellers.length} jewellers`);
+    console.log(`Found ${jewellers.length} jewellers`);
 
     return res.status(200).json({
       success: true,
@@ -64,7 +62,7 @@ export const getAllJewellers = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Server error',
@@ -73,7 +71,7 @@ export const getAllJewellers = async (req, res) => {
   }
 };
 
-// ==================== GET JEWELLER STATUS ====================
+
 export const getJewellerStatus = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
@@ -93,7 +91,7 @@ export const getJewellerStatus = async (req, res) => {
       });
     }
 
-    console.log('✅ Status:', jeweller.verification_status);
+    console.log('Status:', jeweller.verification_status);
 
     return res.status(200).json({
       success: true,
@@ -103,7 +101,7 @@ export const getJewellerStatus = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Server error',
@@ -112,11 +110,10 @@ export const getJewellerStatus = async (req, res) => {
   }
 };
 
-// ==================== APPROVE JEWELLER ====================
 export const approveJeweller = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
-    console.log('✅ Approve jeweller:', jeweller_id);
+    console.log('Approve jeweller:', jeweller_id);
 
     const { data: jeweller, error: fetchError } = await supabase
       .from('users')
@@ -137,7 +134,6 @@ export const approveJeweller = async (req, res) => {
       .update({
         verified: true,
         verification_status: 'approved',
-        verified_at: new Date().toISOString(),
         rejection_reason: null
       })
       .eq('id', jeweller_id)
@@ -146,7 +142,14 @@ export const approveJeweller = async (req, res) => {
 
     if (error) throw error;
 
-    console.log('✅ Jeweller approved');
+    await logAdminAction({
+      admin_id: req.user?.id,
+      jeweller_id,
+      action: 'approved',
+      details: { previous_status: jeweller.verification_status },
+    });
+
+    console.log('Jeweller approved');
 
     return res.status(200).json({
       success: true,
@@ -155,7 +158,7 @@ export const approveJeweller = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Server error',
@@ -164,13 +167,12 @@ export const approveJeweller = async (req, res) => {
   }
 };
 
-// ==================== REJECT JEWELLER ====================
 export const rejectJeweller = async (req, res) => {
   try {
     const { jeweller_id } = req.params;
     const { reason } = req.body;
     
-    console.log('❌ Reject jeweller:', jeweller_id);
+    console.log('Reject jeweller:', jeweller_id);
 
     if (!reason) {
       return res.status(400).json({
@@ -198,8 +200,7 @@ export const rejectJeweller = async (req, res) => {
       .update({
         verified: false,
         verification_status: 'rejected',
-        rejection_reason: reason,
-        rejected_at: new Date().toISOString()
+        rejection_reason: reason
       })
       .eq('id', jeweller_id)
       .select()
@@ -207,7 +208,14 @@ export const rejectJeweller = async (req, res) => {
 
     if (error) throw error;
 
-    console.log('✅ Jeweller rejected');
+    await logAdminAction({
+      admin_id: req.user?.id,
+      jeweller_id,
+      action: 'rejected',
+      details: { reason, previous_status: jeweller.verification_status },
+    });
+
+    console.log('Jeweller rejected');
 
     return res.status(200).json({
       success: true,
@@ -216,7 +224,7 @@ export const rejectJeweller = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Server error',
@@ -225,34 +233,36 @@ export const rejectJeweller = async (req, res) => {
   }
 };
 
-// ==================== GET STATS ====================
 export const getPlatformStats = async (req, res) => {
   try {
-    console.log('📊 Get stats');
+    console.log('Get stats');
 
     const [
       { count: totalCustomers },
       { count: totalJewellers },
       { count: approvedJewellers },
       { count: pendingJewellers },
-      { count: totalProducts }
+      { count: totalProducts },
+      { count: activeOrders }
     ] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller'),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller').eq('verified', true),
       supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'jeweller').eq('verification_status', 'pending'),
-      supabase.from('products').select('*', { count: 'exact', head: true })
+      supabase.from('products').select('*', { count: 'exact', head: true }),
+      supabase.from('orders').select('*', { count: 'exact', head: true }).in('status', ['payment_confirmed', 'processing', 'in_production', 'ready_for_pickup'])
     ]);
 
     const stats = {
-      totalCustomers: totalCustomers || 0,
-      totalJewellers: totalJewellers || 0,
+      totalCustomers:   totalCustomers   || 0,
+      totalJewellers:   totalJewellers   || 0,
       approvedJewellers: approvedJewellers || 0,
       pendingJewellers: pendingJewellers || 0,
-      totalProducts: totalProducts || 0
+      totalProducts:    totalProducts    || 0,
+      activeOrders:     activeOrders     || 0,
     };
 
-    console.log('✅ Stats:', stats);
+    console.log('Stats:', stats);
 
     return res.status(200).json({
       success: true,
@@ -260,7 +270,7 @@ export const getPlatformStats = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
     return res.status(500).json({
       success: false,
       message: 'Server error',
