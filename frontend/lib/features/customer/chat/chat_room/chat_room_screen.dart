@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:aurix/features/customer/chat/models/chat_message.dart';
-import 'package:aurix/features/customer/chat/data/chat_repository.dart';
 import 'package:aurix/core/theme/app_colors.dart';
+import 'package:aurix/features/customer/chat/data/chat_repository.dart';
+import 'package:aurix/features/customer/chat/models/chat_message.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String title;
@@ -29,69 +28,64 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _scroll = ScrollController();
   final _chatRepository = ChatRepository();
 
+  bool _loading = true;
   List<ChatMessage> _messages = [];
-  StreamSubscription<List<Map<String, dynamic>>>? _messageSubscription;
-  final _currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
   @override
   void initState() {
     super.initState();
-    _setupRealtimeChat();
+    _loadMessages();
   }
 
-  void _setupRealtimeChat() {
+  Future<void> _loadMessages() async {
     if (widget.threadId != null && widget.threadId!.isNotEmpty) {
-      _messageSubscription = Supabase.instance.client
-          .from('chat_messages')
-          .stream(primaryKey: ['id'])
-          .eq('thread_id', widget.threadId!)
-          .order('created_at', ascending: true)
-          .listen((data) {
+      try {
+        final raw = await _chatRepository.getMessages(widget.threadId!);
         if (!mounted) return;
+
         setState(() {
-          _messages = data.map((m) {
+          _messages = raw.map((m) {
             return ChatMessage(
               id: m['id']?.toString() ?? '',
-              text: m['message_text'] ?? m['content'] ?? m['message'] ?? '',
-              isMe: m['sender_id'] == _currentUserId,
+              text: (m['content'] ?? m['message'] ?? '').toString(),
+              isMe: m['is_sent_by_me'] == true,
               time: m['created_at'] != null
-                  ? DateTime.parse(m['created_at'])
+                  ? DateTime.tryParse(m['created_at'].toString()) ?? DateTime.now()
                   : DateTime.now(),
             );
           }).toList();
+          _loading = false;
         });
+
         _scrollToBottom();
-      });
-    } else {
-      // Fallback sample data if no thread
-      setState(() {
-        _messages = [
-          ChatMessage(
-            id: "1",
-            text: "Hi! How can I help you today?",
-            isMe: false,
-            time: DateTime.now().subtract(const Duration(minutes: 5)),
-          ),
-          ChatMessage(
-            id: "2",
-            text: "I want a 22K ring design.",
-            isMe: true,
-            time: DateTime.now().subtract(const Duration(minutes: 3)),
-          ),
-          ChatMessage(
-            id: "3",
-            text: "Great! We have some beautiful 22K designs.",
-            isMe: false,
-            time: DateTime.now().subtract(const Duration(minutes: 1)),
-          ),
-        ];
-      });
+        return;
+      } catch (_) {
+        // Fallback below.
+      }
     }
+
+    if (!mounted) return;
+    setState(() {
+      _messages = [
+        ChatMessage(
+          id: '1',
+          text: 'Hi! How can I help you today?',
+          isMe: false,
+          time: DateTime.now().subtract(const Duration(minutes: 5)),
+        ),
+        ChatMessage(
+          id: '2',
+          text: 'I want a 22K ring design.',
+          isMe: true,
+          time: DateTime.now().subtract(const Duration(minutes: 3)),
+        ),
+      ];
+      _loading = false;
+    });
   }
 
   @override
   void dispose() {
-    _messageSubscription?.cancel();
     _controller.dispose();
     _scroll.dispose();
     super.dispose();
@@ -114,22 +108,30 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     HapticFeedback.selectionClick();
 
-    _controller.clear();
+    setState(() {
+      _messages.add(
+        ChatMessage(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          text: text,
+          isMe: true,
+          time: DateTime.now(),
+        ),
+      );
+      _controller.clear();
+    });
+
     _scrollToBottom();
 
-    // Try to send to backend
     if (widget.threadId != null && widget.threadId!.isNotEmpty) {
       try {
         await _chatRepository.sendMessage(
           threadId: widget.threadId!,
           content: text,
         );
-        print('✅ Message sent successfully');
       } catch (e) {
-        print('⚠️ Failed to send message: $e');
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to send: $e")),
+          SnackBar(content: Text('Failed to send: $e')),
         );
       }
     }
@@ -137,8 +139,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   Future<void> _pickImage() async {
     HapticFeedback.lightImpact();
+
     try {
-      final XFile? picked = await _picker.pickImage(
+      final picked = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 80,
       );
@@ -146,19 +149,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       if (picked == null) return;
 
       setState(() {
-        _messages.add(ChatMessage(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          imagePath: picked.path,
-          isMe: true,
-          time: DateTime.now(),
-        ));
+        _messages.add(
+          ChatMessage(
+            id: DateTime.now().microsecondsSinceEpoch.toString(),
+            imagePath: picked.path,
+            isMe: true,
+            time: DateTime.now(),
+          ),
+        );
       });
 
       _scrollToBottom();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Image pick failed: $e")),
+        SnackBar(content: Text('Image pick failed: $e')),
       );
     }
   }
@@ -171,12 +176,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                itemCount: _messages.length,
-                itemBuilder: (context, i) => _Bubble(m: _messages[i]),
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.builder(
+                      controller: _scroll,
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, i) => _Bubble(m: _messages[i]),
+                    ),
             ),
             _InputBar(
               controller: _controller,
@@ -192,21 +199,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
 class _Bubble extends StatelessWidget {
   final ChatMessage m;
+
   const _Bubble({required this.m});
 
   @override
   Widget build(BuildContext context) {
-    final isMe = m.isMe;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bubbleColor = isMe
+    final bubbleColor = m.isMe
         ? AppColors.gold.withValues(alpha: 0.95)
-        : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06));
+        : (isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.06));
 
-    final textColor = isMe ? Colors.black : (isDark ? Colors.white : Colors.black);
+    final textColor = m.isMe ? Colors.black : (isDark ? Colors.white : Colors.black);
 
     return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: m.isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         constraints: BoxConstraints(maxWidth: m.hasImage ? 280 : 260),
         margin: const EdgeInsets.symmetric(vertical: 6),
@@ -214,9 +223,12 @@ class _Bubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: bubbleColor,
           borderRadius: BorderRadius.circular(18),
-          border: isMe
+          border: m.isMe
               ? null
-              : Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08)),
+              : Border.all(
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: 0.08),
+                ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +245,10 @@ class _Bubble extends StatelessWidget {
               ),
             if (m.hasImage && m.hasText) const SizedBox(height: 8),
             if (m.hasText)
-              Text(m.text!, style: TextStyle(color: textColor, fontWeight: FontWeight.w700)),
+              Text(
+                m.text!,
+                style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
+              ),
           ],
         ),
       ),
@@ -260,7 +275,12 @@ class _InputBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       decoration: BoxDecoration(
         color: isDark ? Colors.black : Colors.white,
-        border: Border(top: BorderSide(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08))),
+        border: Border(
+          top: BorderSide(
+            color: (isDark ? Colors.white : Colors.black)
+                .withValues(alpha: 0.08),
+          ),
+        ),
       ),
       child: Row(
         children: [
@@ -274,18 +294,26 @@ class _InputBar extends StatelessWidget {
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => onSend(),
               decoration: InputDecoration(
-                hintText: "Message…",
+                hintText: 'Message...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10)),
+                  borderSide: BorderSide(
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: 0.10),
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.10)),
+                  borderSide: BorderSide(
+                    color: (isDark ? Colors.white : Colors.black)
+                        .withValues(alpha: 0.10),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(color: AppColors.gold.withValues(alpha: 0.6)),
+                  borderSide: BorderSide(
+                    color: AppColors.gold.withValues(alpha: 0.6),
+                  ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               ),
