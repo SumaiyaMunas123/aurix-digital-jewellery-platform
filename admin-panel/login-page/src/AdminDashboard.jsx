@@ -40,7 +40,11 @@ const AdminDashboard = ({ onLogout }) => {
 
   useEffect(() => {
     const current = menuItems.find(item => item.id === activeMenu);
-    document.title = current ? `${current.label }` : "Aurix Admin Dashboard";
+    if (activeMenu === "profile") {
+      document.title = "User Profile";
+    } else {
+      document.title = current ? `${current.label}` : "Aurix Admin Dashboard";
+    }
   }, [activeMenu]);
 
   const navigateTo = (menu, props = {}) => {
@@ -208,7 +212,6 @@ const AdminDashboard = ({ onLogout }) => {
             </div>
           </div>
 
-          {/* Line Chart */}
           {chartData.length === 0 ? (
             <div className="chart-placeholder">
               <p>No order data yet</p>
@@ -239,7 +242,6 @@ const AdminDashboard = ({ onLogout }) => {
                     </linearGradient>
                   </defs>
 
-                  {/* Grid lines */}
                   {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
                     const y = padT + (H - padT - padB) * t;
                     const val = Math.round(maxVal * (1 - t));
@@ -253,14 +255,11 @@ const AdminDashboard = ({ onLogout }) => {
                     );
                   })}
 
-                  {/* Area fill */}
                   <path d={areaPath} fill="url(#lineGrad)" />
 
-                  {/* Line */}
                   <path d={linePath} fill="none" stroke="#D4AF37"
                     strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
 
-                  {/* Dots + labels */}
                   {pts.map((p, i) => (
                     <g key={i}>
                       <circle cx={p.x} cy={p.y} r="5"
@@ -328,7 +327,6 @@ const AdminDashboard = ({ onLogout }) => {
 
       <main className="main-content">
         <TopBar onProfileClick={() => navigateTo("profile")} onLogout={onLogout} onNavigate={navigateTo} />
-        {/* <TopBar Icons={Icons} handleProfileClick={handleProfileClick} onLogout={onLogout} onNavigate={navigateTo} /> */}
         <div className="dashboard-content">
           {renderPage()}
           <Footer />
