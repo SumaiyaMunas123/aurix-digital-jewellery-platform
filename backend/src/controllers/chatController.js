@@ -1,9 +1,11 @@
 import { supabase } from '../config/supabaseClient.js';
 
+// Returns true when a user belongs to a thread as either customer or jeweller.
 const isThreadParticipant = (thread, userId) => {
   return userId === thread.customer_id || userId === thread.jeweller_id;
 };
 
+// Recomputes unread counters from unread messages to keep thread counters accurate.
 const syncThreadUnreadCounts = async (thread) => {
   const { data: unreadMessages, error: unreadError } = await supabase
     .from('chat_messages')
