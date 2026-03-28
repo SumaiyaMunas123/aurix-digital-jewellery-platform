@@ -28,7 +28,7 @@ class ChatRepository {
         throw Exception(data['message'] ?? 'Invalid response');
       }
 
-      final threads = (data['threads'] as List? ?? [])
+      final threads = (data['data'] as List? ?? [])
           .map((t) => Map<String, dynamic>.from(t as Map))
           .toList();
 
@@ -55,7 +55,7 @@ class ChatRepository {
         throw Exception(data['message'] ?? 'Invalid response');
       }
 
-      final messages = (data['messages'] as List? ?? [])
+      final messages = (data['data'] as List? ?? [])
           .map((m) => Map<String, dynamic>.from(m as Map))
           .toList();
 
@@ -70,15 +70,17 @@ class ChatRepository {
   /// Send a message
   Future<Map<String, dynamic>> sendMessage({
     required String threadId,
+    required String senderId,
     required String content,
   }) async {
     try {
-      print('📤 Sending message to thread: $threadId');
+      print('📤 Sending message to thread: $threadId from sender: $senderId');
       final response = await _apiClient.dio.post(
         '/chat/send',
         data: {
           'thread_id': threadId,
-          'content': content,
+          'sender_id': senderId,
+          'message': content,
         },
       );
 
@@ -100,21 +102,15 @@ class ChatRepository {
   }
 
   /// Start a chat with a jeweler
-  Future<Map<String, dynamic>> startChatWithJeweller({
+  Future<Map<String, dynamic>> startChat({
     required String jewellerId,
   }) async {
     try {
-      final currentUserId = await getCurrentUserId();
-      if (currentUserId == null || currentUserId.isEmpty) {
-        throw Exception('Missing current user session');
-      }
-
       print('🔗 Starting chat with jeweler: $jewellerId');
       final response = await _apiClient.dio.post(
         '/chat/start',
         data: {
-          'customer_id': currentUserId,
-          'jeweller_id': jewellerId,
+          'other_user_id': jewellerId,
         },
       );
 
@@ -128,7 +124,7 @@ class ChatRepository {
       }
 
       print('✅ Chat started/retrieved successfully');
-      return Map<String, dynamic>.from((data['thread'] ?? {}) as Map);
+      return data['data'] ?? {};
     } on DioException catch (e) {
       print('❌ Error starting chat: ${e.message}');
       rethrow;
@@ -163,24 +159,55 @@ class ChatRepository {
   }
 
   /// Mark messages as read
-  Future<void> markAsRead(String threadId) async {
+  Future<void> markAsRead({
+    required String threadId,
+    required String userId,
+  }) async {
     try {
-      final currentUserId = await getCurrentUserId();
-      if (currentUserId == null || currentUserId.isEmpty) {
-        return;
-      }
-
       print('✅ Marking messages as read for thread: $threadId');
       await _apiClient.dio.post(
         '/chat/read',
         data: {
           'thread_id': threadId,
-          'user_id': currentUserId,
         },
       );
     } catch (e) {
       print('❌ Error marking as read: $e');
       // Don't rethrow - this is not critical
+    }
+  }
+
+  /// Share AI design in chat
+  Future<Map<String, dynamic>> shareAIDesign({
+    required String threadId,
+    required String senderId,
+    required String aiDesignId,
+  }) async {
+    try {
+      print('🎨 Sharing AI design: $aiDesignId to thread: $threadId');
+      final response = await _apiClient.dio.post(
+        '/chat/share-design',
+        data: {
+          'thread_id': threadId,
+          'sender_id': senderId,
+          'ai_design_id': aiDesignId,
+        },
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        throw Exception('Failed to share AI design');
+      }
+
+      final data = response.data;
+      if (data['success'] != true) {
+        throw Exception(data['message'] ?? 'Invalid response');
+      }
+
+      print('✅ AI design shared successfully');
+      return data['data'] ?? {};
+    } on DioException catch (e) {
+      print('❌ Error sharing AI design: ${e.message}');
+      rethrow;
     }
   }
 }

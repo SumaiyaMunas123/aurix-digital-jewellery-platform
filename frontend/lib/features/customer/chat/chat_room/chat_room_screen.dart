@@ -12,13 +12,11 @@ import 'package:aurix/features/customer/chat/models/chat_message.dart';
 class ChatRoomScreen extends StatefulWidget {
   final String title;
   final String? threadId;
-  final String? currentUserId;
 
   const ChatRoomScreen({
     super.key,
     required this.title,
     this.threadId,
-    this.currentUserId,
   });
 
   @override
@@ -35,33 +33,23 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   String? _currentUserId;
   Timer? _pollTimer;
   List<ChatMessage> _messages = [];
+  StreamSubscription<List<Map<String, dynamic>>>? _messageSubscription;
+  final _currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
   @override
   void initState() {
     super.initState();
-    _initializeChat();
+    _setupRealtimeChat();
   }
 
-  Future<void> _initializeChat() async {
-    _currentUserId =
-        widget.currentUserId ?? await _chatRepository.getCurrentUserId();
-    await _loadMessages(showLoader: true);
-
+  void _setupRealtimeChat() {
     if (widget.threadId != null && widget.threadId!.isNotEmpty) {
-      _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-        _loadMessages(showLoader: false);
-      });
-    }
-  }
-
-  Future<void> _loadMessages({required bool showLoader}) async {
-    if (showLoader && mounted) {
-      setState(() => _loading = true);
-    }
-
-    if (widget.threadId != null && widget.threadId!.isNotEmpty) {
-      try {
-        final raw = await _chatRepository.getMessages(widget.threadId!);
+      _messageSubscription = Supabase.instance.client
+          .from('chat_messages')
+          .stream(primaryKey: ['id'])
+          .eq('thread_id', widget.threadId!)
+          .order('created_at', ascending: true)
+          .listen((data) {
         if (!mounted) return;
 
         final loaded = raw.map((m) {
@@ -144,10 +132,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
     _scrollToBottom();
 
+    // Try to send to backend
     if (widget.threadId != null && widget.threadId!.isNotEmpty) {
       try {
         await _chatRepository.sendMessage(
-          threadId: widget.threadId!,
+          threadId: _activeThreadId!,
+          senderId: _currentUserId!,
           content: text,
         );
         await _loadMessages(showLoader: false);
