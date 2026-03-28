@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,11 +12,13 @@ import 'package:aurix/features/customer/chat/models/chat_message.dart';
 class ChatRoomScreen extends StatefulWidget {
   final String title;
   final String? threadId;
+  final String? currentUserId;
 
   const ChatRoomScreen({
     super.key,
     required this.title,
     this.threadId,
+    this.currentUserId,
   });
 
   @override
@@ -29,63 +32,82 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _chatRepository = ChatRepository();
 
   bool _loading = true;
+  String? _currentUserId;
+  Timer? _pollTimer;
   List<ChatMessage> _messages = [];
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    _initializeChat();
   }
 
-  Future<void> _loadMessages() async {
+  Future<void> _initializeChat() async {
+    _currentUserId =
+        widget.currentUserId ?? await _chatRepository.getCurrentUserId();
+    await _loadMessages(showLoader: true);
+
+    if (widget.threadId != null && widget.threadId!.isNotEmpty) {
+      _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+        _loadMessages(showLoader: false);
+      });
+    }
+  }
+
+  Future<void> _loadMessages({required bool showLoader}) async {
+    if (showLoader && mounted) {
+      setState(() => _loading = true);
+    }
+
     if (widget.threadId != null && widget.threadId!.isNotEmpty) {
       try {
         final raw = await _chatRepository.getMessages(widget.threadId!);
         if (!mounted) return;
 
+        final loaded = raw.map((m) {
+          final senderId = (m['sender_id'] ?? '').toString();
+          final messageText =
+              (m['message_text'] ?? m['content'] ?? m['message'] ?? '')
+                  .toString();
+          return ChatMessage(
+            id: m['id']?.toString() ?? '',
+            text: messageText,
+            isMe: _currentUserId != null && senderId == _currentUserId,
+            time: m['created_at'] != null
+                ? DateTime.tryParse(m['created_at'].toString()) ??
+                    DateTime.now()
+                : DateTime.now(),
+          );
+        }).toList();
+
         setState(() {
-          _messages = raw.map((m) {
-            return ChatMessage(
-              id: m['id']?.toString() ?? '',
-              text: (m['content'] ?? m['message'] ?? '').toString(),
-              isMe: m['is_sent_by_me'] == true,
-              time: m['created_at'] != null
-                  ? DateTime.tryParse(m['created_at'].toString()) ?? DateTime.now()
-                  : DateTime.now(),
-            );
-          }).toList();
+          _messages = loaded;
           _loading = false;
         });
+
+        if (_currentUserId != null && _currentUserId!.isNotEmpty) {
+          await _chatRepository.markAsRead(widget.threadId!);
+        }
 
         _scrollToBottom();
         return;
       } catch (_) {
-        // Fallback below.
+        if (!mounted) return;
+        setState(() => _loading = false);
+        return;
       }
     }
 
     if (!mounted) return;
     setState(() {
-      _messages = [
-        ChatMessage(
-          id: '1',
-          text: 'Hi! How can I help you today?',
-          isMe: false,
-          time: DateTime.now().subtract(const Duration(minutes: 5)),
-        ),
-        ChatMessage(
-          id: '2',
-          text: 'I want a 22K ring design.',
-          isMe: true,
-          time: DateTime.now().subtract(const Duration(minutes: 3)),
-        ),
-      ];
+      _messages = [];
       _loading = false;
     });
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _controller.dispose();
     _scroll.dispose();
     super.dispose();
@@ -128,6 +150,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           threadId: widget.threadId!,
           content: text,
         );
+        await _loadMessages(showLoader: false);
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -212,7 +235,8 @@ class _Bubble extends StatelessWidget {
             ? Colors.white.withValues(alpha: 0.08)
             : Colors.black.withValues(alpha: 0.06));
 
-    final textColor = m.isMe ? Colors.black : (isDark ? Colors.white : Colors.black);
+    final textColor =
+        m.isMe ? Colors.black : (isDark ? Colors.white : Colors.black);
 
     return Align(
       alignment: m.isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -277,8 +301,8 @@ class _InputBar extends StatelessWidget {
         color: isDark ? Colors.black : Colors.white,
         border: Border(
           top: BorderSide(
-            color: (isDark ? Colors.white : Colors.black)
-                .withValues(alpha: 0.08),
+            color:
+                (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
           ),
         ),
       ),
@@ -315,7 +339,8 @@ class _InputBar extends StatelessWidget {
                     color: AppColors.gold.withValues(alpha: 0.6),
                   ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               ),
             ),
           ),

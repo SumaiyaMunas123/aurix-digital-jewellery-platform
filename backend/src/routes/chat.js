@@ -7,7 +7,8 @@ import {
   getMessages,
   markAsRead,
   sendQuotation,
-  shareAIDesign
+  shareAIDesign,
+  searchJewellers
 } from '../controllers/chatController.js';
 
 const router = express.Router();
@@ -23,6 +24,9 @@ router.post('/send', sendMessage);
 
 // Get user's chat threads
 router.get('/threads/:user_id', getChatThreads);
+
+// Search jewellers to start new chats
+router.get('/jewellers', searchJewellers);
 
 // Get messages in a thread
 router.get('/:thread_id/messages', getMessages);

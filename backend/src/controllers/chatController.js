@@ -627,3 +627,38 @@ export const shareAIDesign = async (req, res) => {
     });
   }
 };
+
+// ==================== SEARCH JEWELLERS ====================
+export const searchJewellers = async (req, res) => {
+  try {
+    const search = String(req.query.search || '').trim();
+
+    let query = supabase
+      .from('users')
+      .select('id, name, business_name, email, phone, district, province, verified, verification_status')
+      .eq('role', 'jeweller')
+      .eq('verified', true)
+      .limit(25);
+
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,business_name.ilike.%${search}%`);
+    }
+
+    query = query.order('business_name', { ascending: true });
+
+    const { data: jewellers, error } = await query;
+    if (error) throw error;
+
+    return res.status(200).json({
+      success: true,
+      jewellers: jewellers || []
+    });
+  } catch (error) {
+    console.error('❌ Search jewellers error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
