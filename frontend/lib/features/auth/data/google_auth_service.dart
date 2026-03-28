@@ -1,23 +1,35 @@
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
+
+// Only import on non-web platforms - will fail gracefully on web
+import 'package:google_sign_in/google_sign_in.dart'
+    show GoogleSignIn, GoogleSignInAccount;
 
 class GoogleAuthService {
   GoogleAuthService._();
 
-  static final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  static GoogleSignIn? _googleSignIn;
   static bool _initialized = false;
 
   static Future<void> initialize() async {
+    if (kIsWeb) return; // Skip on web
     if (_initialized) return;
 
-    await _googleSignIn.initialize();
+    _googleSignIn = GoogleSignIn.instance;
+    await _googleSignIn?.initialize();
     _initialized = true;
   }
 
   static Future<GoogleSignInAccount?> signIn() async {
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'Google Sign-In is not available on web platform.',
+      );
+    }
+
     await initialize();
 
-    if (_googleSignIn.supportsAuthenticate()) {
-      return _googleSignIn.authenticate();
+    if (_googleSignIn?.supportsAuthenticate() ?? false) {
+      return await _googleSignIn?.authenticate();
     }
 
     throw UnsupportedError(
@@ -26,7 +38,8 @@ class GoogleAuthService {
   }
 
   static Future<void> signOut() async {
+    if (kIsWeb) return; // No-op on web
     await initialize();
-    await _googleSignIn.signOut();
+    await _googleSignIn?.signOut();
   }
 }

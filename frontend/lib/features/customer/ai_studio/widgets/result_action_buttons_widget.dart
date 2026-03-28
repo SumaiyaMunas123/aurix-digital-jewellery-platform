@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:saver_gallery/saver_gallery.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
+import 'package:saver_gallery/saver_gallery.dart' as sg;
+import 'package:share_plus/share_plus.dart' as sp;
 
 import 'package:aurix/core/navigation/nav.dart';
 import 'package:aurix/core/theme/app_colors.dart';
@@ -41,16 +41,18 @@ class _ResultActionButtonsWidgetState
   }
 
   Future<bool> _requestSavePermission() async {
+    if (kIsWeb) return false; // Not supported on web
+    
     if (Platform.isIOS) {
-      final status = await Permission.photosAddOnly.request();
+      final status = await ph.Permission.photosAddOnly.request();
       return status.isGranted || status.isLimited;
     }
 
     if (Platform.isAndroid) {
-      final photos = await Permission.photos.request();
+      final photos = await ph.Permission.photos.request();
       if (photos.isGranted || photos.isLimited) return true;
 
-      final storage = await Permission.storage.request();
+      final storage = await ph.Permission.storage.request();
       return storage.isGranted;
     }
 
@@ -59,6 +61,11 @@ class _ResultActionButtonsWidgetState
 
   Future<void> _saveToPhone() async {
     HapticFeedback.selectionClick();
+
+    if (kIsWeb) {
+      _showSnack('Image saving is not available on web.');
+      return;
+    }
 
     if (widget.request.sketchPath == null ||
         widget.request.sketchPath!.isEmpty) {
@@ -87,7 +94,7 @@ class _ResultActionButtonsWidgetState
       final fileName =
           'aurix_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      await SaverGallery.saveImage(
+      await sg.SaverGallery.saveImage(
         bytes,
         fileName: fileName,
         skipIfExists: false,
@@ -105,19 +112,24 @@ class _ResultActionButtonsWidgetState
   Future<void> _shareDesign() async {
     HapticFeedback.selectionClick();
 
+    if (kIsWeb) {
+      _showSnack('Sharing is not available on web.');
+      return;
+    }
+
     setState(() => _sharing = true);
 
     try {
       final path = widget.request.sketchPath;
 
       if (path != null && path.isNotEmpty && await File(path).exists()) {
-        await Share.shareXFiles(
-          [XFile(path)],
+        await sp.Share.shareXFiles(
+          [sp.XFile(path)],
           text: 'Aurix AI Design\n${widget.request.prompt}',
           subject: 'Aurix AI Design',
         );
       } else {
-        await Share.share(
+        await sp.Share.share(
           'Aurix AI Design\n${widget.request.prompt}',
           subject: 'Aurix AI Design',
         );
