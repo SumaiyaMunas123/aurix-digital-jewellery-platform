@@ -37,7 +37,6 @@ export async function fetchGoldRates() {
 async function fetchInternationalGoldRate() {
   const xauUsd = await getMetalPrice('XAU');
 
-  // If we cannot fetch the international rate (no API key), return a synthetic placeholder
   if (xauUsd == null) {
     return {
       price_per_gram_lkr: null,
@@ -48,7 +47,7 @@ async function fetchInternationalGoldRate() {
       silver: null,
       platinum: null,
       usdToLkr: null,
-      warning: 'Missing GOLD_API_KEY; set it in .env to get real international rates.',
+      warning: 'Could not fetch international gold rate from api.gold-api.com',
     };
   }
 
@@ -86,33 +85,20 @@ function getGoldApiSource() {
 }
 
 async function getMetalPrice(symbol) {
-  // symbol: XAU, XAG, XPT
-  const url = process.env.GOLD_API_URL || 'https://www.goldapi.io/api';
-  const apiKey = process.env.GOLD_API_KEY;
-
-  if (!apiKey) {
-    // Allow the service to run without a key (useful for local dev & testing).
-    // In this case, we return null so callers can fall back gracefully.
-    console.warn('GOLD_API_KEY is missing; international rates will be skipped.');
+  try {
+    const url = `https://api.gold-api.com/price/${symbol}`;
+    const res = await axios.get(url, {
+      timeout: 15000,
+    });
+    const price = res.data?.price;
+    if (typeof price !== 'number') {
+      throw new Error(`Unexpected response from gold API (${symbol})`);
+    }
+    return price;
+  } catch (err) {
+    console.error(`Failed to fetch ${symbol} price from gold-api.com:`, err.message);
     return null;
   }
-
-  const endpoint = `${url.replace(/\/$/, '')}/${symbol}/USD`;
-
-  const res = await axios.get(endpoint, {
-    headers: {
-      'x-access-token': apiKey,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    timeout: 15000,
-  });
-
-  const price = res.data?.price ?? res.data?.price_usd ?? res.data?.price_usd_per_ounce;
-  if (typeof price !== 'number') {
-    throw new Error(`Unexpected response from gold API (${symbol}): ${JSON.stringify(res.data).slice(0, 200)}`);
-  }
-  return price;
 }
 
 async function getUsdToLkr() {
@@ -124,25 +110,8 @@ async function getUsdToLkr() {
     }
     return n;
   }
-
-  // Use exchangerate.host which is free and does not require a key.
-  try {
-    const res = await axios.get('https://api.exchangerate.host/convert', {
-      params: { from: 'USD', to: 'LKR', amount: 1 },
-      timeout: 15000,
-    });
-
-    const rate = res.data?.result;
-    if (typeof rate !== 'number') {
-      throw new Error('Unable to fetch USD->LKR rate');
-    }
-
-    return rate;
-  } catch (err) {
-    console.warn('Failed to fetch USD->LKR rate, using fallback:', err.message);
-    // Fallback rate (approximate USD to LKR as of 2026)
-    return 320; // Adjust as needed
-  }
+  // Hardcoded fallback since free exchangerate is disabled
+  return 300;
 }
 
 async function fetchDeviGoldRate() {

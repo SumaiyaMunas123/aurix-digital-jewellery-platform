@@ -4,5 +4,5 @@ class Environment {
   // Example for this machine: 'http://10.81.105.189:5000/api'
   static const String baseUrl = "http://10.81.105.189:5000/api";
   static const String aiBackendUrl = "http://10.81.105.189:7000/api";
-  static const String goldRateUrl = "http://10.81.105.189:6000";
+  static const String goldRateUrl = "http://10.81.105.189:6001";
 }

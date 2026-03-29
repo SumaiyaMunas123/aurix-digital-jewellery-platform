@@ -4,7 +4,7 @@ import '../models/gold_rate.dart';
 import 'gold_rate_repository.dart';
 
 class GoldRateRepoApi implements GoldRateRepository {
-  static const String _baseUrl = 'http://localhost:6000/gold-rate';
+  static const String _baseUrl = 'http://localhost:6001/gold-rate';
 
   @override
   Future<GoldRate> getLiveRates() async {
@@ -17,17 +17,18 @@ class GoldRateRepoApi implements GoldRateRepository {
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
 
-        if (jsonData['success'] == true && jsonData['data'] != null) {
-          final data = jsonData['data'];
+        if (jsonData['success'] == true) {
+          final intl = jsonData['international'] ?? {};
+          final local = jsonData['local_devi'] ?? {};
 
           return GoldRate(
-            xauUsd: (data['xauUsd'] ?? 0).toDouble(),
-            silver: (data['silver'] ?? 0).toDouble(),
-            platinum: (data['platinum'] ?? 0).toDouble(),
-            lkr24k: data['lkr24k'] ?? 0,
-            lkr22k: data['lkr22k'] ?? 0,
-            lkr20k: data['lkr20k'] ?? 0,
-            updatedAt: DateTime.tryParse(data['timestamp'] ?? '') ?? DateTime.now(),
+            xauUsd: (intl['xauUsd'] ?? 0).toDouble(),
+            silver: (intl['silver'] ?? 0).toDouble(),
+            platinum: (intl['platinum'] ?? 0).toDouble(),
+            lkr24k: local['lkr24k'] ?? 0,
+            lkr22k: local['lkr22k'] ?? 0,
+            lkr20k: local['lkr20k'] ?? 0,
+            updatedAt: DateTime.tryParse(intl['timestamp'] ?? jsonData['fetchedAt'] ?? '') ?? DateTime.now(),
           );
         }
       }

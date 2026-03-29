@@ -32,8 +32,8 @@ class GoldRateService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        if (data is Map && data.containsKey('rate')) {
-          return double.tryParse(data['rate'].toString());
+        if (data is Map && data.containsKey('gold') && data['gold'] != null) {
+          return double.tryParse(data['gold']['xauUsd'].toString());
         }
       }
       return null;
@@ -53,8 +53,8 @@ class GoldRateService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        if (data is Map && data.containsKey('rate')) {
-          return double.tryParse(data['rate'].toString());
+        if (data is Map && data.containsKey('silver') && data['silver'] != null) {
+          return double.tryParse(data['silver']['xagUsd'].toString());
         }
       }
       return null;
@@ -74,8 +74,8 @@ class GoldRateService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        if (data is Map && data.containsKey('rate')) {
-          return double.tryParse(data['rate'].toString());
+        if (data is Map && data.containsKey('platinum') && data['platinum'] != null) {
+          return double.tryParse(data['platinum']['xptUsd'].toString());
         }
       }
       return null;
