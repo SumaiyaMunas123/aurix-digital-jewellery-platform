@@ -60,8 +60,18 @@ export const generateImage = async (req, res) => {
       return sendError(res, 'Invalid mode. Use 0 for text-to-image or 1 for sketch-to-image', 400);
     }
 
-    // Build style context for better generation
-    const styleContext = `${category || 'jewelry'} in ${material || 'gold'} (${karat || '22K'}), ${style || 'elegant'} style, ${occasion || 'daily wear'}, budget ${budget || 'varies'}`;
+    // Build style context for better generation (only add things that were explicitly provided)
+    const contextParts = [];
+    if (category && category !== 'Any') contextParts.push(category);
+    if (material && material !== 'Any') contextParts.push(`in ${material}`);
+    if (karat && karat !== 'Any') contextParts.push(`(${karat})`);
+    if (style && style !== 'Any') contextParts.push(`${style} style`);
+    if (occasion && occasion !== 'Any') contextParts.push(`for ${occasion}`);
+    
+    let styleContext = contextParts.join(' ');
+    if (budget && budget !== 'Any') {
+      styleContext += styleContext ? `, budget: ${budget}` : `budget: ${budget}`;
+    }
 
     let buffer, imageBase64, sketchUrl = null;
 

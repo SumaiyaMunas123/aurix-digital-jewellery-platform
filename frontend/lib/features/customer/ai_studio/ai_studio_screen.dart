@@ -138,13 +138,13 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
     final request = AiGenerationRequest(
       mode: _mode,
       prompt: _mode == 0 ? prompt : '',
-      category: _category,
-      weight: _weight,
-      material: _material,
-      karat: _karat,
-      style: _style,
-      occasion: _occasion,
-      budget: _budget,
+      category: _mode == 0 ? '' : _category,
+      weight: _mode == 0 ? '' : _weight,
+      material: _mode == 0 ? '' : _material,
+      karat: _mode == 0 ? '' : _karat,
+      style: _mode == 0 ? '' : _style,
+      occasion: _mode == 0 ? '' : _occasion,
+      budget: _mode == 0 ? '' : _budget,
       sketchPath: _sketchFile?.path,
     );
 
@@ -195,8 +195,10 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
           const SizedBox(height: 16),
         ],
 
-        _selectionGrid(),
-        const SizedBox(height: 16),
+        if (_mode == 1) ...[
+          _selectionGrid(),
+          const SizedBox(height: 16),
+        ],
 
         _generateButton(),
       ],
