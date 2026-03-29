@@ -218,11 +218,11 @@ export const signup = async (req, res) => {
 
     // Step 3: Customer-specific validation
     if (role === 'customer') {
-      if (!phone || !date_of_birth || !gender || !relationship_status) {
-        console.log('❌ Missing customer required fields');
+      if (!date_of_birth || !gender || !relationship_status) {        
+        console.log('âŒ Missing customer required fields');
         return res.status(400).json({
           success: false,
-          message: 'Customers must provide phone, date of birth, gender, and relationship status'
+          message: 'Customers must provide date of birth, gender, and relationship status'
         });
       }
     }
