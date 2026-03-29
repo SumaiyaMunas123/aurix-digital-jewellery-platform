@@ -14,6 +14,7 @@ class AiRepository {
     try {
       print('🎨 Generating AI image...');
 
+      // Convert the user's choices into a multipart form data format for the backend
       final formData = FormData.fromMap({
         'mode': mode,
         'prompt': request.prompt,
@@ -24,12 +25,13 @@ class AiRepository {
         'style': request.style,
         'occasion': request.occasion,
         'budget': request.budget,
-        'user_type': 'customer',
+        'user_type': 'customer', // Specifies who is making the request
       });
 
-      // Add sketch file if in sketch-to-image mode
+      // Special handling: Add sketch file if in sketch-to-image mode (mode = 1)
       if (mode == 1 && request.sketchPath != null && request.sketchPath!.isNotEmpty) {
         final File sketchFile = File(request.sketchPath!);
+        // Verify the file exists locally before trying to upload it
         if (await sketchFile.exists()) {
           formData.files.add(
             MapEntry(
@@ -44,6 +46,7 @@ class AiRepository {
         }
       }
 
+      // Send the POST request to the inference server
       final response = await _apiClient.dio.post(
         '/ai/generate', // Routes to ai-backend port 7000
         data: formData,
@@ -52,6 +55,7 @@ class AiRepository {
       print('✅ Generation successful (status: ${response.statusCode})');
       print('Response data: ${response.data}');
 
+      // Validate standard HTTP success code
       if (response.statusCode != 200) {
         throw DioException(
           requestOptions: response.requestOptions,
@@ -62,11 +66,12 @@ class AiRepository {
 
       final data = response.data;
 
+      // Validate backend's internal success flag
       if (data == null || data['success'] != true) {
         throw Exception(data?['error'] ?? 'Generation failed');
       }
 
-      // Return the generated data
+      // Return the generated data including public URLs and raw base64 string
       return {
         'success': true,
         'imageUrl': data['data']?['image_url'] ?? '',
