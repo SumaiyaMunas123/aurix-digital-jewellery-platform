@@ -40,6 +40,8 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
 
   Future<void> _generateImage() async {
     try {
+      print('🎨 Starting AI image generation...');
+      
       final result = await _aiRepository.generateImage(
         request: widget.request,
         mode: widget.request.mode,
@@ -49,24 +51,30 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
 
       final imageUrl = (result['imageUrl'] ?? '').toString();
       final imageBase64 = (result['imageBase64'] ?? '').toString();
+      
+      print('✅ Image generated successfully: $imageUrl');
 
       final updatedRequest = widget.request.copyWith(
         imageUrl: imageUrl,
         imageBase64: imageBase64,
       );
 
+      // Navigate to result screen (replacing this screen)
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => AiResultScreen(request: updatedRequest),
         ),
       );
     } catch (e) {
+      print('❌ Generation failed: $e');
       if (!mounted) return;
+      
       setState(() => _error = e.toString());
 
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) Navigator.of(context).pop();
-      });
+      // Show error for 3 seconds then return
+      await Future.delayed(const Duration(seconds: 3));
+      if (mounted) Navigator.of(context).pop();
     }
   }
 
