@@ -1,7 +1,7 @@
 import { HfInference } from '@huggingface/inference';
 
 // Using Hugging Face's free tier image generation model
-const MODEL = 'stabilityai/stable-diffusion-3-small';
+const MODEL = 'stabilityai/stable-diffusion-xl-base-1.0';
 
 export const buildBaseJewelryPrompt = (prompt, styleContext = '') =>
   `professional jewelry photography, ${prompt}${styleContext ? `, ${styleContext}` : ''}, studio lighting, white background, 8k, photorealistic, high quality, detailed`;
@@ -26,6 +26,13 @@ export const generateImageWithHuggingFace = async (fullPrompt) => {
     const arrayBuffer = await blob.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
+    // Check if what we got is actually text/json error message instead of an image
+    if (blob.type && !blob.type.includes('image')) {
+      const textError = buffer.toString('utf-8');
+      console.error('HF returned non-image:', textError);
+      throw new Error(`HF returned non-image: ${blob.type}`);
+    }
+
     return {
       buffer,
       imageBase64: buffer.toString('base64'),

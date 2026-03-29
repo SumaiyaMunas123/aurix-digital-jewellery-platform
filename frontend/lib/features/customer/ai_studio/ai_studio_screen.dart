@@ -350,8 +350,43 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
               border: OutlineInputBorder(),
             ),
           ),
+          const SizedBox(height: 12),
+          Text(
+            'Try these examples:',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).hintColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _examplePromptChip('Diamond halo engagement ring'),
+              _examplePromptChip('Vintage emerald pendant necklace'),
+              _examplePromptChip('Modern platinum link bracelet'),
+              _examplePromptChip('Traditional 22k gold bangles with rubies'),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _examplePromptChip(String text) {
+    return ActionChip(
+      label: Text(text, style: const TextStyle(fontSize: 12)),
+      onPressed: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          _promptController.text = text;
+        });
+      },
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
     );
   }
 

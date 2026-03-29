@@ -48,9 +48,9 @@ router.post(
   '/generate',
   timeoutHandler(120000), // 2 minute timeout
   rateLimitAI,
+  upload.single('sketch'), // MUST be before validation so req.body is populated!
   validatePrompt,
   validateGenerationParams,
-  upload.single('sketch'),
   generateImage
 );
 

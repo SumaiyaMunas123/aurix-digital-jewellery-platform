@@ -46,8 +46,8 @@ class AiRepository {
         }
       }
 
-      // Send the POST request to the inference server
-      final response = await _apiClient.dio.post(
+      // Send the POST request to the AI server
+      final response = await _apiClient.aiDio.post(
         '/ai/generate', // Routes to ai-backend port 7000
         data: formData,
       );
@@ -72,12 +72,16 @@ class AiRepository {
       }
 
       // Return the generated data including public URLs and raw base64 string
+      // Supporting both the main backend (port 5000) and ai-backend (port 7000) structures
+      
+      final payload = data['data'] ?? data;
+
       return {
         'success': true,
-        'imageUrl': data['data']?['image_url'] ?? '',
-        'imageBase64': data['data']?['image_base64'] ?? '',
-        'sketchUrl': data['data']?['sketch_url'],
-        'design': data['data']?['design'],
+        'imageUrl': payload['image_url'] ?? '',
+        'imageBase64': payload['image_base64'] ?? '',
+        'sketchUrl': payload['sketch_url'],
+        'design': payload['design'],
       };
     } on DioException catch (e) {
       print('❌ DioException: ${e.message}');
