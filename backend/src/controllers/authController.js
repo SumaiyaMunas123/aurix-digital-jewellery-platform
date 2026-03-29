@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import nodemailer from 'nodemailer';
+import { OAuth2Client } from 'google-auth-library';
 import { supabase } from '../config/supabaseClient.js';
 import { signAuthToken } from '../utils/jwt.js';
 
@@ -13,6 +14,65 @@ const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const emailVerificationStore = new Map();
 
 let mailTransporter;
+let googleClient;
+
+const getGoogleClient = () => {
+  if (googleClient) {
+    return googleClient;
+  }
+
+  googleClient = new OAuth2Client();
+  return googleClient;
+};
+
+const verifyGoogleIdentity = async ({ idToken, email }) => {
+  const configuredClientIds = [
+    sanitize(process.env.GOOGLE_CLIENT_ID),
+    sanitize(process.env.GOOGLE_CLIENT_ID_ANDROID),
+    sanitize(process.env.GOOGLE_CLIENT_ID_IOS),
+  ].filter((value) => value.length > 0);
+
+  // Keep local/dev flexibility when GOOGLE_CLIENT_ID is not configured.
+  if (configuredClientIds.length === 0) {
+    return {
+      email: normalizeEmail(email),
+      name: null,
+      emailVerified: true,
+    };
+  }
+
+  if (!idToken) {
+    throw new Error('Google ID token is required');
+  }
+
+  const client = getGoogleClient();
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: configuredClientIds,
+  });
+
+  const payload = ticket.getPayload();
+  if (!payload?.email) {
+    throw new Error('Google token did not contain an email');
+  }
+
+  const googleEmail = normalizeEmail(payload.email);
+  const requestEmail = normalizeEmail(email);
+
+  if (requestEmail && googleEmail !== requestEmail) {
+    throw new Error('Google account email does not match request email');
+  }
+
+  if (!payload.email_verified) {
+    throw new Error('Google account email is not verified');
+  }
+
+  return {
+    email: googleEmail,
+    name: sanitize(payload.name),
+    emailVerified: true,
+  };
+};
 
 const getMailTransporter = async () => {
   if (mailTransporter) {
@@ -412,11 +472,20 @@ export const login = async (req, res) => {
 // ==================== GOOGLE AUTH ====================
 export const googleAuth = async (req, res) => {
   try {
-    const email = normalizeEmail(req.body?.email);
-    const name = sanitize(req.body?.name) || 'Google User';
+    const requestedEmail = normalizeEmail(req.body?.email);
+    const requestedName = sanitize(req.body?.name);
     const role = sanitize(req.body?.role || 'customer').toLowerCase();
     const phone = normalizePhone(req.body?.phone);
     const googleId = sanitize(req.body?.google_id);
+    const idToken = sanitize(req.body?.id_token);
+
+    const verifiedIdentity = await verifyGoogleIdentity({
+      idToken,
+      email: requestedEmail,
+    });
+
+    const email = verifiedIdentity.email;
+    const name = verifiedIdentity.name || requestedName || 'Google User';
 
     if (!email) {
       return res.status(400).json({

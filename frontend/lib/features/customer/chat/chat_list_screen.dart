@@ -97,7 +97,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (jewellerId.isEmpty) return;
 
     try {
-      final thread = await _chatRepository.startChatWithJeweller(
+      final thread = await _chatRepository.startChat(
         jewellerId: jewellerId,
       );
 
@@ -109,7 +109,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ChatRoomScreen(
           title: jewellerName,
           threadId: (thread['id'] ?? '').toString(),
-          currentUserId: _currentUserId,
         ),
       );
     } catch (e) {
@@ -171,7 +170,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       ChatRoomScreen(
                         title: c["name"] ?? "Chat",
                         threadId: c["id"],
-                        currentUserId: _currentUserId,
                       ),
                     ),
                     child: AurixGlassCard(

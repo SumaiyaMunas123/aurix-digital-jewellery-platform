@@ -225,12 +225,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      controller: _scroll,
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                      itemCount: _messages.length,
-                      itemBuilder: (context, i) => _Bubble(m: _messages[i]),
-                    ),
+                  : _messages.isEmpty
+                      ? const Center(
+                          child: Text('No messages yet. Start the conversation!'),
+                        )
+                      : ListView.builder(
+                          controller: _scroll,
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, i) => _Bubble(m: _messages[i]),
+                        ),
             ),
             _InputBar(
               controller: _controller,
@@ -332,46 +336,32 @@ class _InputBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: onPickImage,
-            icon: const Icon(Icons.add_photo_alternate_outlined),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: GestureDetector(
+              onTap: onPickImage,
+              child: const Icon(Icons.image_rounded, size: 24),
+            ),
           ),
           Expanded(
             child: TextField(
               controller: controller,
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => onSend(),
               decoration: InputDecoration(
                 hintText: 'Message...',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: 0.10),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: 0.10),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(999),
-                  borderSide: BorderSide(
-                    color: AppColors.gold.withValues(alpha: 0.6),
-                  ),
+                  borderRadius: BorderRadius.circular(26),
                 ),
                 contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
           ),
-          const SizedBox(width: 6),
-          IconButton(
-            onPressed: onSend,
-            icon: const Icon(Icons.send_rounded),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: GestureDetector(
+              onTap: onSend,
+              child: const Icon(Icons.send_rounded, size: 24),
+            ),
           ),
         ],
       ),
