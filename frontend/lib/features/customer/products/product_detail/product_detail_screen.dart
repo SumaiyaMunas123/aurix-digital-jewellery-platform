@@ -97,6 +97,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final productMap = _asMap(widget.product);
     final title = _readString(productMap, 'name', 'Jewellery Product');
     final jeweller = _readString(productMap, 'jeweller', 'Aurix Jeweller');
+    final jewellerId = _readString(productMap, 'jeweller_id', '');
     final description = _readString(
       productMap,
       'description',
