@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import '../config/environment.dart';
 
 class GoldRateService {
-  static const String _goldUrl = '${Environment.goldRateUrl}/gold-rate';
+  static String get _goldUrl => '${Environment.goldRateUrl}/gold-rate';
 
   static Future<Map<String, dynamic>> getAllRates() async {
     try {
