@@ -165,21 +165,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       return;
     }
 
-    if (_accountType == 1) {
-      if (_mobile.text.trim().isEmpty) {
-        _showSnack("Enter mobile number.");
-        return;
-      }
+    if (_mobile.text.trim().isEmpty) {
+      _showSnack("Enter mobile number.");
+      return;
+    }
 
-      if (!_isValidMobile(_mobile.text.trim())) {
-        _showSnack("Enter a valid mobile number.");
-        return;
-      }
+    if (!_isValidMobile(_mobile.text.trim())) {
+      _showSnack("Enter a valid mobile number.");
+      return;
+    }
 
-      if (!_mobileVerified) {
-        _showSnack("Please verify your mobile number.");
-        return;
-      }
+    if (!_mobileVerified) {
+      _showSnack("Please verify your mobile number.");
+      return;
     }
 
     if (_email.text.trim().isEmpty) {
@@ -415,62 +413,60 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 textCapitalization: TextCapitalization.words,
                               ),
                             ],
-                            if (_accountType == 1) ...[
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _field(
-                                      controller: _mobile,
-                                      hint: "Mobile Number",
-                                      keyboardType: TextInputType.phone,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
-                                        LengthLimitingTextInputFormatter(12),
-                                      ],
-                                    ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _field(
+                                    controller: _mobile,
+                                    hint: "Mobile Number",
+                                    keyboardType: TextInputType.phone,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(12),
+                                    ],
                                   ),
-                                  const SizedBox(width: 10),
-                                  GestureDetector(
-                                    onTap: _verifyMobile,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 16,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
+                                ),
+                                const SizedBox(width: 10),
+                                GestureDetector(
+                                  onTap: _verifyMobile,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: _mobileVerified
+                                          ? Colors.green
+                                          : const Color(0xFFD4AF37),
+                                    ),
+                                    child: Text(
+                                      _mobileVerified ? "Verified" : "Verify",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w900,
                                         color: _mobileVerified
-                                            ? Colors.green
-                                            : const Color(0xFFD4AF37),
-                                      ),
-                                      child: Text(
-                                        _mobileVerified ? "Verified" : "Verify",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                          color: _mobileVerified
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              if (_mobile.text.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  _isValidMobile(_mobile.text)
-                                      ? "Valid mobile number"
-                                      : "Enter a valid mobile number",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: _isValidMobile(_mobile.text)
-                                        ? Colors.green
-                                        : Colors.redAccent,
                                   ),
                                 ),
                               ],
+                            ),
+                            if (_mobile.text.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                _isValidMobile(_mobile.text)
+                                    ? "Valid mobile number"
+                                    : "Enter a valid mobile number",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: _isValidMobile(_mobile.text)
+                                      ? Colors.green
+                                      : Colors.redAccent,
+                                ),
+                              ),
                             ],
                             const SizedBox(height: 12),
                             _field(

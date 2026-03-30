@@ -1,9 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/aurix_glass_card.dart';
+import '../../gold_rate/data/gold_rate_repository.dart';
 
 class LiveGoldRateCard extends StatefulWidget {
   const LiveGoldRateCard({super.key});
@@ -17,33 +19,79 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
 
   int _pageIndex = 0;
   String _currency = 'USD';
+  bool _isLoading = true;
 
-  final List<_MetalRateData> _metals = const [
-    _MetalRateData(
+  List<_MetalRateData> _metals = [
+    const _MetalRateData(
       name: 'Gold',
       symbol: 'XAU',
-      usdPrice: 2048.25,
-      lkrPrice: 618540.00,
-      changePercent: 1.24,
+      usdPrice: 0,
+      lkrPrice: 0,
+      changePercent: 0,
       graph: [1940, 1965, 1988, 1972, 2005, 2032, 2024, 2048],
     ),
-    _MetalRateData(
+    const _MetalRateData(
       name: 'Silver',
       symbol: 'XAG',
-      usdPrice: 24.12,
-      lkrPrice: 7288.00,
-      changePercent: 0.86,
+      usdPrice: 0,
+      lkrPrice: 0,
+      changePercent: 0,
       graph: [22.8, 23.0, 23.4, 23.1, 23.6, 23.9, 24.0, 24.12],
     ),
-    _MetalRateData(
+    const _MetalRateData(
       name: 'Platinum',
       symbol: 'XPT',
-      usdPrice: 912.60,
-      lkrPrice: 275510.00,
-      changePercent: -0.34,
+      usdPrice: 0,
+      lkrPrice: 0,
+      changePercent: 0,
       graph: [905, 910, 918, 921, 916, 914, 909, 912.6],
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRates();
+  }
+
+  Future<void> _fetchRates() async {
+    setState(() => _isLoading = true);
+    try {
+      final repo = Provider.of<GoldRateRepository>(context, listen: false);
+      final rates = await repo.getLiveRates();
+      setState(() {
+        _metals = [
+          _MetalRateData(
+            name: 'Gold',
+            symbol: 'XAU',
+            usdPrice: rates.xauUsd,
+            lkrPrice: rates.lkr24k > 0 ? rates.lkr24k.toDouble() : rates.xauUsd * 300 / 31.103, // dummy fallback lkr 
+            changePercent: 0.45,
+            graph: [1940, 1965, rates.xauUsd * 0.98, rates.xauUsd * 0.99, rates.xauUsd],
+          ),
+          _MetalRateData(
+            name: 'Silver',
+            symbol: 'XAG',
+            usdPrice: rates.silver,
+            lkrPrice: rates.silver * 300 / 31.103, // fallback lkr conversion
+            changePercent: 0.12,
+            graph: [22.8, 23.0, rates.silver * 0.98, rates.silver * 0.99, rates.silver],
+          ),
+          _MetalRateData(
+            name: 'Platinum',
+            symbol: 'XPT',
+            usdPrice: rates.platinum,
+            lkrPrice: rates.platinum * 300 / 31.103, // fallback lkr conversion
+            changePercent: -0.05,
+            graph: [905, 910, rates.platinum * 1.02, rates.platinum * 1.01, rates.platinum],
+          ),
+        ];
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +111,14 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
                 ),
               ),
             ),
-            _currencyToggle(),
+            IconButton(
+              icon: _isLoading 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.gold))
+                : const Icon(Icons.refresh, color: AppColors.gold, size: 20),
+              onPressed: _isLoading ? null : _fetchRates,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -110,9 +165,7 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
                                   ),
                                 ),
                                 Text(
-                                  _currency == 'USD'
-                                      ? '${metal.symbol}/USD'
-                                      : '${metal.symbol}/LKR',
+                                  '${metal.symbol}/USD',
                                   style: TextStyle(
                                     color: Theme.of(context).hintColor,
                                     fontWeight: FontWeight.w700,
@@ -126,11 +179,9 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        _currency == 'USD'
-                            ? '\$${metal.usdPrice.toStringAsFixed(2)}'
-                            : 'LKR ${_formatLkr(metal.lkrPrice)}',
+                        '\$${metal.usdPrice.toStringAsFixed(2)} / troy ounce',
                         style: const TextStyle(
-                          fontSize: 30,
+                          fontSize: 28,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -176,60 +227,6 @@ class _LiveGoldRateCardState extends State<LiveGoldRateCard> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _currencyToggle() {
-    final isUsd = _currency == 'USD';
-
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: AppColors.gold.withValues(alpha: 0.25),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _toggleButton(
-            label: 'USD',
-            selected: isUsd,
-            onTap: () => setState(() => _currency = 'USD'),
-          ),
-          _toggleButton(
-            label: 'LKR',
-            selected: !isUsd,
-            onTap: () => setState(() => _currency = 'LKR'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _toggleButton({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          color: selected ? AppColors.gold : Colors.transparent,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: selected ? Colors.black : null,
-          ),
-        ),
-      ),
     );
   }
 

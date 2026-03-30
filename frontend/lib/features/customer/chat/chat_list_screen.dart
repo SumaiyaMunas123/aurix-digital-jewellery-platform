@@ -14,9 +14,13 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
+  // API layer for chat operations
   final _chatRepository = ChatRepository();
+  // Future that loads all chat threads
   late Future<List<Map<String, dynamic>>> _chatsFuture;
+  // Current logged-in user's ID
   String? _currentUserId;
+  // Current user's role (customer or jeweller)
   String? _currentUserRole;
 
   @override
@@ -25,13 +29,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
     _chatsFuture = _loadChats();
   }
 
+  // Fetch all chat threads for current user
   Future<List<Map<String, dynamic>>> _loadChats() async {
     try {
+      // Get user ID from parameter or token
       final resolvedUserId =
           (widget.userId != null && widget.userId!.isNotEmpty)
               ? widget.userId!
               : await _chatRepository.getCurrentUserId();
 
+      // Get user's role to determine display logic
       final resolvedRole = await _chatRepository.getCurrentUserRole();
 
       _currentUserId = resolvedUserId;
@@ -41,20 +48,26 @@ class _ChatListScreenState extends State<ChatListScreen> {
         return [];
       }
 
+      // Request all threads for this user
       final threads = await _chatRepository.getChatThreads(resolvedUserId);
       print('✅ Loaded ${threads.length} chats from backend');
 
+      // Transform API response for UI display
       return threads.map((t) {
+        // Check if user is customer in this thread
         final isCustomer = t['customer_id'] == resolvedUserId;
 
         return {
           'id': t['id'],
+          // Show jeweller name for customers, customer name for jewellers
           'name': isCustomer
               ? (t['jeweller']?['business_name'] ??
                   t['jeweller']?['name'] ??
                   'Jeweller')
               : (t['customer']?['name'] ?? 'Customer'),
+          // Last message preview
           'last': t['last_message'] ?? 'No messages yet',
+          // Unread count badge
           'unread': t['unread_count'] ?? 0,
         };
       }).toList();
@@ -64,13 +77,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  // Reload chat list from backend
   Future<void> _refreshChats() async {
     setState(() {
       _chatsFuture = _loadChats();
     });
   }
 
+  // Show jeweller selection sheet, create thread, navigate to chat
   Future<void> _openStartChatSheet() async {
+    // Only customers can start new chats
     if (_currentUserRole == 'jeweller') {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,6 +95,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       return;
     }
 
+    // Open bottom sheet to select jeweller
     final selected = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -87,6 +104,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
     if (!mounted || selected == null) return;
 
+    // Extract jeweller info from selection
     final jewellerId = (selected['id'] ?? '').toString();
     final jewellerName = (selected['display_name'] ??
             selected['business_name'] ??
@@ -97,13 +115,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
     if (jewellerId.isEmpty) return;
 
     try {
+      // Create or get existing thread with selected jeweller
       final thread = await _chatRepository.startChat(
         jewellerId: jewellerId,
       );
 
+      // Refresh list to show new thread
       await _refreshChats();
 
       if (!mounted) return;
+      // Navigate to chat room
       Nav.push(
         context,
         ChatRoomScreen(
@@ -121,10 +142,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Load chats async and display based on state
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _chatsFuture,
       builder: (context, snapshot) {
         final chats = snapshot.data ?? [];
+        // Show spinner while loading threads
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
 
         return ListView(
@@ -135,6 +158,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
             ),
             const SizedBox(height: 12),
+            // Only show "Start New Chat" button for customers
             if (_currentUserRole != 'jeweller')
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -147,11 +171,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   ),
                 ),
               ),
+            // Loading state
             if (isLoading)
               const Padding(
                 padding: EdgeInsets.all(20),
                 child: CircularProgressIndicator(),
               )
+            // Empty state
             else if (chats.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(20),
@@ -160,11 +186,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   style: TextStyle(color: Colors.grey[400]),
                 ),
               )
+            // Chat list
             else
               ...chats.map((c) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: GestureDetector(
+                    // Tap to open chat
                     onTap: () => Nav.push(
                       context,
                       ChatRoomScreen(
@@ -174,6 +202,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     ),
                     child: AurixGlassCard(
                       child: ListTile(
+                        // Unread indicator badge
                         leading: Badge(
                           isLabelVisible: ((c['unread'] as int?) ?? 0) > 0,
                           label: Text('${c['unread']}'),
@@ -181,11 +210,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             child: Icon(Icons.storefront_rounded),
                           ),
                         ),
+                        // Chat partner name
                         title: Text(
                           c["name"] ?? "Unknown",
                           style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
+                        // Last message preview
                         subtitle: Text(c["last"] ?? ""),
+                        // Click indicator
                         trailing: const Icon(Icons.chevron_right_rounded),
                       ),
                     ),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -42,7 +43,33 @@ class GeneratedImageWidget extends StatelessWidget {
   }
 
   Widget _buildPreview() {
-    // Show generated image from backend
+    // First try the raw base64 string if the backend returned it directly (avoids network/Supabase errors)
+    if (imageBase64 != null && imageBase64!.isNotEmpty) {
+      try {
+        String cleanBase64 = imageBase64!.contains(',') 
+            ? imageBase64!.split(',').last 
+            : imageBase64!;
+            
+        // Ensure proper base64 padding
+        cleanBase64 = cleanBase64.replaceAll(RegExp(r'\s+'), '');
+        int paddingLength = 4 - (cleanBase64.length % 4);
+        if (paddingLength > 0 && paddingLength < 4) {
+          cleanBase64 += '=' * paddingLength;
+        }
+            
+        return Image.memory(
+          base64Decode(cleanBase64),
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Center(
+            child: Icon(Icons.error_outline, size: 60, color: AppColors.gold),
+          ),
+        );
+      } catch (e) {
+        debugPrint('Base64 decode error: $e');
+      }
+    }
+
+    // Show generated image from backend URL
     if (imageUrl != null && imageUrl!.isNotEmpty) {
       return Image.network(
         imageUrl!,
@@ -115,6 +142,32 @@ class _ImagePreview extends StatelessWidget {
   }
 
   Widget _buildImage() {
+    if (imageBase64 != null && imageBase64!.isNotEmpty) {
+      try {
+        String cleanBase64 = imageBase64!.contains(',') 
+            ? imageBase64!.split(',').last 
+            : imageBase64!;
+            
+        // Ensure proper base64 padding
+        cleanBase64 = cleanBase64.replaceAll(RegExp(r'\s+'), '');
+        int paddingLength = 4 - (cleanBase64.length % 4);
+        if (paddingLength > 0 && paddingLength < 4) {
+          cleanBase64 += '=' * paddingLength;
+        }
+            
+        return Image.memory(
+          base64Decode(cleanBase64),
+          errorBuilder: (_, __, ___) => const Icon(
+            Icons.error_outline,
+            size: 200,
+            color: AppColors.gold,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Base64 decode error: $e');
+      }
+    }
+
     if (imageUrl != null && imageUrl!.isNotEmpty) {
       return Image.network(
         imageUrl!,

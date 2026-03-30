@@ -20,14 +20,18 @@ class AiGeneratingScreen extends StatefulWidget {
 
 class _AiGeneratingScreenState extends State<AiGeneratingScreen>
     with SingleTickerProviderStateMixin {
+  // Pulse animation controller
   late final AnimationController _controller;
+  // AI image generation API
   final _aiRepository = AiRepository();
+  // Error message if generation fails
   String? _error;
 
   @override
   void initState() {
     super.initState();
 
+    // Setup pulsing animation (scales between 0.8 and 1.25)
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -35,13 +39,16 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
       upperBound: 1.25,
     )..repeat(reverse: true);
 
+    // Start image generation immediately
     _generateImage();
   }
 
+  // Call API to generate image, then navigate or show error
   Future<void> _generateImage() async {
     try {
-      print('🎨 Starting AI image generation...');
+      print('🎈 Starting AI image generation...');
       
+      // Send generation request to backend
       final result = await _aiRepository.generateImage(
         request: widget.request,
         mode: widget.request.mode,
@@ -49,17 +56,19 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
 
       if (!mounted) return;
 
+      // Extract image URLs from response
       final imageUrl = (result['imageUrl'] ?? '').toString();
       final imageBase64 = (result['imageBase64'] ?? '').toString();
       
       print('✅ Image generated successfully: $imageUrl');
 
+      // Prepare updated request with generated image
       final updatedRequest = widget.request.copyWith(
         imageUrl: imageUrl,
         imageBase64: imageBase64,
       );
 
-      // Navigate to result screen (replacing this screen)
+      // Navigate to result screen (with image preview)
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -70,9 +79,10 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
       print('❌ Generation failed: $e');
       if (!mounted) return;
       
+      // Show error state
       setState(() => _error = e.toString());
 
-      // Show error for 3 seconds then return
+      // Display error for 3 seconds, then pop back
       await Future.delayed(const Duration(seconds: 3));
       if (mounted) Navigator.of(context).pop();
     }
@@ -80,24 +90,29 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
 
   @override
   void dispose() {
+    // Clean up animation controller
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show loading state with pulsing animation or error message
     return Scaffold(
       body: AurixBackground(
         child: Stack(
           children: [
+            // Blurred backdrop
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
               child: Container(
                 color: Colors.black.withValues(alpha: 0.15),
               ),
             ),
+            // Center content: error or loading spinner
             Center(
               child: _error != null
+                  // Show error message if generation failed
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -120,6 +135,7 @@ class _AiGeneratingScreenState extends State<AiGeneratingScreen>
                         ),
                       ],
                     )
+                  // Show pulsing animation while generating
                   : AnimatedBuilder(
                       animation: _controller,
                       builder: (_, __) {

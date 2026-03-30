@@ -165,6 +165,7 @@ class _MetalsRatesCarouselState extends State<MetalsRatesCarousel> {
               currentPage: _page,
               totalPages: metals.length,
               onUnitTap: _cycleUnit,
+              onRefresh: _fetchRates,
               isLive: _ratesLoaded,
             ),
           );
@@ -201,6 +202,7 @@ class _MetalRateCard extends StatelessWidget {
   final int currentPage;
   final int totalPages;
   final VoidCallback onUnitTap;
+  final VoidCallback onRefresh;
   final bool isLive;
 
   const _MetalRateCard({
@@ -210,6 +212,7 @@ class _MetalRateCard extends StatelessWidget {
     required this.currentPage,
     required this.totalPages,
     required this.onUnitTap,
+    required this.onRefresh,
     this.isLive = false,
   });
 
@@ -247,6 +250,13 @@ class _MetalRateCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: AppColors.gold),
+                      onPressed: onRefresh,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                    const SizedBox(width: 8),
                     Text(
                       isLive ? 'Live' : 'Loading',
                       style: TextStyle(

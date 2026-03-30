@@ -138,13 +138,13 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
     final request = AiGenerationRequest(
       mode: _mode,
       prompt: _mode == 0 ? prompt : '',
-      category: _category,
-      weight: _weight,
-      material: _material,
-      karat: _karat,
-      style: _style,
-      occasion: _occasion,
-      budget: _budget,
+      category: _mode == 0 ? '' : _category,
+      weight: _mode == 0 ? '' : _weight,
+      material: _mode == 0 ? '' : _material,
+      karat: _mode == 0 ? '' : _karat,
+      style: _mode == 0 ? '' : _style,
+      occasion: _mode == 0 ? '' : _occasion,
+      budget: _mode == 0 ? '' : _budget,
       sketchPath: _sketchFile?.path,
     );
 
@@ -195,8 +195,10 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
           const SizedBox(height: 16),
         ],
 
-        _selectionGrid(),
-        const SizedBox(height: 16),
+        if (_mode == 1) ...[
+          _selectionGrid(),
+          const SizedBox(height: 16),
+        ],
 
         _generateButton(),
       ],
@@ -350,8 +352,43 @@ class _AiStudioScreenState extends State<AiStudioScreen> {
               border: OutlineInputBorder(),
             ),
           ),
+          const SizedBox(height: 12),
+          Text(
+            'Try these examples:',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).hintColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _examplePromptChip('Diamond halo engagement ring'),
+              _examplePromptChip('Vintage emerald pendant necklace'),
+              _examplePromptChip('Modern platinum link bracelet'),
+              _examplePromptChip('Traditional 22k gold bangles with rubies'),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _examplePromptChip(String text) {
+    return ActionChip(
+      label: Text(text, style: const TextStyle(fontSize: 12)),
+      onPressed: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          _promptController.text = text;
+        });
+      },
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      side: BorderSide(color: AppColors.gold.withValues(alpha: 0.5)),
     );
   }
 

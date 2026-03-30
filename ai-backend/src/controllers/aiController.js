@@ -60,8 +60,18 @@ export const generateImage = async (req, res) => {
       return sendError(res, 'Invalid mode. Use 0 for text-to-image or 1 for sketch-to-image', 400);
     }
 
-    // Build style context for better generation
-    const styleContext = `${category || 'jewelry'} in ${material || 'gold'} (${karat || '22K'}), ${style || 'elegant'} style, ${occasion || 'daily wear'}, budget ${budget || 'varies'}`;
+    // Build style context for better generation (only add things that were explicitly provided)
+    const contextParts = [];
+    if (category && category !== 'Any') contextParts.push(category);
+    if (material && material !== 'Any') contextParts.push(`in ${material}`);
+    if (karat && karat !== 'Any') contextParts.push(`(${karat})`);
+    if (style && style !== 'Any') contextParts.push(`${style} style`);
+    if (occasion && occasion !== 'Any') contextParts.push(`for ${occasion}`);
+    
+    let styleContext = contextParts.join(' ');
+    if (budget && budget !== 'Any') {
+      styleContext += styleContext ? `, budget: ${budget}` : `budget: ${budget}`;
+    }
 
     let buffer, imageBase64, sketchUrl = null;
 
@@ -92,38 +102,49 @@ export const generateImage = async (req, res) => {
       // Upload sketch reference
       const sketchTimestamp = Date.now();
       const sketchUploadPath = `${toSafeFileSegment(userType)}/${toSafeFileSegment(userId || 'anonymous')}/sketch-${sketchTimestamp}.png`;
-      const uploadedSketch = await uploadBufferToDesigns({ 
-        path: sketchUploadPath, 
-        buffer: sketchBuffer, 
-        contentType: 'image/png' 
-      });
-      sketchUrl = uploadedSketch.publicUrl;
+      try {
+        const uploadedSketch = await uploadBufferToDesigns({ 
+          path: sketchUploadPath, 
+          buffer: sketchBuffer, 
+          contentType: 'image/png' 
+        });
+        sketchUrl = uploadedSketch.publicUrl;
+      } catch (err) {
+        console.warn('⚠️ Supabase sketch upload skipped due to error:', err.message);
+      }
     }
 
     const now = Date.now();
     const generatedPath = `${toSafeFileSegment(userType)}/${toSafeFileSegment(userId || 'anonymous')}/generated-${now}.png`;
 
-    const uploaded = await uploadBufferToDesigns({ 
-      path: generatedPath, 
-      buffer, 
-      contentType: 'image/png' 
-    });
+    let uploaded = { publicUrl: null };
+    let design = { id: 'temp_' + now, user_id: userId, prompt: prompt };
+    
+    try {
+      uploaded = await uploadBufferToDesigns({ 
+        path: generatedPath, 
+        buffer, 
+        contentType: 'image/png' 
+      });
 
-    const design = await createDesignRecord({
-      userId,
-      userType,
-      prompt: modeInt === 0 ? prompt.trim() : `Sketch-based: ${prompt || 'refined design'}`,
-      imageUrl: uploaded.publicUrl,
-      styleParams: { category, weight, material, karat, style, occasion, budget },
-      sketchUrl,
-      mode: modeInt,
-    });
+      design = await createDesignRecord({
+        userId,
+        userType,
+        prompt: modeInt === 0 ? prompt.trim() : `Sketch-based: ${prompt || 'refined design'}`,
+        imageUrl: uploaded.publicUrl,
+        styleParams: { category, weight, material, karat, style, occasion, budget },
+        sketchUrl,
+        mode: modeInt,
+      });
+    } catch (storageErr) {
+      console.warn('⚠️ Supabase storage/db skipped due to error (returning base64 only):', storageErr.message);
+    }
 
     console.log('✅ Design generation completed successfully');
     
     // Return success using response utility
     const responseData = {
-      image_url: uploaded.publicUrl,
+      image_url: uploaded.publicUrl || '', // fallback to empty string if no url
       image_base64: imageBase64 || null,
       sketch_url: sketchUrl || null,
       design: {
@@ -131,12 +152,7 @@ export const generateImage = async (req, res) => {
         user_id: design.user_id,
         user_type: design.user_type,
         prompt: design.prompt,
-        style_params: design.style_params,
         image_url: design.image_url,
-        sketch_url: design.sketch_url,
-        generation_mode: design.generation_mode,
-        status: design.status,
-        created_at: design.created_at,
       },
       mode: modeInt,
     };
