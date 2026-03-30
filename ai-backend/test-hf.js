@@ -1,8 +1,12 @@
+import 'dotenv/config';
 import { HfInference } from '@huggingface/inference';
 
 async function testHF() {
   try {
-    const hf = new HfInference('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');
+    const token = process.env.HF_TOKEN;
+    if (!token) throw new Error('HF_TOKEN is missing from .env file');
+    
+    const hf = new HfInference(token);
     console.log('Testing HF token...');
     const result = await hf.textToImage({
       model: 'stabilityai/stable-diffusion-xl-base-1.0',
