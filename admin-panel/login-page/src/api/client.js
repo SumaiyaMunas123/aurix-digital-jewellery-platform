@@ -1,4 +1,9 @@
-const API_BASE_URL = "/api";
+const DEFAULT_PROD_API_BASE_URL =
+  "https://aurix-digital-jewellery-platform-1.onrender.com/api";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? "/api" : DEFAULT_PROD_API_BASE_URL);
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("adminToken");

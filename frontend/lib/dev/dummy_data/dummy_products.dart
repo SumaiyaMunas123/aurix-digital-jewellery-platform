@@ -3,7 +3,8 @@ class DummyProducts {
     {
       "id": "p1",
       "name": "Classic Gold Ring",
-      "jeweller": "Luxe Jewels",
+      "jeweller": "Test Jeweller",
+      "jeweller_id": "1a94c840-57e0-42b3-a0f6-b88522add658",
       "karat": "22K",
       "weight": "4.2g",
       "priceLkr": 215000,
@@ -16,7 +17,8 @@ class DummyProducts {
     {
       "id": "p2",
       "name": "Minimal Chain Necklace",
-      "jeweller": "Aurora Gold",
+      "jeweller": "Test Jeweller",
+      "jeweller_id": "1a94c840-57e0-42b3-a0f6-b88522add658",
       "karat": "24K",
       "weight": "7.8g",
       "priceLkr": 320000,
@@ -29,7 +31,8 @@ class DummyProducts {
     {
       "id": "p3",
       "name": "Pearl Pendant",
-      "jeweller": "Ceylon Gems",
+      "jeweller": "Test Jeweller",
+      "jeweller_id": "1a94c840-57e0-42b3-a0f6-b88522add658",
       "karat": "22K",
       "weight": "3.1g",
       "priceLkr": 145000,
