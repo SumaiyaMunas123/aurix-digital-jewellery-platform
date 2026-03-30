@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd admin-panel/login-page && npm install",
+  "buildCommand": "cd admin-panel/login-page && npm run build",
+  "outputDirectory": "admin-panel/login-page/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://aurix-digital-jewellery-platform-1.onrender.com/api/$1"
+    }
+  ]
+}

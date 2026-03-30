@@ -1,9 +1,4 @@
-const DEFAULT_PROD_API_BASE_URL =
-  "https://aurix-digital-jewellery-platform-1.onrender.com/api";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.DEV ? "/api" : DEFAULT_PROD_API_BASE_URL);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("adminToken");
@@ -46,6 +41,12 @@ export const signup = (email, password, user_type, metadata = {}) =>
 
 export const login = (email, password) =>
   apiCall("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+
+export const adminLogin = (email, password) =>
+  apiCall("/admin/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });

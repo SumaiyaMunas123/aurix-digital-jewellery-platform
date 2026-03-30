@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./index.css";
 import "./AdminLogin.css";
 import logoImg from "./assets/logo.jpg";
+import { adminLogin } from "./api/client";
 
 const AdminLogin = ({ onLogin }) => {
   const [email, setEmail] = useState("");
@@ -22,13 +23,7 @@ const AdminLogin = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
+      const data = await adminLogin(email, password);
 
       if (data.success) {
         if (onLogin) onLogin(data.user, data.token);
@@ -36,7 +31,7 @@ const AdminLogin = ({ onLogin }) => {
         setError(data.message || "Invalid credentials.");
       }
     } catch (err) {
-      setError("Unable to connect to server. Please try again.");
+      setError(err.message || "Unable to connect to server. Please try again.");
       console.error("Login error:", err.message);
     } finally {
       setLoading(false);
