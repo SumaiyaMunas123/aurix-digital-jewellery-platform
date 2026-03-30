@@ -1,8 +1,19 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class Environment {
-  // If you are testing on a real Android device over Wi-Fi/cable, 
-  // you MUST use your computer's local IP address instead of 'localhost'.
-  // Example for this machine: 'http://10.81.105.189:5000/api'
-  static const String baseUrl = "http://10.81.105.189:5000/api";
-  static const String aiBackendUrl = "http://10.81.105.189:7000/api";
-  static const String goldRateUrl = "http://10.81.105.189:6001";
+  // Automatically select the correct "localhost" depending on the platform you're testing on.
+  static String get _localHost {
+    if (kIsWeb) {
+      return 'localhost';
+    } else if (Platform.isAndroid) {
+      return '10.0.2.2'; // Standard loopback for Android emulators
+    } else {
+      return 'localhost'; // Windows/desktop/iOS simulator
+    }
+  }
+
+  static String get baseUrl => "http://$_localHost:5000/api";
+  static String get aiBackendUrl => "http://$_localHost:7000/api";
+  static String get goldRateUrl => "http://$_localHost:6001";
 }
